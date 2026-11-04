@@ -1,0 +1,29 @@
+[project]
+name = "lims-post-market"
+version = "0.1.0"
+description = "LIMS para fiscalização pós-mercado de dispositivos médicos"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [".venv", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "ASYNC"]
+# UP042: mantemos `str, Enum` (e não `StrEnum`) porque o valor textual dos
+# enums é serializado explicitamente (`.value`) em auditoria/JSON e o mixin
+# preserva o comportamento em todas as versões suportadas.
+ignore = ["B008", "E501", "UP042"]
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+strict_optional = true
+warn_unused_ignores = true

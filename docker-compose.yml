@@ -1,0 +1,75 @@
+name: lims-post-market
+
+x-backend-env: &backend-env
+  ENVIRONMENT: ${ENVIRONMENT:-dev}
+  DEBUG: "false"
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-lims}:${POSTGRES_PASSWORD:-lims}@db:5432/${POSTGRES_DB:-lims}
+  JWT_SECRET: ${JWT_SECRET:-dev-insecure-jwt-secret-change-me-please-32bytes}
+  AUDIT_HMAC_KEY: ${AUDIT_HMAC_KEY:-dev-insecure-audit-hmac-key-change-me-32bytes}
+  QR_SIGNING_KEY: ${QR_SIGNING_KEY:-dev-insecure-qr-signing-key-change-me-32bytes}
+  ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+  REFRESH_TOKEN_EXPIRE_HOURS: ${REFRESH_TOKEN_EXPIRE_HOURS:-12}
+  ESIGNATURE_TTL_SECONDS: ${ESIGNATURE_TTL_SECONDS:-300}
+  SESSION_IDLE_TIMEOUT_MINUTES: ${SESSION_IDLE_TIMEOUT_MINUTES:-15}
+  AUTO_OPEN_CAPA_ON_FAILURE: ${AUTO_OPEN_CAPA_ON_FAILURE:-true}
+  AUTO_CREATE_SCHEMA: "true"
+  CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+  DB_POOL_SIZE: "5"
+  DB_MAX_OVERFLOW: "10"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lims}
+      POSTGRES_USER: ${POSTGRES_USER:-lims}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lims}
+      TZ: America/Sao_Paulo
+    volumes:
+      - lims_pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+    environment: *backend-env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8000}:8000"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+
+  # Seed de demonstração. Execução única:
+  #   docker compose --profile tools run --rm seed
+  seed:
+    build:
+      context: ./backend
+    profiles: ["tools"]
+    environment: *backend-env
+    command: ["python", "-m", "app.seed"]
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  lims_pgdata:

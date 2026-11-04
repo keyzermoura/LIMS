@@ -1,0 +1,781 @@
+import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Fingerprint,
+  Loader2,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  ShieldX,
+  X,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useToast } from "@/components/ui/toast";
+import { api, ApiError, buildQuery } from "@/lib/api";
+import type {
+  AuditAction,
+  AuditLogEntry,
+  AuditVerifyResult,
+  DeviceSample,
+  Page,
+  UserBrief,
+} from "@/lib/types";
+import { formatDateTime, shortHash } from "@/lib/utils";
+
+const ACTION_LABELS: Record<string, string> = {
+  CREATE: "Criação",
+  UPDATE: "Alteração",
+  DELETE: "Exclusão",
+  TRANSFER: "Transferência",
+  STATUS_CHANGE: "Mudança de status",
+  SIGN: "Assinatura",
+  LOGIN: "Login",
+  LOGIN_FAILED: "Falha de login",
+  LOGOUT: "Logout",
+  REFRESH: "Renovação de sessão",
+  SIGNATURE_ISSUED: "Assinatura emitida",
+  SIGNATURE_REJECTED: "Assinatura rejeitada",
+  CAPA_AUTO_OPEN: "CAPA automática",
+  INTEGRITY_CHECK: "Verificação de integridade",
+};
+
+const ENTITY_LABELS: Record<string, string> = {
+  DeviceSample: "Amostra",
+  LabTest: "Ensaio",
+  CapaAction: "CAPA",
+  ChainOfCustody: "Custódia",
+  User: "Usuário",
+  ElectronicSignature: "Assinatura",
+  AuditLog: "Auditoria",
+};
+
+const ACTION_FILTERS: Array<{ value: AuditAction; label: string }> = [
+  { value: "CREATE", label: "Criação" },
+  { value: "UPDATE", label: "Alteração" },
+  { value: "TRANSFER", label: "Transferência de custódia" },
+  { value: "STATUS_CHANGE", label: "Mudança de status" },
+  { value: "CAPA_AUTO_OPEN", label: "CAPA automática" },
+  { value: "SIGNATURE_ISSUED", label: "Assinatura emitida" },
+  { value: "SIGNATURE_REJECTED", label: "Assinatura rejeitada" },
+  { value: "LOGIN", label: "Login" },
+  { value: "LOGIN_FAILED", label: "Falha de login" },
+  { value: "INTEGRITY_CHECK", label: "Verificação de integridade" },
+  { value: "LOGOUT", label: "Logout" },
+];
+
+const ENTITY_FILTERS: Array<{ value: string; label: string }> = [
+  { value: "DeviceSample", label: "Amostra" },
+  { value: "LabTest", label: "Ensaio" },
+  { value: "CapaAction", label: "CAPA" },
+  { value: "User", label: "Usuário" },
+  { value: "ElectronicSignature", label: "Assinatura" },
+  { value: "AuditLog", label: "Auditoria" },
+];
+
+interface Filters {
+  entityType: string;
+  entityId: string;
+  actorId: string;
+  action: string;
+  search: string;
+  dateFrom: string;
+  dateTo: string;
+}
+
+const EMPTY_FILTERS: Filters = {
+  entityType: "",
+  entityId: "",
+  actorId: "",
+  action: "",
+  search: "",
+  dateFrom: "",
+  dateTo: "",
+};
+
+export function AuditTrailPage() {
+  const { push } = useToast();
+  const [draft, setDraft] = React.useState<Filters>(EMPTY_FILTERS);
+  const [applied, setApplied] = React.useState<Filters>(EMPTY_FILTERS);
+  const [page, setPage] = React.useState(1);
+  const [selected, setSelected] = React.useState<AuditLogEntry | null>(null);
+  const [verifying, setVerifying] = React.useState(false);
+  const [verification, setVerification] = React.useState<AuditVerifyResult | null>(null);
+
+  const usersQuery = useQuery({
+    queryKey: ["users"],
+    queryFn: () => api.get<UserBrief[]>("/users"),
+  });
+
+  const samplesQuery = useQuery({
+    queryKey: ["samples", "recent"],
+    queryFn: () => api.get<Page<DeviceSample>>("/samples?size=100"),
+  });
+
+  const auditQuery = useQuery({
+    queryKey: ["audit", applied, page],
+    queryFn: () => {
+      const query = buildQuery({
+        page,
+        size: 50,
+        entity_type: applied.entityType || undefined,
+        entity_id: applied.entityId || undefined,
+        actor_id: applied.actorId || undefined,
+        action: applied.action || undefined,
+        search: applied.search || undefined,
+        date_from: applied.dateFrom
+          ? new Date(applied.dateFrom).toISOString()
+          : undefined,
+        // `datetime-local` tem precisão de minuto: inclui o minuto final inteiro.
+        date_to: applied.dateTo
+          ? new Date(new Date(applied.dateTo).getTime() + 59_999).toISOString()
+          : undefined,
+      });
+      return api.get<Page<AuditLogEntry>>(`/audit${query}`);
+    },
+  });
+
+  function applyFilters(event?: React.FormEvent) {
+    event?.preventDefault();
+    setPage(1);
+    setApplied({ ...draft });
+  }
+
+  function clearFilters() {
+    setDraft(EMPTY_FILTERS);
+    setApplied(EMPTY_FILTERS);
+    setPage(1);
+  }
+
+  async function verifyIntegrity() {
+    setVerifying(true);
+    try {
+      const result = await api.post<AuditVerifyResult>("/audit/verify");
+      setVerification(result);
+      push({
+        variant: result.ok ? "success" : "destructive",
+        title: result.ok
+          ? "Trilha íntegra"
+          : "Integridade comprometida",
+        description: result.ok
+          ? `${result.checked} registros verificados · head ${shortHash(result.head_hash, 12)}`
+          : `${result.issues.length} inconsistência(s) encontrada(s).`,
+      });
+      void auditQuery.refetch();
+    } catch (error) {
+      push({
+        variant: "destructive",
+        title: "Falha na verificação",
+        description:
+          error instanceof ApiError ? error.message : "Tente novamente.",
+      });
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  const data = auditQuery.data;
+  const entries = data?.items ?? [];
+  const hasFilters = Object.values(applied).some(Boolean);
+
+  return (
+    <div className="space-y-5">
+      <Card>
+        <CardHeader className="gap-4 border-b border-border pb-5 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
+              Auditoria da qualidade
+            </p>
+            <CardTitle className="mt-1 flex items-center gap-2 text-lg">
+              <ShieldCheck className="h-5 w-5" />
+              Trilha de auditoria
+            </CardTitle>
+            <CardDescription className="mt-1 max-w-2xl">
+              Registro append-only de todas as operações. Cada linha é encadeada por
+              SHA-256 e autenticada por HMAC; alterações são bloqueadas no banco.
+            </CardDescription>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={() => void auditQuery.refetch()}>
+              <RefreshCw
+                className={auditQuery.isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"}
+              />
+              Atualizar
+            </Button>
+            <Button onClick={() => void verifyIntegrity()} disabled={verifying}>
+              {verifying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Fingerprint className="h-4 w-4" />
+              )}
+              Verificar integridade
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-5">
+          {verification ? (
+            <div
+              className={`mb-5 flex flex-wrap items-start gap-3 rounded-md border px-4 py-3 text-[13px] ${
+                verification.ok
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                  : "border-rose-200 bg-rose-50 text-rose-950"
+              }`}
+              role="status"
+            >
+              {verification.ok ? (
+                <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-700" />
+              ) : (
+                <ShieldX className="mt-0.5 h-5 w-5 text-rose-700" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">
+                  {verification.ok
+                    ? "Cadeia de auditoria íntegra"
+                    : "Foram encontradas inconsistências"}
+                </p>
+                <p className="mt-0.5 opacity-80">
+                  {verification.checked} de {verification.total_records} registros
+                  verificados · último seq. {verification.last_sequence ?? "—"} ·
+                  head{" "}
+                  <span className="font-mono text-[11px]">
+                    {shortHash(verification.head_hash, 20)}
+                  </span>
+                </p>
+                {verification.issues.length > 0 ? (
+                  <ul className="mt-2 space-y-1 font-mono text-[11px]">
+                    {verification.issues.slice(0, 5).map((issue) => (
+                      <li key={`${issue.sequence}-${issue.type}`}>
+                        seq. {issue.sequence} · {issue.type} — {issue.detail}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => setVerification(null)}
+                className="rounded p-1 opacity-60 hover:opacity-100"
+                aria-label="Fechar resultado da verificação"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
+
+          <form onSubmit={applyFilters} className="grid gap-3 lg:grid-cols-12">
+            <div className="grid gap-1.5 lg:col-span-3">
+              <Label>Tipo de registro</Label>
+              <Select
+                value={draft.entityType || "ALL"}
+                onValueChange={(value) =>
+                  setDraft((current) => ({
+                    ...current,
+                    entityType: value === "ALL" ? "" : value,
+                    entityId: "",
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todos os tipos</SelectItem>
+                  {ENTITY_FILTERS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-1.5 lg:col-span-3">
+              <Label>{draft.entityType === "DeviceSample" ? "Amostra" : "Registro"}</Label>
+              {draft.entityType === "DeviceSample" ? (
+                <Select
+                  value={draft.entityId || "ALL"}
+                  onValueChange={(value) =>
+                    setDraft((current) => ({
+                      ...current,
+                      entityId: value === "ALL" ? "" : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas as amostras" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Todas as amostras</SelectItem>
+                    {(samplesQuery.data?.items ?? []).map((sample) => (
+                      <SelectItem key={sample.id} value={sample.id}>
+                        {sample.accession_number} · {sample.commercial_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={draft.entityId}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      entityId: event.target.value.trim(),
+                    }))
+                  }
+                  placeholder="UUID do registro"
+                  className="font-mono text-xs"
+                />
+              )}
+            </div>
+
+            <div className="grid gap-1.5 lg:col-span-3">
+              <Label>Usuário</Label>
+              <Select
+                value={draft.actorId || "ALL"}
+                onValueChange={(value) =>
+                  setDraft((current) => ({
+                    ...current,
+                    actorId: value === "ALL" ? "" : value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os usuários" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todos os usuários</SelectItem>
+                  {(usersQuery.data ?? []).map((candidate) => (
+                    <SelectItem key={candidate.id} value={candidate.id}>
+                      {candidate.full_name} · {candidate.username}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-1.5 lg:col-span-3">
+              <Label>Ação</Label>
+              <Select
+                value={draft.action || "ALL"}
+                onValueChange={(value) =>
+                  setDraft((current) => ({
+                    ...current,
+                    action: value === "ALL" ? "" : value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas as ações" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Todas as ações</SelectItem>
+                  {ACTION_FILTERS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-1.5 lg:col-span-3">
+              <Label htmlFor="date-from">De</Label>
+              <Input
+                id="date-from"
+                type="datetime-local"
+                value={draft.dateFrom}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, dateFrom: event.target.value }))
+                }
+              />
+            </div>
+            <div className="grid gap-1.5 lg:col-span-3">
+              <Label htmlFor="date-to">Até</Label>
+              <Input
+                id="date-to"
+                type="datetime-local"
+                value={draft.dateTo}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, dateTo: event.target.value }))
+                }
+              />
+            </div>
+            <div className="grid gap-1.5 lg:col-span-4">
+              <Label htmlFor="audit-search">Busca livre</Label>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="audit-search"
+                  className="pl-9"
+                  value={draft.search}
+                  onChange={(event) =>
+                    setDraft((current) => ({ ...current, search: event.target.value }))
+                  }
+                  placeholder="Usuário, motivo ou ID do registro"
+                />
+              </div>
+            </div>
+            <div className="flex items-end gap-2 lg:col-span-2">
+              <Button type="submit" className="flex-1">
+                <Filter className="h-4 w-4" />
+                Filtrar
+              </Button>
+              {hasFilters ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={clearFilters}
+                  title="Limpar filtros"
+                  aria-label="Limpar filtros"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-3 border-b border-border pb-4">
+          <div>
+            <CardTitle className="text-[15px]">Eventos registrados</CardTitle>
+            <CardDescription>
+              {data
+                ? `${data.total.toLocaleString("pt-BR")} evento(s) · página ${data.page} de ${Math.max(data.pages, 1)}`
+                : "Carregando…"}
+            </CardDescription>
+          </div>
+          <Badge variant="outline" className="gap-1 font-mono text-[10px]">
+            <ShieldCheck className="h-3 w-3 text-success" />
+            encadeado
+          </Badge>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          {auditQuery.isLoading ? (
+            <div className="space-y-2 p-5">
+              {[0, 1, 2, 3, 4].map((index) => (
+                <div key={index} className="h-10 animate-pulse rounded bg-muted" />
+              ))}
+            </div>
+          ) : auditQuery.isError ? (
+            <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
+              <AlertTriangle className="h-6 w-6 text-destructive" />
+              <p className="text-sm font-medium">Não foi possível carregar a trilha</p>
+              <p className="text-[13px] text-muted-foreground">
+                {auditQuery.error instanceof ApiError
+                  ? auditQuery.error.message
+                  : "Tente novamente."}
+              </p>
+            </div>
+          ) : entries.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 px-6 py-16 text-center">
+              <Search className="h-7 w-7 text-muted-foreground/40" />
+              <p className="text-sm font-medium">Nenhum evento encontrado</p>
+              <p className="text-[13px] text-muted-foreground">
+                Ajuste os filtros para ampliar a consulta.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="w-[150px]">Data / Hora</TableHead>
+                  <TableHead className="w-[160px]">Usuário</TableHead>
+                  <TableHead className="w-[150px]">Ação</TableHead>
+                  <TableHead className="w-[150px]">Entidade</TableHead>
+                  <TableHead>Valor antigo</TableHead>
+                  <TableHead>Valor novo</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {entries.map((entry) => (
+                  <TableRow
+                    key={entry.id}
+                    className="cursor-pointer"
+                    onClick={() => setSelected(entry)}
+                  >
+                    <TableCell className="whitespace-nowrap">
+                      <p className="text-[12.5px]">{formatDateTime(entry.occurred_at)}</p>
+                      <p className="audit-hash">seq. {entry.sequence}</p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-[12.5px] font-medium">{entry.actor_username}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {entry.actor_role ?? "—"}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <ActionBadge action={entry.action} />
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-[12.5px]">
+                        {ENTITY_LABELS[entry.entity_type] ?? entry.entity_type}
+                      </p>
+                      <p className="truncate font-mono text-[10px] text-muted-foreground">
+                        {entry.entity_id.slice(0, 13)}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <ValuePreview value={entry.old_value} emptyLabel="—" />
+                    </TableCell>
+                    <TableCell>
+                      <ValuePreview value={entry.new_value} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-3">
+          <p className="text-[11px] text-muted-foreground">
+            Clique em um evento para ver o manifesto completo e os hashes.
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1 || auditQuery.isFetching}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Anterior
+            </Button>
+            <span className="text-[11px] text-muted-foreground">
+              {page} / {Math.max(data?.pages ?? 1, 1)}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= (data?.pages ?? 1) || auditQuery.isFetching}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Próxima
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <AuditDetailDialog entry={selected} onClose={() => setSelected(null)} />
+    </div>
+  );
+}
+
+function ActionBadge({ action }: { action: string }) {
+  const destructive = action === "SIGNATURE_REJECTED" || action === "LOGIN_FAILED";
+  const success =
+    action === "CREATE" || action === "SIGN" || action === "INTEGRITY_CHECK";
+  const warning = action === "STATUS_CHANGE" || action === "CAPA_AUTO_OPEN";
+  const variant = destructive
+    ? "destructive"
+    : success
+      ? "success"
+      : warning
+        ? "warning"
+        : "outline";
+
+  return (
+    <Badge variant={variant} className="normal-case tracking-normal">
+      {ACTION_LABELS[action] ?? action}
+    </Badge>
+  );
+}
+
+function ValuePreview({
+  value,
+  emptyLabel = "—",
+}: {
+  value: Record<string, unknown> | null;
+  emptyLabel?: string;
+}) {
+  if (!value) return <span className="text-muted-foreground">{emptyLabel}</span>;
+
+  const entries = Object.entries(value)
+    .filter(([, item]) => item !== null && item !== undefined)
+    .slice(0, 2);
+
+  if (entries.length === 0) {
+    return <span className="text-muted-foreground">{emptyLabel}</span>;
+  }
+
+  return (
+    <div className="space-y-1">
+      {entries.map(([key, item]) => (
+        <div key={key} className="flex items-baseline gap-1.5 text-[11px]">
+          <span className="shrink-0 text-muted-foreground">{key}:</span>
+          <span className="truncate font-mono text-foreground/90">
+            {formatValue(item)}
+          </span>
+        </div>
+      ))}
+      {Object.keys(value).length > entries.length ? (
+        <span className="text-[10px] text-muted-foreground">
+          +{Object.keys(value).length - entries.length} campo(s)
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "string") return value.length > 40 ? `${value.slice(0, 40)}…` : value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized.length > 40 ? `${serialized.slice(0, 40)}…` : serialized;
+  } catch {
+    return String(value);
+  }
+}
+
+function AuditDetailDialog({
+  entry,
+  onClose,
+}: {
+  entry: AuditLogEntry | null;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open={Boolean(entry)} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+        {entry ? (
+          <>
+            <DialogHeader>
+              <div className="flex flex-wrap items-center gap-2">
+                <ActionBadge action={entry.action} />
+                <Badge variant="outline" className="font-mono">
+                  seq. {entry.sequence}
+                </Badge>
+                <span className="text-[11px] text-muted-foreground">
+                  {formatDateTime(entry.occurred_at)}
+                </span>
+              </div>
+              <DialogTitle className="mt-1">
+                {ENTITY_LABELS[entry.entity_type] ?? entry.entity_type} ·{" "}
+                <span className="font-mono text-sm">{entry.entity_id}</span>
+              </DialogTitle>
+              <DialogDescription>
+                {entry.reason ?? "Sem motivo declarado."}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <JsonPanel title="Valor antigo" value={entry.old_value} />
+              <JsonPanel title="Valor novo" value={entry.new_value} />
+            </div>
+
+            <div className="grid gap-2 rounded-md border border-border bg-muted/30 p-4 text-[12px] sm:grid-cols-2">
+              <Metadata label="Usuário" value={`${entry.actor_username} (${entry.actor_role ?? "—"})`} />
+              <Metadata label="IP de origem" value={entry.ip_address ?? "—"} mono />
+              <Metadata label="Request ID" value={entry.request_id ?? "—"} mono />
+              <Metadata
+                label="Assinatura eletrônica"
+                value={entry.signature_id ?? "não vinculada"}
+                mono
+              />
+              <Metadata label="Hash do registro" value={entry.hash} mono breakAll />
+              <Metadata label="Hash anterior" value={entry.prev_hash} mono breakAll />
+              <Metadata label="HMAC" value={entry.hmac} mono breakAll />
+              <Metadata label="User agent" value={entry.user_agent ?? "—"} small />
+            </div>
+
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              Este evento é imutável. O hash encadeia o registro anterior e o HMAC
+              autentica o conjunto com chave mantida fora do banco de dados.
+            </p>
+          </>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function JsonPanel({
+  title,
+  value,
+}: {
+  title: string;
+  value: Record<string, unknown> | null;
+}) {
+  return (
+    <div>
+      <p className="data-label mb-1.5">{title}</p>
+      <pre className="max-h-72 overflow-auto rounded-md border border-border bg-slate-950 p-3 font-mono text-[11px] leading-relaxed text-slate-100 scrollbar-thin">
+        {value ? JSON.stringify(value, null, 2) : "—"}
+      </pre>
+    </div>
+  );
+}
+
+function Metadata({
+  label,
+  value,
+  mono,
+  breakAll,
+  small,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  breakAll?: boolean;
+  small?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="data-label">{label}</p>
+      <p
+        className={`mt-0.5 ${mono ? "font-mono text-[10.5px]" : ""} ${
+          breakAll ? "break-all" : "truncate"
+        } ${small ? "text-[10px]" : ""}`}
+        title={value}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}

@@ -1,0 +1,216 @@
+const API_BASE = import.meta.env.VITE_API_URL ?? "/api/v1";
+
+const ACCESS_KEY = "lims.access";
+const REFRESH_KEY = "lims.refresh";
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code?: string;
+  readonly requestId?: string;
+  readonly details?: unknown;
+
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    requestId?: string,
+    details?: unknown,
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.requestId = requestId;
+    this.details = details;
+  }
+}
+
+export function getAccessToken(): string | null {
+  return sessionStorage.getItem(ACCESS_KEY);
+}
+
+export function getRefreshToken(): string | null {
+  return sessionStorage.getItem(REFRESH_KEY);
+}
+
+export function persistSession(accessToken: string, refreshToken: string): void {
+  sessionStorage.setItem(ACCESS_KEY, accessToken);
+  sessionStorage.setItem(REFRESH_KEY, refreshToken);
+}
+
+export function clearSession(): void {
+  sessionStorage.removeItem(ACCESS_KEY);
+  sessionStorage.removeItem(REFRESH_KEY);
+}
+
+export function hasStoredSession(): boolean {
+  return Boolean(getAccessToken());
+}
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function refreshSession(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) return false;
+      try {
+        const response = await fetch(`${API_BASE}/auth/refresh`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+        if (!response.ok) {
+          clearSession();
+          return false;
+        }
+        const data = (await response.json()) as {
+          access_token: string;
+          refresh_token: string;
+          user: unknown;
+        };
+        persistSession(data.access_token, data.refresh_token);
+        window.dispatchEvent(
+          new CustomEvent("lims:session", { detail: data.user }),
+        );
+        return true;
+      } catch {
+        return false;
+      }
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
+interface RequestOptions {
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  body?: unknown;
+  form?: URLSearchParams;
+  signatureToken?: string;
+  retry?: boolean;
+}
+
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { method = "GET", body, form, signatureToken, retry = true } = options;
+
+  const headers: Record<string, string> = {};
+  const accessToken = getAccessToken();
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  if (signatureToken) headers["X-Signature-Token"] = signatureToken;
+
+  let payload: BodyInit | undefined;
+  if (form) {
+    payload = form;
+  } else if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    payload = JSON.stringify(body);
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, { method, headers, body: payload });
+  } catch {
+    throw new ApiError(
+      "Não foi possível conectar ao servidor. Verifique a rede.",
+      0,
+      "NETWORK_ERROR",
+    );
+  }
+
+  if (
+    response.status === 401 &&
+    retry &&
+    !path.startsWith("/auth/login") &&
+    !path.startsWith("/auth/refresh")
+  ) {
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      return request<T>(path, { ...options, retry: false });
+    }
+    clearSession();
+    window.dispatchEvent(new Event("lims:logout"));
+  }
+
+  if (response.status === 204) return undefined as T;
+
+  const text = await response.text();
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { detail: text };
+    }
+  }
+
+  if (!response.ok) {
+    const errorBody = (data ?? {}) as {
+      detail?: unknown;
+      code?: string;
+      request_id?: string;
+      context?: unknown;
+      errors?: unknown;
+    };
+    const detail =
+      typeof errorBody.detail === "string"
+        ? errorBody.detail
+        : "A operação não pôde ser concluída.";
+    throw new ApiError(
+      detail,
+      response.status,
+      errorBody.code,
+      errorBody.request_id,
+      errorBody.context ?? errorBody.errors,
+    );
+  }
+
+  return data as T;
+}
+
+export const api = {
+  get: <T>(path: string) => request<T>(path),
+  post: <T>(path: string, body?: unknown, signatureToken?: string) =>
+    request<T>(path, { method: "POST", body, signatureToken }),
+  patch: <T>(path: string, body?: unknown, signatureToken?: string) =>
+    request<T>(path, { method: "PATCH", body, signatureToken }),
+  login: <T>(username: string, password: string) =>
+    request<T>("/auth/login", {
+      method: "POST",
+      form: new URLSearchParams({ username, password }),
+    }),
+  rawRequest: request,
+};
+
+/** Baixa um recurso binário autenticado e devolve um object URL. */
+export async function fetchObjectUrl(path: string): Promise<string> {
+  async function download(): Promise<Response> {
+    const accessToken = getAccessToken();
+    return fetch(`${API_BASE}${path}`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
+  }
+
+  let response = await download();
+  if (response.status === 401) {
+    const refreshed = await refreshSession();
+    if (refreshed) response = await download();
+  }
+  if (!response.ok) {
+    throw new ApiError("Não foi possível carregar a imagem.", response.status);
+  }
+  return URL.createObjectURL(await response.blob());
+}
+
+export function buildQuery(
+  params: Record<string, string | number | boolean | null | undefined>,
+): string {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === null || value === undefined || value === "") return;
+    search.set(key, String(value));
+  });
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}

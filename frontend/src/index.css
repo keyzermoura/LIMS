@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 25% 97%;
+    --foreground: 215 30% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 30% 14%;
+
+    --primary: 197 82% 22%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 205 25% 93%;
+    --secondary-foreground: 215 30% 20%;
+
+    --muted: 210 22% 94%;
+    --muted-foreground: 215 12% 44%;
+
+    --accent: 174 62% 36%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 356 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 36 92% 44%;
+    --warning-foreground: 30 60% 12%;
+
+    --success: 158 64% 30%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 212 20% 87%;
+    --input: 212 20% 85%;
+    --ring: 197 82% 32%;
+
+    --radius: 0.6rem;
+  }
+
+  .dark {
+    --background: 215 32% 10%;
+    --foreground: 210 25% 94%;
+    --card: 215 28% 13%;
+    --card-foreground: 210 25% 94%;
+    --primary: 190 70% 52%;
+    --primary-foreground: 215 40% 10%;
+    --secondary: 215 22% 18%;
+    --secondary-foreground: 210 25% 92%;
+    --muted: 215 22% 18%;
+    --muted-foreground: 215 14% 66%;
+    --accent: 174 55% 45%;
+    --accent-foreground: 215 40% 10%;
+    --destructive: 356 65% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 36 85% 55%;
+    --warning-foreground: 30 60% 10%;
+    --success: 158 55% 42%;
+    --success-foreground: 0 0% 100%;
+    --border: 215 20% 22%;
+    --input: 215 20% 24%;
+    --ring: 190 70% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  ::selection {
+    @apply bg-primary/15 text-foreground;
+  }
+
+  /* Foco visível para acessibilidade (WCAG 2.2) */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(15,42,67,0.06)];
+  }
+
+  .audit-hash {
+    @apply font-mono text-[11px] tracking-tight text-muted-foreground;
+  }
+
+  .data-label {
+    @apply text-[11px] font-medium uppercase tracking-wider text-muted-foreground;
+  }
+
+  .timeline-line {
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--border)) 0%,
+      hsl(var(--border)) 88%,
+      transparent 100%
+    );
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 9999px;
+  }
+}
