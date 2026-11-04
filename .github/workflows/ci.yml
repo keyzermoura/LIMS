@@ -48,6 +48,18 @@ jobs:
       - name: Tipagem (mypy)
         run: mypy app
 
+      # Garante que as migrações versionadas reproduzem o schema e que o
+      # metadata dos modelos não divergiu do último head.
+      - name: Migrações (alembic upgrade head)
+        run: alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
+
+      - name: Paridade metadata x migrações (alembic check)
+        run: alembic check
+        env:
+          DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
+
       # Primeiro SQLite (rápido, sem infraestrutura) e depois PostgreSQL real,
       # que exercita triggers, sequences nativas e advisory lock.
       - name: Testes (SQLite)

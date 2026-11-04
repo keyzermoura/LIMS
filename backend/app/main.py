@@ -63,7 +63,12 @@ async def lifespan(app: FastAPI):
     )
     try:
         await init_db()
-        logger.info("Schema e proteções de imutabilidade aplicados.")
+        if settings.AUTO_CREATE_SCHEMA:
+            logger.info("Schema e proteções de imutabilidade aplicados.")
+        else:
+            logger.info(
+                "AUTO_CREATE_SCHEMA=false: schema gerenciado por migrações."
+            )
     except Exception:
         # A API sobe mesmo com banco indisponível; /health reporta o estado.
         logger.exception("Falha ao inicializar o banco de dados.")

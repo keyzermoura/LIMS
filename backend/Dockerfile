@@ -14,6 +14,8 @@ RUN groupadd --system lims && useradd --system --gid lims --home /app lims
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY alembic.ini ./
+COPY alembic ./alembic
 COPY app ./app
 RUN chown -R lims:lims /app
 

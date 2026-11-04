@@ -16,6 +16,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
@@ -40,6 +41,9 @@ class LabTest(
     UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base
 ):
     __tablename__ = "lab_tests"
+    __table_args__ = (
+        Index("ix_tests_sample_status", "device_sample_id", "status"),
+    )
 
     device_sample_id: Mapped[UUID] = mapped_column(
         ForeignKey("device_samples.id", ondelete="RESTRICT"),

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text, desc
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin, utcnow
@@ -19,6 +19,13 @@ class ChainOfCustody(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """
 
     __tablename__ = "chain_of_custody"
+    __table_args__ = (
+        Index(
+            "ix_custody_sample_time",
+            "device_sample_id",
+            desc("transferred_at"),
+        ),
+    )
 
     device_sample_id: Mapped[UUID] = mapped_column(
         ForeignKey("device_samples.id", ondelete="RESTRICT"),

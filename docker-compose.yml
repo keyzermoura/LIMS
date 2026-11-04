@@ -11,8 +11,15 @@ x-backend-env: &backend-env
   REFRESH_TOKEN_EXPIRE_HOURS: ${REFRESH_TOKEN_EXPIRE_HOURS:-12}
   ESIGNATURE_TTL_SECONDS: ${ESIGNATURE_TTL_SECONDS:-300}
   SESSION_IDLE_TIMEOUT_MINUTES: ${SESSION_IDLE_TIMEOUT_MINUTES:-15}
+  MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS:-5}
+  LOGIN_LOCKOUT_MINUTES: ${LOGIN_LOCKOUT_MINUTES:-15}
+  LOGIN_RATE_LIMIT: ${LOGIN_RATE_LIMIT:-20}
+  LOGIN_RATE_WINDOW_SECONDS: ${LOGIN_RATE_WINDOW_SECONDS:-60}
+  SIGN_RATE_LIMIT: ${SIGN_RATE_LIMIT:-20}
+  SIGN_RATE_WINDOW_SECONDS: ${SIGN_RATE_WINDOW_SECONDS:-60}
   AUTO_OPEN_CAPA_ON_FAILURE: ${AUTO_OPEN_CAPA_ON_FAILURE:-true}
-  AUTO_CREATE_SCHEMA: "true"
+  # Em produção o schema é criado por `alembic upgrade head` (serviço migrate).
+  AUTO_CREATE_SCHEMA: "false"
   CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
   DB_POOL_SIZE: "5"
   DB_MAX_OVERFLOW: "10"
@@ -37,6 +44,18 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  # Aplica as migrações versionadas antes de a API subir. Executa uma vez e
+  # encerra; `api` só inicia após a conclusão bem-sucedida.
+  migrate:
+    build:
+      context: ./backend
+    environment: *backend-env
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
   api:
     build:
       context: ./backend
@@ -44,6 +63,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     ports:
       - "${API_PORT:-8000}:8000"
     restart: unless-stopped

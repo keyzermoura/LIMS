@@ -60,19 +60,24 @@ SQL_DIR = Path(__file__).parent / "sql"
 
 
 async def init_db() -> None:
-    """Cria o schema (dev/test) e instala as proteções de imutabilidade.
+    """Cria o schema e instala as guardas em desenvolvimento/teste.
 
-    Em produção o schema é criado por migração versionada (Alembic); os
-    triggers abaixo são idempotentes e podem rodar a cada deploy.
+    Em produção `AUTO_CREATE_SCHEMA=false`: o schema, as sequences e os
+    triggers vêm de `alembic upgrade head`, executado antes da API subir.
+    O startup não executa DDL nesse modo.
     """
     from app.models import Base  # import tardio: registra todos os modelos
 
-    if settings.AUTO_CREATE_SCHEMA:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+    if not settings.AUTO_CREATE_SCHEMA:
+        return
 
-    await apply_sql_file(SQL_DIR / "001_immutability.sql")
-    await apply_sql_file(SQL_DIR / "002_indexes.sql")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    # SQLite (dev local) não suporta os triggers/sequences PL/pgSQL.
+    if not _IS_SQLITE:
+        await apply_sql_file(SQL_DIR / "001_immutability.sql")
+        await apply_sql_file(SQL_DIR / "002_indexes.sql")
 
 
 async def apply_sql_file(path: Path) -> None:

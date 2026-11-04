@@ -16,7 +16,16 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    BigInteger,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    desc,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -30,6 +39,9 @@ class AuditLog(Base):
         Index("ix_audit_entity", "entity_type", "entity_id"),
         Index("ix_audit_actor_time", "actor_id", "occurred_at"),
         Index("ix_audit_occurred_at", "occurred_at"),
+        # Consultas da tela de auditoria (mais recentes primeiro).
+        Index("ix_audit_sequence_desc", desc("sequence")),
+        Index("ix_audit_action_time", "action", desc("occurred_at")),
     )
 
     # INTEGER no SQLite (testes) garante autoincremento de rowid; no
