@@ -62,6 +62,14 @@ class Settings(BaseSettings):
     SESSION_IDLE_TIMEOUT_MINUTES: int = 15
     PASSWORD_MIN_LENGTH: int = Field(default=12, ge=8)
 
+    # --- Rate limiting (janela deslizante por processo) -----------------
+    # `<= 0` desabilita o limite. Em vários workers o limite efetivo é
+    # multiplicado pelo número de processos (ver app/core/ratelimit.py).
+    LOGIN_RATE_LIMIT: int = 20
+    LOGIN_RATE_WINDOW_SECONDS: int = 60
+    SIGN_RATE_LIMIT: int = 20
+    SIGN_RATE_WINDOW_SECONDS: int = 60
+
     # --- Regras de negócio ---------------------------------------------
     AUTO_OPEN_CAPA_ON_FAILURE: bool = True
     AUTO_CREATE_SCHEMA: bool = True

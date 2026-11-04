@@ -30,6 +30,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import NullPool
 
+from app.core import ratelimit
 from app.core.security import hash_password
 from app.db.database import get_db_session, split_sql_script
 from app.main import app as fastapi_app
@@ -130,6 +131,9 @@ async def client(
                 await session.rollback()
                 raise
 
+    # O rate limiter é por processo: zera a janela para que um teste não
+    # consuma a cota do seguinte.
+    ratelimit.limiter.reset()
     fastapi_app.dependency_overrides[get_db_session] = override_db_session
     transport = ASGITransport(app=fastapi_app)
     async with AsyncClient(

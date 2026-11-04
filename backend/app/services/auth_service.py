@@ -29,7 +29,7 @@ from app.models.base import utcnow
 from app.models.electronic_signature import ElectronicSignature
 from app.models.enums import AuditAction, AuditEntity, UserRole
 from app.models.user import RefreshToken, User
-from app.services import audit_service, signature_service
+from app.services import account_lockout, audit_service, signature_service
 
 logger = logging.getLogger(__name__)
 
@@ -61,31 +61,21 @@ async def login(
         await _audit_failed_login(
             db, user, username, "Conta temporariamente bloqueada por tentativas.", context
         )
-        raise ForbiddenError(
-            "Conta bloqueada temporariamente após tentativas inválidas. "
-            f"Tente novamente em até {settings.LOGIN_LOCKOUT_MINUTES} minutos."
-        )
+        raise account_lockout.locked_error()
 
     valid = await run_in_threadpool(verify_password, password, user.hashed_password)
     if not valid:
-        user.failed_login_attempts += 1
-        if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
-            user.locked_until = utcnow() + timedelta(
-                minutes=settings.LOGIN_LOCKOUT_MINUTES
-            )
-            user.failed_login_attempts = 0
-            reason = "Limite de tentativas atingido — conta bloqueada."
-        else:
-            reason = "Senha inválida."
+        reason, just_locked = account_lockout.register_failure(user)
         await _audit_failed_login(db, user, username, reason, context)
+        if just_locked:
+            raise account_lockout.locked_error()
         raise _invalid_credentials()
 
     if not user.is_active:
         await _audit_failed_login(db, user, username, "Usuário inativo.", context)
         raise ForbiddenError("Usuário inativo. Contate o administrador.")
 
-    user.failed_login_attempts = 0
-    user.locked_until = None
+    account_lockout.reset_failures(user)
     user.last_login_at = utcnow()
 
     access_token, refresh_token = await _issue_pair(db, user, context)

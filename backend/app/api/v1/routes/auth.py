@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import CurrentUser, DbSession
+from app.core import ratelimit
 from app.core.config import settings
 from app.core.context import RequestContext
 from app.models.enums import UserRole
@@ -36,18 +37,28 @@ def _to_me(user) -> MeOut:
     "/login",
     response_model=TokenPair,
     summary="Autenticar (OAuth2 password grant)",
-    responses={401: {"description": "Credenciais inválidas"}, 403: {"description": "Conta bloqueada"}},
+    responses={
+        401: {"description": "Credenciais inválidas"},
+        403: {"description": "Conta bloqueada"},
+        429: {"description": "Muitas tentativas (cabeçalho Retry-After)"},
+    },
 )
 async def login(
     request: Request,
     db: DbSession,
     form: OAuth2PasswordRequestForm = Depends(),
 ) -> TokenPair:
+    context = RequestContext.from_request(request)
+    ratelimit.enforce(
+        f"login:{context.ip_address or 'unknown'}",
+        limit=settings.LOGIN_RATE_LIMIT,
+        window_seconds=settings.LOGIN_RATE_WINDOW_SECONDS,
+    )
     user, access, refresh = await auth_service.login(
         db,
         username=form.username,
         password=form.password,
-        context=RequestContext.from_request(request),
+        context=context,
     )
     return TokenPair(
         access_token=access,
@@ -100,7 +111,11 @@ async def me(user: CurrentUser) -> MeOut:
         "A senha é verificada novamente e o token emitido é de USO ÚNICO, "
         "válido por poucos minutos e vinculado ao registro/ação informados."
     ),
-    responses={401: {"description": "Senha inválida"}},
+    responses={
+        401: {"description": "Senha inválida"},
+        403: {"description": "Conta bloqueada"},
+        429: {"description": "Muitas tentativas (cabeçalho Retry-After)"},
+    },
 )
 async def issue_signature(
     payload: ESignatureIssueRequest,
@@ -108,6 +123,11 @@ async def issue_signature(
     db: DbSession,
     user: CurrentUser,
 ) -> ESignatureIssueResponse:
+    ratelimit.enforce(
+        f"sign:{user.id}",
+        limit=settings.SIGN_RATE_LIMIT,
+        window_seconds=settings.SIGN_RATE_WINDOW_SECONDS,
+    )
     record, token = await signature_service.issue(
         db,
         user=user,

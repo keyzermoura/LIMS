@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.core.config import settings
 from app.models.audit_log import AuditLog
 from app.models.base import utcnow
 from app.services import signature_service
@@ -596,3 +597,124 @@ async def test_only_assigned_tester_can_sign_the_report(
     )
     assert accepted.status_code == 200, accepted.text
     assert accepted.json()["result_version"]["outcome"] == "APROVADO"
+
+
+# ---------------------------------------------------------------------------
+# Bloqueio por tentativas de senha e rate limiting
+# ---------------------------------------------------------------------------
+def _wrong_sign_payload(password: str = "SenhaErrada@2026") -> dict[str, str]:
+    return {
+        "password": password,
+        "meaning": "RESPONSABILIDADE_TECNICA",
+        "reason": "Teste de bloqueio por tentativas de reautenticacao.",
+        "entity_type": "LabTest",
+        "entity_id": str(uuid4()),
+        "action": "UPDATE",
+    }
+
+
+async def test_sign_wrong_password_locks_account(client: AsyncClient, users) -> None:
+    tecnico = await login(client, "tecnico", users["tecnico"]["password"])
+    payload = _wrong_sign_payload()
+
+    statuses: list[int] = []
+    for _ in range(settings.MAX_LOGIN_ATTEMPTS):
+        response = await client.post(
+            f"{API}/auth/sign", headers=auth(tecnico["access_token"]), json=payload
+        )
+        statuses.append(response.status_code)
+
+    # As primeiras falhas devolvem 401; a ultima bloqueia a conta (403).
+    assert statuses[:-1] == [401] * (settings.MAX_LOGIN_ATTEMPTS - 1), statuses
+    assert statuses[-1] == 403, statuses
+
+    # Com a conta bloqueada nem a senha correta emite assinatura...
+    locked = await client.post(
+        f"{API}/auth/sign",
+        headers=auth(tecnico["access_token"]),
+        json=_wrong_sign_payload(users["tecnico"]["password"]),
+    )
+    assert locked.status_code == 403
+    assert "bloqueada" in locked.json()["detail"].lower()
+
+    # ...nem o login.
+    denied = await client.post(
+        f"{API}/auth/login",
+        data={"username": "tecnico", "password": users["tecnico"]["password"]},
+    )
+    assert denied.status_code == 403
+    assert "bloqueada" in denied.json()["detail"].lower()
+
+
+async def test_successful_signature_resets_failed_attempts(
+    client: AsyncClient, users
+) -> None:
+    tecnico = await login(client, "tecnico", users["tecnico"]["password"])
+    wrong = _wrong_sign_payload()
+
+    for _ in range(settings.MAX_LOGIN_ATTEMPTS - 1):
+        response = await client.post(
+            f"{API}/auth/sign", headers=auth(tecnico["access_token"]), json=wrong
+        )
+        assert response.status_code == 401
+
+    grant = await issue_signature(
+        client,
+        tecnico["access_token"],
+        users["tecnico"]["password"],
+        entity_type="LabTest",
+        entity_id=str(uuid4()),
+    )
+    assert grant["token"]
+
+    # A reautenticacao correta zerou o contador: novas falhas continuam em 401
+    # em vez de bloquear a conta.
+    for _ in range(settings.MAX_LOGIN_ATTEMPTS - 1):
+        response = await client.post(
+            f"{API}/auth/sign", headers=auth(tecnico["access_token"]), json=wrong
+        )
+        assert response.status_code == 401, response.text
+
+
+async def test_login_rate_limit_returns_429(
+    client: AsyncClient,
+    users,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "LOGIN_RATE_LIMIT", 2)
+
+    responses = [
+        await client.post(
+            f"{API}/auth/login",
+            data={"username": "fiscal", "password": "SenhaErrada@2026"},
+        )
+        for _ in range(3)
+    ]
+
+    assert [r.status_code for r in responses[:2]] == [403, 403]
+    limited = responses[2]
+    assert limited.status_code == 429
+    assert limited.json()["code"] == "RATE_LIMITED"
+    assert int(limited.headers["Retry-After"]) >= 1
+
+
+async def test_sign_rate_limit_returns_429(
+    client: AsyncClient,
+    users,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "SIGN_RATE_LIMIT", 1)
+    tecnico = await login(client, "tecnico", users["tecnico"]["password"])
+    payload = _wrong_sign_payload()
+
+    first = await client.post(
+        f"{API}/auth/sign", headers=auth(tecnico["access_token"]), json=payload
+    )
+    assert first.status_code == 401
+
+    limited = await client.post(
+        f"{API}/auth/sign", headers=auth(tecnico["access_token"]), json=payload
+    )
+    assert limited.status_code == 429
+    assert limited.json()["code"] == "RATE_LIMITED"
+    assert int(limited.headers["Retry-After"]) >= 1

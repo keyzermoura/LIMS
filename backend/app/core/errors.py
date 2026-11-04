@@ -54,6 +54,15 @@ class SignatureError(DomainError):
     code = "ESIGNATURE_REQUIRED"
 
 
+class TooManyRequestsError(DomainError):
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    code = "RATE_LIMITED"
+
+    def __init__(self, message: str, *, retry_after: int) -> None:
+        super().__init__(message)
+        self.headers = {"Retry-After": str(max(1, retry_after))}
+
+
 def _request_id(request: Request) -> str:
     return getattr(request.state, "request_id", "unknown")
 

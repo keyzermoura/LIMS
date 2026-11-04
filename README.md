@@ -117,6 +117,16 @@ Serviços:
 | Health check | http://localhost:8000/health |
 | PostgreSQL | `localhost:5432` (lims/lims) |
 
+O serviço `migrate` executa `alembic upgrade head` antes da API. O `api` só
+inicia após a migração concluir com sucesso e roda com
+`AUTO_CREATE_SCHEMA=false` — o startup não executa DDL. Para aplicar novas
+revisões em um ambiente já em execução:
+
+```bash
+docker compose run --rm migrate
+docker compose restart api
+```
+
 Popular dados de demonstração (execução única; o script ignora se já houver
 usuários):
 
@@ -142,8 +152,15 @@ pip install -r requirements.txt
 
 # PostgreSQL local com usuário/senha/base "lims"
 export DATABASE_URL="postgresql+asyncpg://lims:lims@localhost:5432/lims"
+export AUTO_CREATE_SCHEMA=false
+python -m alembic upgrade head     # mesmo caminho da produção
+python -m app.seed                 # opcional: dados de demonstração
 uvicorn app.main:app --reload
 ```
+
+> Em desenvolvimento sem Alembic, `AUTO_CREATE_SCHEMA=true` (padrão) cria o
+> schema com `create_all` + `app/db/sql/*.sql`. Em produção use sempre
+> `AUTO_CREATE_SCHEMA=false` e migrações versionadas.
 
 Front-end:
 
@@ -184,16 +201,37 @@ export LIMS_TEST_DATABASE_URL="postgresql+asyncpg://lims:lims@localhost:5432/lim
 .venv/Scripts/python.exe -m pytest -q
 ```
 
-Resultado de referência: **36 passando + 4 ignorados** em SQLite e **40
+Resultado de referência: **47 passando + 4 ignorados** em SQLite e **51
 passando** em PostgreSQL 16. Os testes ignorados sem PostgreSQL são os de
 trigger/sequence/advisory lock (`tests/test_postgres_guards.py`).
+
+#### Migrações (Alembic)
+
+```bash
+cd backend
+export DATABASE_URL="postgresql+asyncpg://lims:lims@localhost:5432/lims"
+
+python -m alembic upgrade head        # aplica até a última revisão
+python -m alembic current             # revisão aplicada
+python -m alembic check               # metadata x schema (deve dizer "No new ...")
+python -m alembic downgrade -1        # reverte a última revisão
+python -m alembic revision --autogenerate -m "descrição"
+```
+
+- `a1cd5ac5805f` — schema inicial (tabelas, enums, constraints e índices).
+- `0002_guards` — snapshot imutável de `app/db/sql/*.sql`: sequences nativas,
+  triggers append-only e índices de consulta.
+- O `env.py` lê `DATABASE_URL`; o `alembic.ini` não guarda credenciais.
+- Antes de gerar uma revisão, rode `alembic check` para confirmar paridade.
+  O CI executa `upgrade head` e `check` a cada push.
 
 `tests/test_api_flow.py` sobe a aplicação FastAPI com `httpx.ASGITransport` e
 um banco temporário por teste, cobrindo: login/perfil/RBAC, exigência de
 assinatura, uso único do token, vínculo ao registro, autorização de custódia,
 reprovação com CAPA automática, imutabilidade lógica do laudo (emenda),
 bloqueio de aprovação manual, rotação/roubo de refresh token, adulteração da
-trilha e expiração de assinatura.
+trilha, expiração de assinatura, bloqueio de conta por senha errada na
+assinatura e rate limiting (429 + `Retry-After`).
 
 ### 3.3 Contas de demonstração
 
@@ -382,7 +420,7 @@ botão **Authorize** (OAuth2 password flow).
 
 | Requisito | Implementação no MVP |
 | --- | --- |
-| §11.10(a) — validação e controle de sistemas | Testes de domínio (`pytest`), tipagem Pydantic, migrações controladas (ver limitações) |
+| §11.10(a) — validação e controle de sistemas | Testes de domínio (`pytest`), tipagem Pydantic, migrações versionadas com Alembic e `alembic check` no CI |
 | §11.10(b) — cópias legíveis e exatas | Endpoints de consulta, histórico de versões, timeline e detalhe de auditoria com JSON canônico |
 | §11.10(c) — retenção e recuperação | Registros persistidos; trilha append-only; triggers impedem `UPDATE`/`DELETE`/`TRUNCATE` |
 | §11.10(d) — acesso limitado | JWT de curta duração, RBAC por rota, bloqueio por tentativas, invalidação por `token_version` |
@@ -433,7 +471,10 @@ Controles implementados:
 - Timeout de inatividade no cliente (15 min por padrão), sincronizado com
   `/api/v1/meta`.
 - Bloqueio temporário após tentativas de login inválidas, com auditoria
-  atômica de sucesso e falha.
+  atômica de sucesso e falha. O **mesmo contador** é usado na reautenticação
+  de `/auth/sign`: senha errada na assinatura também bloqueia a conta.
+- Rate limiting por janela deslizante em `/auth/login` (por IP) e `/auth/sign`
+  (por usuário), com resposta `429` e cabeçalho `Retry-After`.
 - Cabeçalhos de segurança na API e no Nginx; CSP restritiva na SPA.
 - Segredos de desenvolvimento são recusados quando `ENVIRONMENT=prod`.
 - Token de assinatura com TTL de 5 min, uso único e vínculo ao registro,
@@ -443,8 +484,10 @@ Controles implementados:
 
 Limitações do MVP (não aptas a produção sem trabalho adicional):
 
-1. **Sem migrações versionadas**: o schema é criado por `create_all` em
-   desenvolvimento. Para produção, adote Alembic com revisões revisadas.
+1. **Rate limiting por processo**: a janela deslizante é mantida em memória.
+   Com múltiplos workers o limite efetivo é multiplicado pelo número de
+   processos; para um teto global exato, use Redis ou o rate limiting do
+   proxy/ingress.
 2. **Append-only lógico**: um superusuário do PostgreSQL pode desabilitar
    triggers. Recomenda-se WORM/object lock, backup imutável e ancoragem
    externa do `head_hash`.
@@ -480,7 +523,9 @@ LIMS/
 │   │   ├── services/       regras de negócio
 │   │   ├── main.py         aplicação FastAPI
 │   │   └── seed.py         dados de demonstração
-│   ├── tests/              testes de domínio
+│   ├── alembic/           migrações versionadas (env.py + versions/)
+│   ├── tests/              testes de domínio e integração
+│   ├── alembic.ini
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/

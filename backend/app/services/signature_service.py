@@ -42,7 +42,7 @@ from app.models.enums import (
     SignatureMeaning,
 )
 from app.models.user import User
-from app.services import audit_service
+from app.services import account_lockout, audit_service
 from app.services.errors import SignatureRejectedError
 
 MIN_REASON_LENGTH = 10
@@ -68,18 +68,59 @@ async def issue(
             audit=False,
         )
 
-    valid_password = await run_in_threadpool(verify_password, password, user.hashed_password)
-    if not valid_password or not user.is_active:
+    if user.is_locked:
         await _record_rejection(
             db,
             user=user,
             entity_type=entity_type,
             entity_id=entity_id,
             action=action,
-            reason="Falha de reautenticação na emissão de assinatura eletrônica.",
+            reason="Reautenticação recusada: conta temporariamente bloqueada.",
             context=context,
         )
+        raise SignatureRejectedError(
+            account_lockout.locked_message(),
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    valid_password = await run_in_threadpool(verify_password, password, user.hashed_password)
+    if not valid_password:
+        # Mesmo contador do login: a senha errada na assinatura também
+        # bloqueia a conta, impedindo força bruta com um access token válido.
+        reason, just_locked = account_lockout.register_failure(user)
+        await _record_rejection(
+            db,
+            user=user,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            action=action,
+            reason=f"Falha de reautenticação na emissão de assinatura eletrônica. {reason}",
+            context=context,
+        )
+        if just_locked:
+            raise SignatureRejectedError(
+                account_lockout.locked_message(),
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
         raise SignatureRejectedError("Senha inválida. Assinatura não emitida.")
+
+    if not user.is_active:
+        await _record_rejection(
+            db,
+            user=user,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            action=action,
+            reason="Reautenticação recusada: usuário inativo.",
+            context=context,
+        )
+        raise SignatureRejectedError(
+            "Usuário inativo. Assinatura não emitida.",
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Reautenticação bem-sucedida zera o contador, como no login.
+    account_lockout.reset_failures(user)
 
     now = datetime.now(UTC)
     expires_at = now + timedelta(seconds=settings.ESIGNATURE_TTL_SECONDS)
