@@ -450,7 +450,13 @@ export function DashboardPage() {
                   disabled={samples.length === 0}
                 >
                   <SelectTrigger className="w-full sm:w-[320px]">
-                    <SelectValue placeholder="Nenhuma amostra registrada" />
+                    <SelectValue
+                      placeholder={
+                        samplesQuery.isPending
+                          ? "Carregando amostras…"
+                          : "Nenhuma amostra registrada"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {samples.map((sample) => (
@@ -476,7 +482,7 @@ export function DashboardPage() {
           </CardHeader>
 
           <CardContent className="pt-5">
-            {samplesQuery.isLoading ? (
+            {samplesQuery.isPending ? (
               <div className="h-32 animate-pulse rounded-md bg-muted" />
             ) : selected ? (
               <div className="grid gap-5 md:grid-cols-[1fr_auto]">
@@ -589,9 +595,11 @@ export function DashboardPage() {
           <CardContent className="pt-5">
             {!selected ? (
               <p className="text-[13px] text-muted-foreground">
-                Selecione uma amostra para ver a linha do tempo.
+                {samplesQuery.isPending
+                  ? "Carregando amostras…"
+                  : "Selecione uma amostra para ver a linha do tempo."}
               </p>
-            ) : timelineQuery.isLoading ? (
+            ) : timelineQuery.isPending ? (
               <div className="space-y-4">
                 {[0, 1, 2].map((index) => (
                   <div key={index} className="flex gap-4">

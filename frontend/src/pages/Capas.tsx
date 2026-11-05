@@ -263,25 +263,25 @@ export function CapasPage() {
           <SummaryTile
             icon={<ClipboardList className="h-4 w-4" />}
             label="Abertas"
-            value={stats.open}
+            value={capasQuery.isPending ? null : stats.open}
             tone="rose"
           />
           <SummaryTile
             icon={<Timer className="h-4 w-4" />}
             label="Em andamento"
-            value={stats.inProgress}
+            value={capasQuery.isPending ? null : stats.inProgress}
             tone="amber"
           />
           <SummaryTile
             icon={<AlertOctagon className="h-4 w-4" />}
             label="Atrasadas"
-            value={stats.overdue}
+            value={capasQuery.isPending ? null : stats.overdue}
             tone="rose"
           />
           <SummaryTile
             icon={<CheckCircle2 className="h-4 w-4" />}
             label="Concluídas"
-            value={stats.closed}
+            value={capasQuery.isPending ? null : stats.closed}
             tone="emerald"
           />
         </CardContent>
@@ -293,8 +293,11 @@ export function CapasPage() {
             <div>
               <CardTitle className="text-[15px]">Registro de CAPAs</CardTitle>
               <CardDescription className="mt-0.5 text-[12px]">
-                {filtered.length} de {capas.length} registros
-                {stats.overdue > 0 ? ` · ${stats.overdue} em atraso` : ""}
+                {capasQuery.isPending
+                  ? "Carregando…"
+                  : `${filtered.length} de ${capas.length} registros${
+                      stats.overdue > 0 ? ` · ${stats.overdue} em atraso` : ""
+                    }`}
               </CardDescription>
             </div>
             {filtersActive ? (
@@ -353,7 +356,7 @@ export function CapasPage() {
         </CardHeader>
 
         <CardContent className="p-0">
-          {capasQuery.isLoading ? (
+          {capasQuery.isPending ? (
             <div className="space-y-2 p-5">
               {[0, 1, 2].map((index) => (
                 <div key={index} className="h-14 animate-pulse rounded-md bg-muted" />
@@ -564,7 +567,7 @@ function SummaryTile({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  value: number | null;
   tone: "rose" | "amber" | "emerald";
 }) {
   const styles = {
@@ -579,7 +582,9 @@ function SummaryTile({
         {icon}
         {label}
       </div>
-      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums">
+        {value === null ? "—" : value}
+      </p>
     </div>
   );
 }
@@ -977,7 +982,10 @@ function CapaDialog({
     const closing = status === "CONCLUIDA";
     const cancelling = status === "CANCELADA";
     const meaning = closing ? "VERIFICACAO" : cancelling ? "APROVACAO" : "REVISAO";
-    const action = closing || cancelling ? "CLOSE" : "UPDATE";
+    // A rota PATCH /capas/{id} consome assinaturas com ação UPDATE, inclusive
+    // para conclusão/cancelamento: o encerramento é registrado no próprio
+    // snapshot da CAPA e na trilha de auditoria.
+    const action = "UPDATE";
 
     const token = await requestSignature({
       entityType: "CapaAction",

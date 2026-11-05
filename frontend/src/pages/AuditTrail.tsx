@@ -493,7 +493,7 @@ export function AuditTrailPage() {
         </CardHeader>
 
         <CardContent className="p-0">
-          {auditQuery.isLoading ? (
+          {auditQuery.isPending ? (
             <div className="space-y-2 p-5">
               {[0, 1, 2, 3, 4].map((index) => (
                 <div key={index} className="h-10 animate-pulse rounded bg-muted" />
