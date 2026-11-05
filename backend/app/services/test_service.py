@@ -67,7 +67,12 @@ async def create_test(
             details={"status": sample.status.value},
         )
 
-    assignee = actor
+    # `tested_by` aqui significa "testador designado": é quem poderá assinar
+    # o laudo. Só faz sentido quando o perfil tem competência para assinar
+    # (TECNICO/ADMIN). Um FISCAL que apenas programa o ensaio sem escolher um
+    # testador deve deixá-lo em aberto — caso contrário o laudo fica travado,
+    # pois o fiscal não pode assiná-lo.
+    assignee: User | None = None
     if payload.assigned_to_id is not None:
         candidate = await db.get(User, payload.assigned_to_id)
         if candidate is None or not candidate.is_active:
@@ -77,6 +82,8 @@ async def create_test(
                 "O testador designado deve ter perfil TECNICO ou ADMIN."
             )
         assignee = candidate
+    elif actor.role in (UserRole.TECNICO, UserRole.ADMIN):
+        assignee = actor
 
     test = LabTest(
         id=payload.id,
@@ -89,7 +96,7 @@ async def create_test(
         upper_limit=payload.upper_limit,
         acceptance_criteria=payload.acceptance_criteria,
         status=TestStatus.PENDENTE,
-        assigned_to_id=assignee.id if payload.assigned_to_id else None,
+        assigned_to_id=assignee.id if assignee is not None else None,
         tested_by=assignee,
     )
     db.add(test)
@@ -158,8 +165,13 @@ async def record_result(
             details={"current_version": test.version},
         )
 
+    designated = test.tested_by
+    designated_can_sign = designated is not None and designated.role in (
+        UserRole.TECNICO,
+        UserRole.ADMIN,
+    )
     if (
-        test.tested_by_id is not None
+        designated_can_sign
         and test.tested_by_id != actor.id
         and actor.role != UserRole.ADMIN
     ):

@@ -49,6 +49,7 @@ import type {
   Page,
   TestOutcome,
   TestResultResponse,
+  UserBrief,
 } from "@/lib/types";
 import {
   OUTCOME_LABELS,
@@ -175,7 +176,7 @@ export function TestsPage() {
             </p>
           </CardContent>
         </Card>
-      ) : testsQuery.isLoading ? (
+      ) : testsQuery.isPending ? (
         <div className="grid gap-4 xl:grid-cols-2">
           {[0, 1].map((index) => (
             <div key={index} className="h-64 animate-pulse rounded-lg bg-muted" />
@@ -278,14 +279,22 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
   const [amending, setAmending] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
 
-  // O backend só permite que o testador designado (ou ADMIN) assine.
+  // O backend só permite que o testador designado (ou ADMIN) assine — e um
+  // designado sem competência para assinar (ex.: FISCAL em registro legado)
+  // não deve travar o laudo.
+  const designatedTester = test.tested_by;
+  const designatedCanSign =
+    designatedTester !== null &&
+    (designatedTester.role === "TECNICO" || designatedTester.role === "ADMIN");
   const canSign =
     user?.role === "ADMIN" ||
     (user?.role === "TECNICO" &&
-      (!test.tested_by || test.tested_by.id === user.id));
+      (!designatedCanSign || designatedTester?.id === user.id));
   const otherTester =
-    user?.role === "TECNICO" && test.tested_by && test.tested_by.id !== user.id
-      ? test.tested_by.full_name
+    user?.role === "TECNICO" &&
+    designatedCanSign &&
+    designatedTester?.id !== user.id
+      ? designatedTester.full_name
       : null;
 
   const numericValue = React.useMemo(() => {
@@ -627,7 +636,18 @@ function NewTestDialog({
   const [lower, setLower] = React.useState("");
   const [upper, setUpper] = React.useState("");
   const [criteria, setCriteria] = React.useState("");
+  const [assignedTo, setAssignedTo] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
+
+  const usersQuery = useQuery({
+    queryKey: ["users", "testers"],
+    queryFn: () => api.get<UserBrief[]>("/users"),
+    enabled: open,
+  });
+
+  const eligibleTesters = (usersQuery.data ?? []).filter((candidate) =>
+    ["TECNICO", "ADMIN"].includes(candidate.role),
+  );
 
   React.useEffect(() => {
     if (!open) return;
@@ -637,6 +657,7 @@ function NewTestDialog({
     setLower("");
     setUpper("");
     setCriteria("");
+    setAssignedTo("");
   }, [open]);
 
   async function handleCreate(event: React.FormEvent) {
@@ -672,6 +693,7 @@ function NewTestDialog({
           lower_limit: lower.trim() ? Number(lower.replace(",", ".")) : null,
           upper_limit: upper.trim() ? Number(upper.replace(",", ".")) : null,
           acceptance_criteria: criteria.trim() || null,
+          assigned_to_id: assignedTo || null,
         },
         token,
       );
@@ -726,6 +748,24 @@ function NewTestDialog({
               onChange={(event) => setMethod(event.target.value)}
               placeholder="Ex.: ABNT NBR IEC 60601-1"
             />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="test-assignee">Testador designado</Label>
+            <Select value={assignedTo} onValueChange={setAssignedTo}>
+              <SelectTrigger id="test-assignee">
+                <SelectValue placeholder="Qualquer técnico (em aberto)" />
+              </SelectTrigger>
+              <SelectContent>
+                {eligibleTesters.map((candidate) => (
+                  <SelectItem key={candidate.id} value={candidate.id}>
+                    {candidate.full_name} · {candidate.role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              Deixe em branco para liberar a assinatura a qualquer técnico.
+            </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="grid gap-1.5">

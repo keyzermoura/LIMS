@@ -120,7 +120,7 @@ async def create_test(
     password: str,
     *,
     sample_id: str,
-    assigned_to_id: str,
+    assigned_to_id: str | None = None,
     lower: float = 4.5,
     upper: float = 5.5,
 ) -> dict[str, Any]:
@@ -133,21 +133,23 @@ async def create_test(
         entity_id=test_id,
         action="CREATE",
     )
+    body: dict[str, Any] = {
+        "id": test_id,
+        "device_sample_id": sample_id,
+        "name": "Vazão de infusão",
+        "method": "Gravimetria",
+        "parameters": {"temperatura": "23 °C"},
+        "unit": "ml/h",
+        "lower_limit": lower,
+        "upper_limit": upper,
+        "acceptance_criteria": "Vazão dentro de ±10% do ajuste.",
+    }
+    if assigned_to_id is not None:
+        body["assigned_to_id"] = assigned_to_id
     response = await client.post(
         f"{API}/tests",
         headers=signed(access_token, grant["token"]),
-        json={
-            "id": test_id,
-            "device_sample_id": sample_id,
-            "name": "Vazão de infusão",
-            "method": "Gravimetria",
-            "parameters": {"temperatura": "23 °C"},
-            "unit": "ml/h",
-            "lower_limit": lower,
-            "upper_limit": upper,
-            "acceptance_criteria": "Vazão dentro de ±10% do ajuste.",
-            "assigned_to_id": assigned_to_id,
-        },
+        json=body,
     )
     assert response.status_code == 201, response.text
     return response.json()["test"]
@@ -375,6 +377,31 @@ async def test_reproved_result_opens_capa(client: AsyncClient, users) -> None:
     assert capa["lab_test_id"] == test["id"]
     assert capa["status"] == "ABERTA"
 
+    # A conclusão da CAPA é uma atualização assinada (PATCH /capas/{id}).
+    close_grant = await issue_signature(
+        client,
+        fiscal["access_token"],
+        users["fiscal"]["password"],
+        entity_type="CapaAction",
+        entity_id=capa["id"],
+        action="UPDATE",
+        meaning="VERIFICACAO",
+    )
+    closed = await client.patch(
+        f"{API}/capas/{capa['id']}",
+        headers=signed(fiscal["access_token"], close_grant["token"]),
+        json={
+            "status": "CONCLUIDA",
+            "effectiveness_check": (
+                "Lote reensaiado após a ação corretiva; resultados dentro do limite."
+            ),
+            "version": capa["version"],
+        },
+    )
+    assert closed.status_code == 200, closed.text
+    assert closed.json()["status"] == "CONCLUIDA"
+    assert closed.json()["closed_at"] is not None
+
     # Resultado assinado é imutável: corrigir exige motivo de emenda.
     amendment = await client.patch(
         f"{API}/tests/{test['id']}/result",
@@ -597,6 +624,51 @@ async def test_only_assigned_tester_can_sign_the_report(
     )
     assert accepted.status_code == 200, accepted.text
     assert accepted.json()["result_version"]["outcome"] == "APROVADO"
+
+
+async def test_fiscal_created_test_without_assignee_can_be_signed_by_technician(
+    client: AsyncClient, users
+) -> None:
+    """Ensaio programado por FISCAL sem designação fica aberto para o técnico.
+
+    O fiscal não tem competência para assinar laudos; se a criação o marcasse
+    como testador responsável, o ensaio ficaria permanentemente sem assinatura.
+    """
+    fiscal = await login(client, "fiscal", users["fiscal"]["password"])
+    created = await create_sample(
+        client,
+        fiscal["access_token"],
+        users["fiscal"]["password"],
+        serial="SN-OPEN",
+        lot="L-OPEN",
+    )
+    test = await create_test(
+        client,
+        fiscal["access_token"],
+        users["fiscal"]["password"],
+        sample_id=created["sample"]["id"],
+    )
+    assert test["tested_by"] is None
+    assert test["assigned_to_id"] is None
+
+    tecnico = await login(client, "tecnico", users["tecnico"]["password"])
+    grant = await issue_signature(
+        client,
+        tecnico["access_token"],
+        users["tecnico"]["password"],
+        entity_type="LabTest",
+        entity_id=test["id"],
+        action="UPDATE",
+        meaning="RESPONSABILIDADE_TECNICA",
+    )
+    signed_response = await client.patch(
+        f"{API}/tests/{test['id']}/result",
+        headers=signed(tecnico["access_token"], grant["token"]),
+        json={"result_value": 5.0, "version": test["version"]},
+    )
+    assert signed_response.status_code == 200, signed_response.text
+    assert signed_response.json()["result_version"]["outcome"] == "APROVADO"
+    assert signed_response.json()["test"]["tested_by"]["username"] == "tecnico"
 
 
 # ---------------------------------------------------------------------------
