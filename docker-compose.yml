@@ -20,6 +20,8 @@ x-backend-env: &backend-env
   AUTO_OPEN_CAPA_ON_FAILURE: ${AUTO_OPEN_CAPA_ON_FAILURE:-true}
   # Em produção o schema é criado por `alembic upgrade head` (serviço migrate).
   AUTO_CREATE_SCHEMA: "false"
+  AUDIT_EXPORT_MAX_RECORDS: ${AUDIT_EXPORT_MAX_RECORDS:-50000}
+  AUDIT_EXPORT_MAX_BYTES: ${AUDIT_EXPORT_MAX_BYTES:-26214400}
   CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
   DB_POOL_SIZE: "5"
   DB_MAX_OVERFLOW: "10"

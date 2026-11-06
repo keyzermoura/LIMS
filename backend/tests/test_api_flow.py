@@ -7,7 +7,10 @@ PostgreSQL quando `LIMS_TEST_DATABASE_URL` está definido.
 
 from __future__ import annotations
 
+import io
+import json
 import os
+import zipfile
 from datetime import timedelta
 from typing import Any
 from uuid import uuid4
@@ -19,6 +22,8 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import settings
+from app.core.security import hmac_sha256, sha256_hex
+from app.core.serialization import canonical_json
 from app.models.audit_log import AuditLog
 from app.models.base import utcnow
 from app.services import signature_service
@@ -790,3 +795,294 @@ async def test_sign_rate_limit_returns_429(
     assert limited.status_code == 429
     assert limited.json()["code"] == "RATE_LIMITED"
     assert int(limited.headers["Retry-After"]) >= 1
+
+def _rewrite_zip(content: bytes, replacements: dict[str, bytes]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(io.BytesIO(content)) as source, zipfile.ZipFile(
+        buffer, "w", compression=zipfile.ZIP_DEFLATED
+    ) as target:
+        for info in source.infolist():
+            target.writestr(info, replacements.get(info.filename, source.read(info.filename)))
+    return buffer.getvalue()
+
+
+def _bundle_entries(content: bytes) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    with zipfile.ZipFile(io.BytesIO(content)) as archive:
+        manifest = json.loads(archive.read("manifest.json"))
+        records = [
+            json.loads(line)
+            for line in archive.read("events.jsonl").decode("utf-8").splitlines()
+            if line.strip()
+        ]
+    return manifest, records
+
+
+async def test_audit_export_bundle_is_verifiable(client: AsyncClient, users) -> None:
+    fiscal = await login(client, "fiscal", users["fiscal"]["password"])
+    await create_sample(
+        client,
+        fiscal["access_token"],
+        users["fiscal"]["password"],
+        serial="SN-EXP1",
+        lot="L-EXP1",
+    )
+    auditor = await login(client, "auditor", users["auditor"]["password"])
+
+    response = await client.post(
+        f"{API}/audit/export",
+        headers=auth(auditor["access_token"]),
+        json={"format": "csv"},
+    )
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"] == "application/zip"
+    assert "attachment" in response.headers["content-disposition"]
+    assert response.headers["x-audit-export-id"]
+    assert response.headers["x-audit-export-manifest-hash"]
+
+    with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+        names = set(archive.namelist())
+        assert {"manifest.json", "events.jsonl", "events.csv"} <= names
+        manifest = json.loads(archive.read("manifest.json"))
+        data_bytes = archive.read("events.jsonl")
+        records = [
+            json.loads(line)
+            for line in data_bytes.decode("utf-8").splitlines()
+            if line.strip()
+        ]
+
+    assert manifest["format"] == "lims-audit-export-v1"
+    assert manifest["presentation"] == "csv"
+    assert manifest["record_count"] == len(records) >= 1
+    assert manifest["data_sha256"] == sha256_hex(data_bytes)
+    key = settings.AUDIT_HMAC_KEY.get_secret_value()
+    assert manifest["data_hmac"] == hmac_sha256(key, manifest["data_sha256"])
+    core = {
+        field: value
+        for field, value in manifest.items()
+        if field not in {"manifest_hash", "hmac"}
+    }
+    assert manifest["manifest_hash"] == sha256_hex(canonical_json(core))
+    assert manifest["hmac"] == hmac_sha256(key, manifest["manifest_hash"])
+
+    for record in records:
+        expected_hash = sha256_hex(
+            f"{record['sequence']}:{record['prev_hash']}:"
+            f"{canonical_json(record['payload'])}"
+        )
+        assert record["hash"] == expected_hash
+        assert record["hmac"] == hmac_sha256(key, record["hash"])
+
+    verification = await client.post(
+        f"{API}/audit/export/verify",
+        headers=auth(auditor["access_token"]),
+        files={"file": ("trilha.zip", response.content, "application/zip")},
+    )
+    assert verification.status_code == 200, verification.text
+    report = verification.json()
+    assert report["ok"] is True, report
+    assert report["checked"] == len(records)
+    assert report["manifest_hash_ok"] is True
+    assert report["data_hash_ok"] is True
+    assert report["chain_ok"] is True
+    assert report["matches_database"] is True
+
+    exports = await client.get(
+        f"{API}/audit",
+        params={"action": "EXPORT"},
+        headers=auth(auditor["access_token"]),
+    )
+    assert exports.json()["total"] >= 1
+    checks = await client.get(
+        f"{API}/audit",
+        params={"action": "EXPORT_VERIFIED"},
+        headers=auth(auditor["access_token"]),
+    )
+    assert checks.json()["total"] >= 1
+
+
+async def test_audit_export_honors_filters_and_rbac(client: AsyncClient, users) -> None:
+    fiscal = await login(client, "fiscal", users["fiscal"]["password"])
+    await create_sample(
+        client,
+        fiscal["access_token"],
+        users["fiscal"]["password"],
+        serial="SN-EXP2",
+        lot="L-EXP2",
+    )
+    auditor = await login(client, "auditor", users["auditor"]["password"])
+
+    filtered = await client.post(
+        f"{API}/audit/export",
+        headers=auth(auditor["access_token"]),
+        json={"format": "json", "action": "LOGIN", "search": "auditor"},
+    )
+    assert filtered.status_code == 200, filtered.text
+    with zipfile.ZipFile(io.BytesIO(filtered.content)) as archive:
+        assert "events.json" in archive.namelist()
+        assert "events.csv" not in archive.namelist()
+        manifest = json.loads(archive.read("manifest.json"))
+        records = [
+            json.loads(line)
+            for line in archive.read("events.jsonl").decode("utf-8").splitlines()
+            if line.strip()
+        ]
+    assert manifest["scope"]["action"] == "LOGIN"
+    assert records
+    assert all(record["action"] == "LOGIN" for record in records)
+    assert all(record["actor_username"] == "auditor" for record in records)
+
+    verified = await client.post(
+        f"{API}/audit/export/verify",
+        headers=auth(auditor["access_token"]),
+        files={"file": ("filtrado.zip", filtered.content, "application/zip")},
+    )
+    assert verified.status_code == 200, verified.text
+    assert verified.json()["ok"] is True, verified.json()
+
+    empty = await client.post(
+        f"{API}/audit/export",
+        headers=auth(auditor["access_token"]),
+        json={
+            "format": "csv",
+            "date_from": (utcnow() + timedelta(days=1)).isoformat(),
+        },
+    )
+    assert empty.status_code == 200, empty.text
+    empty_manifest, empty_records = _bundle_entries(empty.content)
+    assert empty_manifest["record_count"] == 0
+    assert empty_records == []
+    empty_verification = await client.post(
+        f"{API}/audit/export/verify",
+        headers=auth(auditor["access_token"]),
+        files={"file": ("vazio.zip", empty.content, "application/zip")},
+    )
+    assert empty_verification.status_code == 200
+    assert empty_verification.json()["ok"] is True
+
+    tecnico = await login(client, "tecnico", users["tecnico"]["password"])
+    denied = await client.post(
+        f"{API}/audit/export",
+        headers=auth(tecnico["access_token"]),
+        json={"format": "csv"},
+    )
+    assert denied.status_code == 403
+
+    admin = await login(client, "admin", users["admin"]["password"])
+    allowed = await client.post(
+        f"{API}/audit/export",
+        headers=auth(admin["access_token"]),
+        json={"format": "csv"},
+    )
+    assert allowed.status_code == 200
+
+
+async def test_audit_export_verification_detects_tampering(
+    client: AsyncClient, users
+) -> None:
+    fiscal = await login(client, "fiscal", users["fiscal"]["password"])
+    await create_sample(
+        client,
+        fiscal["access_token"],
+        users["fiscal"]["password"],
+        serial="SN-EXP3",
+        lot="L-EXP3",
+    )
+    auditor = await login(client, "auditor", users["auditor"]["password"])
+    exported = await client.post(
+        f"{API}/audit/export",
+        headers=auth(auditor["access_token"]),
+        json={"format": "csv"},
+    )
+    assert exported.status_code == 200, exported.text
+
+    # 1. Alterar o dado canônico sem atualizar o manifesto.
+    with zipfile.ZipFile(io.BytesIO(exported.content)) as archive:
+        data_bytes = archive.read("events.jsonl")
+    assert b'"action":"LOGIN"' in data_bytes
+    tampered_data = data_bytes.replace(b'"action":"LOGIN"', b'"action":"DELETE"', 1)
+    data_bundle = _rewrite_zip(exported.content, {"events.jsonl": tampered_data})
+    data_report = await client.post(
+        f"{API}/audit/export/verify",
+        headers=auth(auditor["access_token"]),
+        files={"file": ("adulterado.zip", data_bundle, "application/zip")},
+    )
+    assert data_report.status_code == 200
+    assert data_report.json()["ok"] is False
+    assert data_report.json()["data_hash_ok"] is False
+    assert any(
+        issue["type"] == "DATA_HASH_MISMATCH"
+        for issue in data_report.json()["issues"]
+    )
+
+    # 2. Alterar o manifesto sem recalcular o hash.
+    with zipfile.ZipFile(io.BytesIO(exported.content)) as archive:
+        manifest = json.loads(archive.read("manifest.json"))
+    manifest["record_count"] += 1
+    tampered_manifest = (
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    manifest_bundle = _rewrite_zip(
+        exported.content, {"manifest.json": tampered_manifest}
+    )
+    manifest_report = await client.post(
+        f"{API}/audit/export/verify",
+        headers=auth(auditor["access_token"]),
+        files={"file": ("manifesto.zip", manifest_bundle, "application/zip")},
+    )
+    assert manifest_report.status_code == 200
+    assert manifest_report.json()["ok"] is False
+    assert manifest_report.json()["manifest_hash_ok"] is False
+
+    # 3. Adulterar um registro e recalcular toda a assinatura do arquivo:
+    #    a cadeia interna ainda denuncia o elo quebrado.
+    manifest, records = _bundle_entries(exported.content)
+    key = settings.AUDIT_HMAC_KEY.get_secret_value()
+    target = records[0]
+    assert len(records) > 1
+    target["payload"] = {**target["payload"], "reason": "CONTEÚDO ADULTERADO"}
+    target["hash"] = sha256_hex(
+        f"{target['sequence']}:{target['prev_hash']}:"
+        f"{canonical_json(target['payload'])}"
+    )
+    target["hmac"] = hmac_sha256(key, target["hash"])
+    new_data = (
+        "".join(canonical_json(record) + "\n" for record in records)
+    ).encode("utf-8")
+    manifest["data_sha256"] = sha256_hex(new_data)
+    manifest["data_hmac"] = hmac_sha256(key, manifest["data_sha256"])
+    manifest["files"] = [
+        entry
+        if entry["name"] != "events.jsonl"
+        else {
+            **entry,
+            "sha256": manifest["data_sha256"],
+            "size": len(new_data),
+        }
+        for entry in manifest["files"]
+    ]
+    core = {
+        field: value
+        for field, value in manifest.items()
+        if field not in {"manifest_hash", "hmac"}
+    }
+    manifest["manifest_hash"] = sha256_hex(canonical_json(core))
+    manifest["hmac"] = hmac_sha256(key, manifest["manifest_hash"])
+    resigned_manifest = (
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+    chain_bundle = _rewrite_zip(
+        exported.content,
+        {"manifest.json": resigned_manifest, "events.jsonl": new_data},
+    )
+    chain_report = await client.post(
+        f"{API}/audit/export/verify",
+        headers=auth(auditor["access_token"]),
+        files={"file": ("cadeia.zip", chain_bundle, "application/zip")},
+    )
+    assert chain_report.status_code == 200
+    body = chain_report.json()
+    assert body["ok"] is False
+    assert body["manifest_hash_ok"] is True
+    assert body["data_hash_ok"] is True
+    assert body["chain_ok"] is False
+    assert any(issue["type"] == "PREV_HASH_MISMATCH" for issue in body["issues"])

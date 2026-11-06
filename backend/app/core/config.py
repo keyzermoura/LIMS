@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     # --- Integridade ----------------------------------------------------
     AUDIT_HMAC_KEY: SecretStr = SecretStr(_DEV_AUDIT_KEY)
     QR_SIGNING_KEY: SecretStr = SecretStr(_DEV_QR_KEY)
+    # Limites defensivos para não materializar a trilha inteira em memória.
+    AUDIT_EXPORT_MAX_RECORDS: int = 50_000
+    AUDIT_EXPORT_MAX_BYTES: int = 25 * 1024 * 1024
 
     # --- CORS -----------------------------------------------------------
     # Lista separada por vírgula (evita parsing JSON do pydantic-settings).

@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, select, text
+from sqlalchemy import Select, func, or_, select, text
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -66,6 +66,46 @@ def diff(old: dict[str, Any] | None, new: dict[str, Any] | None) -> dict[str, An
         if old.get(key) != new.get(key):
             changes[key] = {"de": old.get(key), "para": new.get(key)}
     return changes
+
+
+def filtered_query(
+    *,
+    entity_type: str | None = None,
+    entity_id: str | None = None,
+    actor_id: UUID | None = None,
+    action: AuditAction | None = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    search: str | None = None,
+) -> Select[AuditLog]:
+    """Consulta base compartilhada entre a tela e a exportação da trilha.
+
+    Manter os filtros em um único lugar garante que o arquivo exportado
+    contenha exatamente o mesmo recorte exibido ao auditor.
+    """
+    stmt = select(AuditLog)
+    if entity_type:
+        stmt = stmt.where(AuditLog.entity_type == entity_type)
+    if entity_id:
+        stmt = stmt.where(AuditLog.entity_id == entity_id)
+    if actor_id:
+        stmt = stmt.where(AuditLog.actor_id == actor_id)
+    if action:
+        stmt = stmt.where(AuditLog.action == action)
+    if date_from:
+        stmt = stmt.where(AuditLog.occurred_at >= date_from)
+    if date_to:
+        stmt = stmt.where(AuditLog.occurred_at <= date_to)
+    if search:
+        term = f"%{search.strip()}%"
+        stmt = stmt.where(
+            or_(
+                AuditLog.actor_username.ilike(term),
+                AuditLog.entity_id.ilike(term),
+                AuditLog.reason.ilike(term),
+            )
+        )
+    return stmt
 
 
 # --------------------------------------------------------------------------

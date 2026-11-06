@@ -209,7 +209,9 @@ export type AuditAction =
   | "SIGNATURE_ISSUED"
   | "SIGNATURE_REJECTED"
   | "CAPA_AUTO_OPEN"
-  | "INTEGRITY_CHECK";
+  | "INTEGRITY_CHECK"
+  | "EXPORT"
+  | "EXPORT_VERIFIED";
 
 export interface AuditLogEntry {
   id: number;
@@ -241,6 +243,32 @@ export interface AuditVerifyResult {
   last_sequence: number | null;
   head_hash: string | null;
   canonicalization: string;
+  issues: Array<{ sequence: number; type: string; detail: string }>;
+}
+
+export type AuditExportFormat = "csv" | "json";
+
+export interface AuditExportVerifyResult {
+  ok: boolean;
+  export_id: string | null;
+  generated_at: string | null;
+  generated_by: string | null;
+  record_count: number;
+  checked: number;
+  first_sequence: number | null;
+  last_sequence: number | null;
+  head_hash: string | null;
+  manifest_hash: string | null;
+  manifest_hash_ok: boolean;
+  manifest_hmac_ok: boolean;
+  data_hash_ok: boolean;
+  data_hmac_ok: boolean;
+  files_ok: boolean;
+  chain_ok: boolean;
+  chain_contiguous: boolean;
+  chain_gaps: number;
+  matches_database: boolean;
+  canonicalization: string | null;
   issues: Array<{ sequence: number; type: string; detail: string }>;
 }
 

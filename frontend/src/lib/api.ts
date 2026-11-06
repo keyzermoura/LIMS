@@ -88,12 +88,20 @@ interface RequestOptions {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   form?: URLSearchParams;
+  formData?: FormData;
   signatureToken?: string;
   retry?: boolean;
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, form, signatureToken, retry = true } = options;
+  const {
+    method = "GET",
+    body,
+    form,
+    formData,
+    signatureToken,
+    retry = true,
+  } = options;
 
   const headers: Record<string, string> = {};
   const accessToken = getAccessToken();
@@ -103,6 +111,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   let payload: BodyInit | undefined;
   if (form) {
     payload = form;
+  } else if (formData) {
+    payload = formData;
   } else if (body !== undefined) {
     headers["Content-Type"] = "application/json";
     payload = JSON.stringify(body);
@@ -180,8 +190,99 @@ export const api = {
       method: "POST",
       form: new URLSearchParams({ username, password }),
     }),
+  upload: <T>(path: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<T>(path, { method: "POST", formData });
+  },
   rawRequest: request,
 };
+
+function filenameFromDisposition(value: string | null): string | null {
+  if (!value) return null;
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(value);
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded[1]);
+    } catch {
+      return encoded[1];
+    }
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(value);
+  return plain?.[1] ?? null;
+}
+
+async function downloadError(response: Response): Promise<ApiError> {
+  const text = await response.text();
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
+  const body = (data ?? {}) as {
+    detail?: unknown;
+    code?: string;
+    request_id?: string;
+    context?: unknown;
+  };
+  return new ApiError(
+    typeof body.detail === "string"
+      ? body.detail
+      : "Não foi possível baixar o arquivo.",
+    response.status,
+    body.code,
+    body.request_id,
+    body.context,
+  );
+}
+
+/** Baixa um arquivo autenticado (inclusive POST) e preserva o nome sugerido. */
+export async function downloadFile(
+  path: string,
+  options: { method?: "GET" | "POST"; body?: unknown } = {},
+): Promise<{ blob: Blob; filename: string | null }> {
+  const method = options.method ?? "POST";
+
+  async function send(): Promise<Response> {
+    const headers: Record<string, string> = {};
+    const accessToken = getAccessToken();
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+    if (options.body !== undefined) headers["Content-Type"] = "application/json";
+    return fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body:
+        options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    });
+  }
+
+  let response: Response;
+  try {
+    response = await send();
+    if (response.status === 401) {
+      const refreshed = await refreshSession();
+      if (refreshed) response = await send();
+    }
+  } catch {
+    throw new ApiError(
+      "Não foi possível conectar ao servidor. Verifique a rede.",
+      0,
+      "NETWORK_ERROR",
+    );
+  }
+
+  if (!response.ok) throw await downloadError(response);
+
+  return {
+    blob: await response.blob(),
+    filename: filenameFromDisposition(
+      response.headers.get("Content-Disposition"),
+    ),
+  };
+}
 
 /** Baixa um recurso binário autenticado e devolve um object URL. */
 export async function fetchObjectUrl(path: string): Promise<string> {

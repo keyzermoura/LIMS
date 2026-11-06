@@ -95,7 +95,14 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Signature-Token", "X-Request-ID"],
-    expose_headers=["X-Request-ID", "X-Process-Time"],
+    expose_headers=[
+        "X-Request-ID",
+        "X-Process-Time",
+        "Content-Disposition",
+        "X-Audit-Export-Id",
+        "X-Audit-Export-Sequence",
+        "X-Audit-Export-Manifest-Hash",
+    ],
     max_age=600,
 )
 

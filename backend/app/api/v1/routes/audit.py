@@ -5,20 +5,25 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFile
+from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession, require_roles
+from app.core.config import settings
 from app.core.context import RequestContext
+from app.core.errors import ValidationDomainError
 from app.models.audit_log import AuditLog
 from app.models.enums import AuditAction, AuditEntity, UserRole
 from app.models.user import User
 from app.schemas.audit import (
+    AuditExportRequest,
+    AuditExportVerifyResponse,
     AuditLogDetailOut,
     AuditLogOut,
     AuditVerifyResponse,
 )
 from app.schemas.common import Page
-from app.services import audit_service
+from app.services import audit_export_service, audit_service
 
 router = APIRouter(prefix="/audit", tags=["Trilha de Auditoria"])
 
@@ -48,30 +53,15 @@ async def list_audit_logs(
     search: str | None = Query(None, max_length=120),
     _role: User = Depends(require_roles(*AUDIT_ROLES)),
 ) -> Page[AuditLogOut]:
-    from sqlalchemy import func, or_, select
-
-    stmt = select(AuditLog)
-    if entity_type:
-        stmt = stmt.where(AuditLog.entity_type == entity_type)
-    if entity_id:
-        stmt = stmt.where(AuditLog.entity_id == entity_id)
-    if actor_id:
-        stmt = stmt.where(AuditLog.actor_id == actor_id)
-    if action:
-        stmt = stmt.where(AuditLog.action == action)
-    if date_from:
-        stmt = stmt.where(AuditLog.occurred_at >= date_from)
-    if date_to:
-        stmt = stmt.where(AuditLog.occurred_at <= date_to)
-    if search:
-        term = f"%{search.strip()}%"
-        stmt = stmt.where(
-            or_(
-                AuditLog.actor_username.ilike(term),
-                AuditLog.entity_id.ilike(term),
-                AuditLog.reason.ilike(term),
-            )
-        )
+    stmt = audit_service.filtered_query(
+        entity_type=entity_type,
+        entity_id=entity_id,
+        actor_id=actor_id,
+        action=action,
+        date_from=date_from,
+        date_to=date_to,
+        search=search,
+    )
 
     total = await db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     stmt = (
@@ -139,3 +129,125 @@ async def verify_audit_chain(
     )
     await db.commit()
     return AuditVerifyResponse.model_validate(report)
+
+
+@router.post(
+    "/export",
+    summary="Exportar trilha assinada (CSV/JSON + manifesto)",
+    description=(
+        "Gera um pacote ZIP com o recorte da trilha em CSV ou JSON, o arquivo "
+        "canônico `events.jsonl` e um manifesto SHA-256/HMAC. A exportação é "
+        "registrada na própria trilha. Restrito a AUDITOR e ADMIN."
+    ),
+    response_class=Response,
+    responses={
+        200: {
+            "content": {"application/zip": {}},
+            "description": "Pacote ZIP com eventos e manifesto assinado.",
+        }
+    },
+)
+async def export_audit_trail(
+    request: Request,
+    body: AuditExportRequest,
+    db: DbSession,
+    user: CurrentUser,
+    _role: User = Depends(require_roles(*AUDIT_ROLES)),
+) -> Response:
+    filters = body.model_dump(exclude={"format"})
+    bundle = await audit_export_service.export_bundle(
+        db,
+        actor=user,
+        filters=filters,
+        fmt=body.format,
+        context=RequestContext.from_request(request),
+    )
+
+    event = await audit_service.append(
+        db,
+        action=AuditAction.EXPORT,
+        entity_type=AuditEntity.AUDIT_LOG.value,
+        entity_id=str(bundle.manifest["export_id"]),
+        actor=user,
+        new_value={
+            "export_id": bundle.manifest["export_id"],
+            "format": body.format,
+            "scope": bundle.manifest["scope"],
+            "record_count": bundle.manifest["record_count"],
+            "first_sequence": bundle.manifest["first_sequence"],
+            "last_sequence": bundle.manifest["last_sequence"],
+            "head_hash": bundle.manifest["head_hash"],
+            "manifest_hash": bundle.manifest_hash,
+            "manifest_hmac": bundle.hmac,
+            "artifact_sha256": bundle.artifact_sha256,
+        },
+        reason="Exportação assinada da trilha de auditoria.",
+        context=RequestContext.from_request(request),
+    )
+    await db.commit()
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="{bundle.filename}"',
+        "X-Audit-Export-Id": str(bundle.manifest["export_id"]),
+        "X-Audit-Export-Sequence": str(event.sequence),
+        "X-Audit-Export-Manifest-Hash": bundle.manifest_hash,
+    }
+    return Response(
+        content=bundle.content,
+        media_type="application/zip",
+        headers=headers,
+    )
+
+
+@router.post(
+    "/export/verify",
+    response_model=AuditExportVerifyResponse,
+    summary="Verificar arquivo exportado da trilha",
+    description=(
+        "Recalcula o hash/HMAC do manifesto e dos arquivos, valida a cadeia "
+        "interna dos registros e ancora a cabeça exportada no banco atual. "
+        "A verificação também é registrada na trilha."
+    ),
+)
+async def verify_audit_export(
+    request: Request,
+    db: DbSession,
+    user: CurrentUser,
+    file: UploadFile = File(..., description="Pacote ZIP gerado por /audit/export."),
+    _role: User = Depends(require_roles(*AUDIT_ROLES)),
+) -> AuditExportVerifyResponse:
+    content = await file.read(settings.AUDIT_EXPORT_MAX_BYTES + 1)
+    if len(content) > settings.AUDIT_EXPORT_MAX_BYTES:
+        raise ValidationDomainError(
+            "O arquivo excede o tamanho máximo aceito para verificação.",
+            details={"max_bytes": settings.AUDIT_EXPORT_MAX_BYTES},
+        )
+
+    report = await audit_export_service.verify_bundle(db, content)
+
+    await audit_service.append(
+        db,
+        action=AuditAction.EXPORT_VERIFIED,
+        entity_type=AuditEntity.AUDIT_LOG.value,
+        entity_id=str(report.get("export_id") or "unknown")[:64],
+        actor=user,
+        new_value={
+            "export_id": report.get("export_id"),
+            "filename": file.filename,
+            "ok": report["ok"],
+            "checked": report["checked"],
+            "first_sequence": report.get("first_sequence"),
+            "last_sequence": report.get("last_sequence"),
+            "head_hash": report.get("head_hash"),
+            "manifest_hash_ok": report["manifest_hash_ok"],
+            "data_hash_ok": report["data_hash_ok"],
+            "chain_ok": report["chain_ok"],
+            "matches_database": report["matches_database"],
+            "issues": len(report["issues"]),
+        },
+        reason="Verificação de arquivo exportado da trilha de auditoria.",
+        context=RequestContext.from_request(request),
+    )
+    await db.commit()
+
+    return AuditExportVerifyResponse.model_validate(report)

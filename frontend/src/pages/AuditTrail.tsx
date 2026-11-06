@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Download,
   Filter,
   Fingerprint,
   Loader2,
@@ -12,6 +13,7 @@ import {
   Search,
   ShieldCheck,
   ShieldX,
+  Upload,
   X,
 } from "lucide-react";
 
@@ -49,9 +51,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import { api, ApiError, buildQuery } from "@/lib/api";
+import { api, ApiError, buildQuery, downloadFile } from "@/lib/api";
 import type {
   AuditAction,
+  AuditExportFormat,
+  AuditExportVerifyResult,
   AuditLogEntry,
   AuditVerifyResult,
   DeviceSample,
@@ -75,6 +79,8 @@ const ACTION_LABELS: Record<string, string> = {
   SIGNATURE_REJECTED: "Assinatura rejeitada",
   CAPA_AUTO_OPEN: "CAPA automática",
   INTEGRITY_CHECK: "Verificação de integridade",
+  EXPORT: "Exportação da trilha",
+  EXPORT_VERIFIED: "Exportação verificada",
 };
 
 const ENTITY_LABELS: Record<string, string> = {
@@ -98,6 +104,8 @@ const ACTION_FILTERS: Array<{ value: AuditAction; label: string }> = [
   { value: "LOGIN", label: "Login" },
   { value: "LOGIN_FAILED", label: "Falha de login" },
   { value: "INTEGRITY_CHECK", label: "Verificação de integridade" },
+  { value: "EXPORT", label: "Exportação da trilha" },
+  { value: "EXPORT_VERIFIED", label: "Exportação verificada" },
   { value: "LOGOUT", label: "Logout" },
 ];
 
@@ -130,6 +138,24 @@ const EMPTY_FILTERS: Filters = {
   dateTo: "",
 };
 
+/** Converte o estado da tela para os parâmetros aceitos pela API. */
+function toApiFilters(filters: Filters) {
+  return {
+    entity_type: filters.entityType || undefined,
+    entity_id: filters.entityId || undefined,
+    actor_id: filters.actorId || undefined,
+    action: filters.action || undefined,
+    search: filters.search || undefined,
+    date_from: filters.dateFrom
+      ? new Date(filters.dateFrom).toISOString()
+      : undefined,
+    // `datetime-local` tem precisão de minuto: inclui o minuto final inteiro.
+    date_to: filters.dateTo
+      ? new Date(new Date(filters.dateTo).getTime() + 59_999).toISOString()
+      : undefined,
+  };
+}
+
 export function AuditTrailPage() {
   const { push } = useToast();
   const [draft, setDraft] = React.useState<Filters>(EMPTY_FILTERS);
@@ -138,6 +164,8 @@ export function AuditTrailPage() {
   const [selected, setSelected] = React.useState<AuditLogEntry | null>(null);
   const [verifying, setVerifying] = React.useState(false);
   const [verification, setVerification] = React.useState<AuditVerifyResult | null>(null);
+  const [exportOpen, setExportOpen] = React.useState(false);
+  const [verifyExportOpen, setVerifyExportOpen] = React.useState(false);
 
   const usersQuery = useQuery({
     queryKey: ["users"],
@@ -155,18 +183,7 @@ export function AuditTrailPage() {
       const query = buildQuery({
         page,
         size: 50,
-        entity_type: applied.entityType || undefined,
-        entity_id: applied.entityId || undefined,
-        actor_id: applied.actorId || undefined,
-        action: applied.action || undefined,
-        search: applied.search || undefined,
-        date_from: applied.dateFrom
-          ? new Date(applied.dateFrom).toISOString()
-          : undefined,
-        // `datetime-local` tem precisão de minuto: inclui o minuto final inteiro.
-        date_to: applied.dateTo
-          ? new Date(new Date(applied.dateTo).getTime() + 59_999).toISOString()
-          : undefined,
+        ...toApiFilters(applied),
       });
       return api.get<Page<AuditLogEntry>>(`/audit${query}`);
     },
@@ -234,6 +251,14 @@ export function AuditTrailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={() => setExportOpen(true)}>
+              <Download className="h-4 w-4" />
+              Exportar trilha
+            </Button>
+            <Button variant="outline" onClick={() => setVerifyExportOpen(true)}>
+              <Upload className="h-4 w-4" />
+              Verificar arquivo
+            </Button>
             <Button variant="outline" onClick={() => void auditQuery.refetch()}>
               <RefreshCw
                 className={auditQuery.isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"}
@@ -601,6 +626,18 @@ export function AuditTrailPage() {
       </Card>
 
       <AuditDetailDialog entry={selected} onClose={() => setSelected(null)} />
+      <AuditExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        filters={applied}
+        total={data?.total ?? 0}
+        onExported={() => void auditQuery.refetch()}
+      />
+      <AuditExportVerifyDialog
+        open={verifyExportOpen}
+        onClose={() => setVerifyExportOpen(false)}
+        onVerified={() => void auditQuery.refetch()}
+      />
     </div>
   );
 }
@@ -608,7 +645,11 @@ export function AuditTrailPage() {
 function ActionBadge({ action }: { action: string }) {
   const destructive = action === "SIGNATURE_REJECTED" || action === "LOGIN_FAILED";
   const success =
-    action === "CREATE" || action === "SIGN" || action === "INTEGRITY_CHECK";
+    action === "CREATE" ||
+    action === "SIGN" ||
+    action === "INTEGRITY_CHECK" ||
+    action === "EXPORT" ||
+    action === "EXPORT_VERIFIED";
   const warning = action === "STATUS_CHANGE" || action === "CAPA_AUTO_OPEN";
   const variant = destructive
     ? "destructive"
@@ -777,5 +818,287 @@ function Metadata({
         {value}
       </p>
     </div>
+  );
+}
+
+function AuditExportDialog({
+  open,
+  onClose,
+  filters,
+  total,
+  onExported,
+}: {
+  open: boolean;
+  onClose: () => void;
+  filters: Filters;
+  total: number;
+  onExported: () => void;
+}) {
+  const { push } = useToast();
+  const [format, setFormat] = React.useState<AuditExportFormat>("csv");
+  const [busy, setBusy] = React.useState(false);
+  const hasFilters = Object.values(filters).some(Boolean);
+
+  async function handleExport() {
+    setBusy(true);
+    try {
+      const { blob, filename } = await downloadFile("/audit/export", {
+        body: { format, ...toApiFilters(filters) },
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename ?? "trilha-auditoria.zip";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      push({
+        variant: "success",
+        title: "Trilha exportada",
+        description: `${total.toLocaleString("pt-BR")} evento(s) · pacote com manifesto SHA-256/HMAC.`,
+      });
+      onExported();
+      onClose();
+    } catch (error) {
+      push({
+        variant: "destructive",
+        title: "Falha na exportação",
+        description:
+          error instanceof ApiError ? error.message : "Tente novamente.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Exportar trilha assinada</DialogTitle>
+          <DialogDescription>
+            Gera um pacote ZIP com os eventos, um arquivo canônico e um
+            manifesto autenticado por SHA-256/HMAC. A exportação é registrada
+            na própria trilha.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="rounded-md border border-border bg-muted/30 px-4 py-3 text-[12.5px]">
+            <p className="font-medium">
+              {hasFilters
+                ? "Somente o recorte filtrado será exportado."
+                : "A trilha completa será exportada."}
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              {total.toLocaleString("pt-BR")} evento(s) no escopo atual.
+            </p>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="export-format">Formato de apresentação</Label>
+            <Select
+              value={format}
+              onValueChange={(value) => setFormat(value as AuditExportFormat)}
+            >
+              <SelectTrigger id="export-format">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="csv">CSV (planilha)</SelectItem>
+                <SelectItem value="json">JSON (legível por máquina)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              O arquivo verificável <span className="font-mono">events.jsonl</span>{" "}
+              é sempre incluído, independentemente do formato escolhido.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={onClose} disabled={busy}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void handleExport()} disabled={busy}>
+              {busy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              Exportar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AuditExportVerifyDialog({
+  open,
+  onClose,
+  onVerified,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onVerified: () => void;
+}) {
+  const { push } = useToast();
+  const [file, setFile] = React.useState<File | null>(null);
+  const [result, setResult] = React.useState<AuditExportVerifyResult | null>(null);
+  const [busy, setBusy] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) {
+      setFile(null);
+      setResult(null);
+    }
+  }, [open]);
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!file) return;
+    setBusy(true);
+    try {
+      const report = await api.upload<AuditExportVerifyResult>(
+        "/audit/export/verify",
+        file,
+      );
+      setResult(report);
+      push({
+        variant: report.ok ? "success" : "destructive",
+        title: report.ok ? "Arquivo íntegro" : "Arquivo não confere",
+        description: report.ok
+          ? `${report.checked} registro(s) verificados · manifesto ${shortHash(report.manifest_hash, 12)}`
+          : `${report.issues.length} inconsistência(s) encontrada(s).`,
+      });
+      onVerified();
+    } catch (error) {
+      push({
+        variant: "destructive",
+        title: "Falha na verificação",
+        description:
+          error instanceof ApiError ? error.message : "Tente novamente.",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const checks = result
+    ? [
+        { label: "Manifesto (SHA-256)", ok: result.manifest_hash_ok },
+        { label: "Manifesto (HMAC)", ok: result.manifest_hmac_ok },
+        { label: "Eventos (SHA-256)", ok: result.data_hash_ok },
+        { label: "Eventos (HMAC)", ok: result.data_hmac_ok },
+        { label: "Arquivos do pacote", ok: result.files_ok },
+        { label: "Cadeia interna", ok: result.chain_ok },
+        { label: "Âncora no banco", ok: result.matches_database },
+      ]
+    : [];
+
+  return (
+    <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Verificar arquivo exportado</DialogTitle>
+          <DialogDescription>
+            Selecione o ZIP gerado pela exportação. O servidor recalcula os
+            hashes/HMACs, valida a cadeia interna e ancora a cabeça no banco
+            atual.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid gap-1.5">
+            <Label htmlFor="audit-export-file">Pacote da trilha (.zip)</Label>
+            <Input
+              id="audit-export-file"
+              type="file"
+              accept=".zip,application/zip"
+              onChange={(event) => {
+                setFile(event.target.files?.[0] ?? null);
+                setResult(null);
+              }}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>
+              Fechar
+            </Button>
+            <Button type="submit" disabled={!file || busy}>
+              {busy ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              Verificar arquivo
+            </Button>
+          </div>
+        </form>
+
+        {result ? (
+          <div
+            className={`space-y-3 rounded-md border px-4 py-3 text-[12.5px] ${
+              result.ok
+                ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                : "border-rose-200 bg-rose-50 text-rose-950"
+            }`}
+          >
+            <div className="flex items-start gap-2">
+              {result.ok ? (
+                <ShieldCheck className="mt-0.5 h-5 w-5 text-emerald-700" />
+              ) : (
+                <ShieldX className="mt-0.5 h-5 w-5 text-rose-700" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">
+                  {result.ok
+                    ? "Arquivo íntegro e ancorado no banco"
+                    : "O arquivo não pôde ser validado"}
+                </p>
+                <p className="mt-0.5 opacity-80">
+                  {result.checked} de {result.record_count} registro(s)
+                  {result.chain_gaps > 0
+                    ? ` · ${result.chain_gaps} lacuna(s) de filtro`
+                    : ""}
+                  {result.generated_at
+                    ? ` · exportado em ${formatDateTime(result.generated_at)}`
+                    : ""}
+                </p>
+                {result.generated_by ? (
+                  <p className="opacity-80">Por {result.generated_by}</p>
+                ) : null}
+              </div>
+            </div>
+
+            <ul className="grid gap-1 sm:grid-cols-2">
+              {checks.map((check) => (
+                <li key={check.label} className="flex items-center gap-1.5">
+                  {check.ok ? (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" />
+                  ) : (
+                    <AlertTriangle className="h-3.5 w-3.5 text-rose-700" />
+                  )}
+                  {check.label}
+                </li>
+              ))}
+            </ul>
+
+            {result.issues.length > 0 ? (
+              <ul className="space-y-1 font-mono text-[11px]">
+                {result.issues.slice(0, 8).map((issue) => (
+                  <li key={`${issue.sequence}-${issue.type}-${issue.detail}`}>
+                    seq. {issue.sequence} · {issue.type} — {issue.detail}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }

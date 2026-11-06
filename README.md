@@ -74,6 +74,9 @@ Princípios aplicados:
   via header `X-Signature-Token`.
 - **Trilha append-only**: cada evento tem `sequence`, `prev_hash`, `hash`
   SHA-256 do conteúdo canônico e `hmac` com chave mantida fora do banco.
+- **Exportação assinada**: a trilha pode ser baixada em CSV/JSON dentro de um
+  ZIP com manifesto SHA-256/HMAC, arquivo canônico `events.jsonl` e endpoint
+  de verificação que ancora a cabeça exportada no banco atual.
 - **Resultados imutáveis**: cada laudo gera uma versão de `LabTestResult`;
   correções exigem `amendment_reason` e criam nova versão.
 - **CAPA automática**: resultado `REPROVADO` abre CAPA (`auto_opened=true`)
@@ -369,6 +372,51 @@ curl -s -X POST "http://localhost:8000/api/v1/audit/verify" \
 
 A própria verificação é registrada como evento `INTEGRITY_CHECK`.
 
+### 4.5 Exportar e verificar a trilha assinada
+
+O perfil `AUDITOR` (ou `ADMIN`) exporta o recorte atual da tela em um pacote
+ZIP. O pacote contém:
+
+| Arquivo | Papel |
+| --- | --- |
+| `manifest.json` | Escopo, contagem, âncora/cabeça, hashes e HMAC |
+| `events.jsonl` | Registros canônicos, um por linha — dado verificável |
+| `events.csv` ou `events.json` | Apresentação legível do mesmo recorte |
+
+```bash
+# Exporta tudo em CSV (os mesmos filtros da consulta são aceitos)
+curl -s -X POST "http://localhost:8000/api/v1/audit/export" \
+  -H "Authorization: Bearer $AUDITOR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"format":"csv"}' \
+  -o trilha-auditoria.zip
+
+# Exporta apenas eventos de login de um usuário em um intervalo
+curl -s -X POST "http://localhost:8000/api/v1/audit/export" \
+  -H "Authorization: Bearer $AUDITOR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "format":"json",
+    "action":"LOGIN",
+    "search":"auditor",
+    "date_from":"2026-11-01T00:00:00Z",
+    "date_to":"2026-11-30T23:59:59Z"
+  }' \
+  -o trilha-logins.zip
+
+# Verifica o arquivo entregue ao inspetor
+curl -s -X POST "http://localhost:8000/api/v1/audit/export/verify" \
+  -H "Authorization: Bearer $AUDITOR_TOKEN" \
+  -F "file=@trilha-auditoria.zip" | jq
+```
+
+A verificação recalcula o hash/HMAC do manifesto e de cada arquivo, valida a
+cadeia interna dos registros e compara a âncora e a cabeça exportadas com o
+banco atual. Exportação e verificação geram, respectivamente, os eventos
+`EXPORT` e `EXPORT_VERIFIED`. O recorte é limitado por
+`AUDIT_EXPORT_MAX_RECORDS` (50.000) e o upload por `AUDIT_EXPORT_MAX_BYTES`
+(25 MiB), configuráveis por variável de ambiente.
+
 ---
 
 ## 5. Superfície da API
@@ -403,6 +451,8 @@ A própria verificação é registrada como evento `INTEGRITY_CHECK`.
 | GET | `/audit` | Consulta (ADMIN/AUDITOR) |
 | GET | `/audit/{id}` | Detalhe com hashes |
 | POST | `/audit/verify` | Verificação da cadeia |
+| POST | `/audit/export` | Exportação assinada CSV/JSON (ADMIN/AUDITOR) |
+| POST | `/audit/export/verify` | Verificação do arquivo exportado |
 | GET/POST | `/users` | Lista / criação (ADMIN, assinada) |
 
 Swagger: `http://localhost:8000/docs`. O fluxo de login pode ser usado no
@@ -421,7 +471,7 @@ botão **Authorize** (OAuth2 password flow).
 | Requisito | Implementação no MVP |
 | --- | --- |
 | §11.10(a) — validação e controle de sistemas | Testes de domínio (`pytest`), tipagem Pydantic, migrações versionadas com Alembic e `alembic check` no CI |
-| §11.10(b) — cópias legíveis e exatas | Endpoints de consulta, histórico de versões, timeline e detalhe de auditoria com JSON canônico |
+| §11.10(b) — cópias legíveis e exatas | Endpoints de consulta, histórico de versões, timeline, detalhe de auditoria com JSON canônico e exportação assinada em CSV/JSON |
 | §11.10(c) — retenção e recuperação | Registros persistidos; trilha append-only; triggers impedem `UPDATE`/`DELETE`/`TRUNCATE` |
 | §11.10(d) — acesso limitado | JWT de curta duração, RBAC por rota, bloqueio por tentativas, invalidação por `token_version` |
 | §11.10(e) — trilha de auditoria independente | `audit_log` com sequência, hash SHA-256 encadeado e HMAC; eventos de login, assinatura, integridade e negócio |

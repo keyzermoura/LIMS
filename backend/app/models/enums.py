@@ -58,6 +58,8 @@ class AuditAction(str, Enum):
     SIGNATURE_REJECTED = "SIGNATURE_REJECTED"
     CAPA_AUTO_OPEN = "CAPA_AUTO_OPEN"
     INTEGRITY_CHECK = "INTEGRITY_CHECK"
+    EXPORT = "EXPORT"
+    EXPORT_VERIFIED = "EXPORT_VERIFIED"
 
 
 class SignatureMeaning(str, Enum):
