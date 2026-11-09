@@ -286,4 +286,5 @@ Este documento não autoriza implementação, backfill, migração de banco ou a
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 0.1 | 2026-11-09 | Primeira proposta de estratégia de migração aditiva, convivência com legado, validação e recuperação. |\n| 0.2 | 2026-11-09 | Alinhamento da estratégia com a recomendação conceitual de ObjetoCustodia e preservação de ChainOfCustody legado. |
+| 0.1 | 2026-11-09 | Primeira proposta de estratégia de migração aditiva, convivência com legado, validação e recuperação. |
+| 0.2 | 2026-11-09 | Alinhamento da estratégia com a recomendação conceitual de ObjetoCustodia e preservação de ChainOfCustody legado. |
