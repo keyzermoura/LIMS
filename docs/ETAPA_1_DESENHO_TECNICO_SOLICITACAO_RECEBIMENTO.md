@@ -10,15 +10,15 @@
 
 ## 1. Objetivo e premissas
 
-Implementar futuramente a Etapa 1 do fluxo SEFI, mantendo as decisões funcionais aprovadas:
+Implementar futuramente a Etapa 1 do LIMS, inicialmente aplicada ao fluxo de recebimento do SEFI, com arquitetura institucional extensível aos demais laboratórios:
 
-- uma solicitação corresponde a um único dispositivo;
+- uma solicitação representa uma demanda e pode conter um ou vários itens de amostra/dispositivo, cada qual cadastrado individualmente;
 - uma solicitação admite no máximo um recebimento físico;
 - quantidade declarada e quantidade recebida são informações distintas;
 - o conferente registra a conferência e formaliza a decisão inicial;
 - a coordenação valida apenas exceções previstas ou encaminhadas;
 - bloqueios impeditivos não podem ser contornados por aceite com ressalvas;
-- o protocolo SEFI só é gerado após aceite final e validação favorável, quando exigida;
+- cada amostra aceita recebe um identificador institucional único, independente do laboratório; protocolos locais, inclusive eventual protocolo SEFI, são complementares;
 - decisões, correções, checklist e validações devem permanecer auditáveis.
 
 A proposta considera a arquitetura atualmente observada no repositório: FastAPI, SQLAlchemy 2, Pydantic, PostgreSQL 16, Alembic, autenticação/RBAC, auditoria e frontend React/TypeScript.
@@ -42,7 +42,7 @@ O modelo atual de `DeviceSample` contém campos de identificação e recebimento
 
 - número de série deve admitir ausência quando o dispositivo não possuir série individual;
 - a identidade comercial não deve impedir solicitações diferentes do mesmo fabricante, lote ou produto;
-- o número da solicitação identifica a demanda antes da entrega; o protocolo SEFI identifica o ingresso formalmente aceito e `accession_number` permanece como identificador interno da amostra/QR;
+- o número da solicitação identifica a demanda; cada amostra aceita recebe identificador institucional de controle, independente do laboratório; `accession_number` é o identificador técnico legado cuja equivalência deve ser avaliada para evitar duplicidade; protocolos locais são complementares;
 - dados declarados da solicitação devem existir antes do recebimento físico, fora de `device_samples`;
 - dados do recebimento, custódia prévia, conferência e decisão devem ser entidades próprias;
 - não se deve apagar nem substituir o histórico de decisões.
@@ -55,7 +55,7 @@ A alteração da restrição de unicidade e da obrigatoriedade dos campos existe
 
 | Entidade proposta | Finalidade | Relação principal |
 |---|---|---|
-| `solicitations` | Demanda cadastrada por servidor SEFI em nome do solicitante/representante | Uma solicitação para um dispositivo |
+| `solicitations` | Demanda cadastrada por usuário interno em nome do solicitante/representante | Uma solicitação pode conter vários itens de amostra |
 | `receipts` | Registro da chegada física e conferência | Solicitação 1 : 0..1 recebimento |
 | `receipt_custody_events` | Custódia física desde a chegada até a transferência/encerramento | Um ou vários eventos por recebimento |
 | `receipt_checklist_templates` | Versões dos modelos de checklist | Um modelo possui critérios |
@@ -65,7 +65,7 @@ A alteração da restrição de unicidade e da obrigatoriedade dos campos existe
 | `coordination_reviews` | Decisões da coordenação | Vinculada à exceção e à decisão do conferente |
 | `solicitation_status_history` | Histórico de transições, se não integralmente coberto pela auditoria atual | Solicitação |
 
-A relação entre `device_samples` e `solicitations` será opcional para acomodar registros legados, com unicidade para vínculos não nulos e cardinalidade máxima 1:1. A solicitação poderá existir antes da amostra ser operacionalmente liberada.
+A relação do novo fluxo será 1:N entre `Solicitation` e `SolicitationSample`; cada item declarado poderá originar no máximo uma `DeviceSample` após aceite individual. Os vínculos legados permanecerão opcionais e não serão preenchidos por inferência.
 
 ### 3.2 Campos conceituais
 
@@ -149,12 +149,12 @@ A unicidade de `solicitation_id` deve ser garantida no banco, não apenas na apl
 
 Recomendações:
 
-1. FK de `device_samples.solicitation_id` com `UNIQUE` e `NOT NULL` quando a migração e os dados existentes permitirem.
+1. FKs entre `solicitation_samples` e `solicitations`, e entre `device_samples` e o item aceito, com unicidade por item para impedir duplicação; vínculos legados permanecem opcionais.
 2. FK única de `receipts.solicitation_id` para impor no máximo um recebimento por solicitação.
 3. `CHECK (declared_quantity > 0)` e `CHECK (received_quantity > 0)`, com tipo numérico adequado à unidade.
 4. `CHECK`/enum para resultados de checklist, classes e estados, alinhado ao padrão atual de enums SQLAlchemy.
 5. FKs para usuários com `ON DELETE RESTRICT`, preservando autoria.
-6. Índices por número da solicitação, protocolo SEFI, estado, solicitante, data e fila de validação.
+6. Índices por número da solicitação, identificador institucional de controle, protocolo local quando aplicável, estado, solicitante, data e fila de validação.
 7. Protocolo SEFI único e não nulo somente depois de gerado; considerar coluna inicialmente nula com índice único parcial no PostgreSQL.
 8. Transições de estado e regra de bloqueio centralizadas no serviço de domínio; constraints no banco como segunda barreira.
 9. Controle de concorrência otimista já utilizado no projeto, ou bloqueio transacional explícito, para impedir duas decisões concorrentes.
@@ -168,7 +168,7 @@ A regra de “coordenação não pode dispensar bloqueio impeditivo” deve exis
 
 - criar solicitação em elaboração;
 - identificar solicitante e autor do cadastro;
-- cadastrar um único dispositivo;
+- cadastrar um ou mais itens de amostra/dispositivo, cada qual com seus dados declarados;
 - validar campos obrigatórios conforme tipo;
 - ao submeter, validar consistência e mudar para aguardando recebimento;
 - registrar evento de auditoria.
@@ -216,14 +216,14 @@ A conclusão do aceite deve ser uma operação de domínio transacional e idempo
 
 Na mesma transação lógica, o serviço deverá:
 - confirmar a decisão final e a versão do recebimento;
-- criar exatamente um `DeviceSample` com os dados verificados e confirmados;
+- criar exatamente uma `DeviceSample` para cada item individualmente aceito, com os dados verificados e confirmados;
 - preencher `DeviceSample.received_at` com `Receipt.arrived_at`, a data/hora efetiva da chegada física, e `received_by_id` com o usuário que recebeu fisicamente o material;
 - manter separada a data/hora de criação da amostra nos campos técnicos próprios, como `created_at`;
-- gerar `accession_number` e protocolo SEFI distintos, preservando o QR atual vinculado a `accession_number`;
+- gerar identificador institucional único para cada amostra criada, independentemente do laboratório; verificar se `accession_number` já cumpre essa função e pode ser preservado para manter o QR atual. Não criar dois identificadores internos equivalentes; protocolo local será complementar;
 - vincular amostra, solicitação e recebimento e preservar, sem reescrita, o histórico de custódia iniciado na chegada;
 - registrar assinatura, auditoria e chave de idempotência.
 
-A unicidade no banco deve impedir duas amostras ou dois protocolos para a mesma solicitação. Reenvios retornam o resultado já criado. Se uma única transação de banco não for tecnicamente possível, adotar estado intermediário recuperável e reconciliação determinística, sem duplicação ou perda de rastreabilidade.
+A unicidade no banco deve impedir mais de uma `DeviceSample` para o mesmo item e duplicidade do identificador institucional. Itens diferentes da mesma solicitação podem originar amostras diferentes. Reenvios retornam o resultado já criado. Se uma única transação de banco não for tecnicamente possível, adotar estado intermediário recuperável e reconciliação determinística, sem duplicação ou perda de rastreabilidade.
 
 ## 6. API REST proposta
 
@@ -242,7 +242,7 @@ Prefixo sugerido: `/api/v1`, mantendo o padrão de roteadores já existente.
 | PUT | `/receipts/{id}/checklist` | Registrar respostas e evidências | Conferente responsável |
 | POST | `/receipts/{id}/decision` | Formalizar decisão do conferente | Conferente responsável |
 | POST | `/receipts/{id}/coordination-review` | Aprovar/devolver/rejeitar | Coordenação autorizada |
-| POST | `/solicitations/{id}/accept-and-register` | Concluir aceite, criar amostra e gerar protocolo de forma idempotente | Serviço/perfil interno autorizado |
+| POST | `/receipt-samples/{id}/accept-and-register` | Concluir aceite do item, criar a amostra e gerar seu identificador institucional de forma idempotente | Serviço/perfil interno autorizado |
 | GET | `/coordination/reviews` | Consultar fila de validação | Coordenação |
 | GET | `/receipt-checklists/active` | Consultar checklist ativo | Perfis internos |
 
@@ -291,7 +291,7 @@ Sugestão de organização, compatível com os diretórios existentes:
 - `app/services/solicitation_service.py`
 - `app/services/receipt_service.py`
 - `app/services/receipt_decision_service.py`
-- `app/services/sefi_protocol_service.py`
+- `app/services/sample_identifier_service.py` (e serviço de protocolo específico do laboratório, se necessário)
 
 Os serviços devem concentrar regras de negócio e transações. As rotas devem validar entrada, autenticar/autorizar e delegar ao serviço. Os modelos não devem conter regras complexas de transição.
 
@@ -301,7 +301,7 @@ Telas/fluxos mínimos para usuários internos:
 
 1. **Nova solicitação assistida:** dados do solicitante/representante, dados declarados do dispositivo, finalidade, tipo e prioridade.
 2. **Fila de solicitações:** status, número, data, solicitante/representante e pendências, conforme atribuição interna.
-3. **Recebimento SEFI:** localizar solicitação, registrar chegada física, quantidade, recebedor, condição física e início da custódia.
+3. **Recebimento:** localizar solicitação, registrar chegada física, itens/quantidades entregues, recebedor, condição física e início da custódia.
 4. **Conferência:** checklist versionado, dados verificados, divergências em relação ao declarado, observações, evidências e alertas de bloqueio.
 5. **Decisão:** resumo automático dos impeditivos/exceções e formalização pelo conferente.
 6. **Fila da coordenação:** exceções pendentes, evidências, decisão do conferente e ações disponíveis.
@@ -381,7 +381,7 @@ Cada subetapa deve ser executada em branch de feature própria ou na branch de t
 1. O solicitante externo terá conta autenticada própria desde a primeira versão ou haverá cadastro assistido pelo servidor do SEFI?
 2. Quais perfis internos existentes corresponderão a recebedor, conferente e coordenação? Será necessário criar permissões granulares?
 3. A decisão do conferente e a validação da coordenação exigirão assinatura eletrônica formal ou autenticação com registro auditável será suficiente nesta etapa?
-4. Qual padrão de numeração será usado para solicitação e protocolo SEFI?
+4. Qual padrão de numeração será usado para solicitação e identificador institucional de cada amostra? Protocolos locais de laboratório serão definidos separadamente, se necessários.
 5. Quais documentos serão obrigatórios por categoria de dispositivo?
 6. Como serão definidos os prazos e responsáveis por pendências/ressalvas?
 7. Qual será a política de anexos: formatos, tamanho máximo, retenção, antivírus e armazenamento?
@@ -411,9 +411,9 @@ Esta seção registra recomendações técnicas para orientar a revisão e reduz
 
 **Recomendação:** criar `Solicitation` como entidade própria, anterior ao recebimento, e manter `DeviceSample` como registro operacional do dispositivo que será efetivamente recebido e ensaiado.
 
-- Uma solicitação corresponde a exatamente um dispositivo.
+- Uma solicitação representa uma demanda e pode conter um ou vários itens de amostra/dispositivo.
 - Uma solicitação pode ter zero ou um recebimento formal.
-- Um dispositivo recebido pode possuir vários ensaios planejados (`LabTest`).
+- Cada item de amostra aceito origina uma amostra operacional (`DeviceSample`), que pode ser encaminhada a diferentes laboratórios e possuir vários ensaios planejados (`LabTest`).
 - Cada ensaio planejado pode originar uma ou mais execuções independentes, mantendo resultados e evidências associados à execução correspondente.
 - O protocolo SEFI identifica o ingresso formalmente aceito, não devendo ser atribuído antes da conclusão das condições de aceite.
 
@@ -450,15 +450,17 @@ Quando a política institucional exigir independência, o sistema deve impedir q
 
 A migração deverá ser testada com banco vazio, cópia representativa dos dados legados e cenários de falha/reexecução.
 
-### 15.5 Protocolo SEFI
+### 15.5 Identificador institucional de controle da amostra
 
-**Recomendação:** gerar o protocolo de forma transacional e idempotente somente depois de decisão final favorável e de todas as validações obrigatórias da coordenação.
+**Recomendação:** gerar automaticamente, no backend, um número institucional único para cada amostra individualmente aceita e cadastrada no LIMS, sem incorporar a sigla ou identidade de um laboratório.
 
-- O número deve ser único e gerado pelo backend.
-- A regra de composição/numeração deve ser parametrizável, sem depender de cálculo no navegador.
-- Reenvios ou duplo clique não podem gerar protocolos duplicados.
-- A geração deve registrar usuário, data/hora, solicitação, recebimento e decisão que fundamentaram o protocolo.
-- A geração automática após o aceite é a opção preferencial, desde que confirmada a regra institucional; caso contrário, poderá haver comando explícito de emissão, mantendo as mesmas pré-condições.
+- Uma solicitação pode conter vários itens de amostra; cada item aceito recebe seu próprio identificador institucional.
+- A numeração é única em toda a instituição, independentemente do laboratório executor.
+- O identificador é gerado uma única vez, não é reutilizado e permanece associado à amostra durante todo o ciclo de vida.
+- Reenvios ou duplo clique não podem gerar números duplicados.
+- O identificador é distinto do número da solicitação e de números externos, como o Harpya.
+- Antes de criar novo campo ou sequência, verificar se `accession_number` já atende a essa finalidade, evitando dois identificadores internos equivalentes e preservando o QR atual.
+- Protocolos específicos de laboratório, como eventual protocolo SEFI, são referências complementares.
 
 ### 15.6 Checklist e critérios de recebimento
 
@@ -498,7 +500,7 @@ A sequência recomendada é:
 | 2 | 1B — Solicitação | Serviços, permissões e API de cadastro/submissão | Testes de autoria, acesso e estados aprovados |
 | 3 | 1C — Recebimento | Registro da entrega única, checklist e evidências | Testes de bloqueios, exceções e concorrência aprovados |
 | 4 | 1D — Decisão e coordenação | Aceite, recusa, ressalvas e validações | Regras institucionais e segregação testadas |
-| 5 | 1E — Protocolo | Geração única, transacional e auditável | Testes de idempotência e pré-condições aprovados |
+| 5 | 1E — Identificação institucional | Geração do identificador único por amostra, transacional e auditável; protocolo local do laboratório, se aplicável, em fluxo separado | Testes de unicidade e idempotência aprovados |
 | 6 | 1F — Interface | Telas e integração ponta a ponta | Fluxo funcional validado pelo usuário |
 | 7 | 1G — Revisão final | Segurança, auditoria, documentação e preparação de implantação | Aprovação formal antes de qualquer implantação |
 
@@ -542,13 +544,16 @@ Modelo prevalente:
 ```mermaid
 erDiagram
     SOLICITATION ||--o| RECEIPT : recebe
-    SOLICITATION ||--o| DEVICE_SAMPLE : origina_apos_aceite
+    SOLICITATION ||--|{ SOLICITATION_SAMPLE : contem_itens
+    SOLICITATION_SAMPLE ||--o| RECEIPT_SAMPLE : recebido_conferido
+    RECEIPT_SAMPLE ||--o| DEVICE_SAMPLE : origina_apos_aceite
     RECEIPT ||--o{ RECEIPT_CUSTODY_EVENT : custodia_antes_do_aceite
     DEVICE_SAMPLE ||--o{ LAB_TEST : possui
     LAB_TEST ||--o{ TEST_EXECUTION : tem
     TEST_EXECUTION ||--o{ TEST_RESULT : produz
-    RECEIPT ||--o{ RECEIPT_CHECKLIST_ANSWER : documenta
-    RECEIPT ||--o{ RECEIPT_DECISION : recebe
+    RECEIPT ||--o{ RECEIPT_SAMPLE : contem_itens
+    RECEIPT_SAMPLE ||--o{ RECEIPT_CHECKLIST_ANSWER : documenta
+    RECEIPT_SAMPLE ||--o{ RECEIPT_DECISION : recebe_decisao
     RECEIPT ||--o{ COORDINATION_REVIEW : pode_exigir
     SOLICITATION ||--o{ ATTACHMENT : agrega
     RECEIPT ||--o{ ATTACHMENT : agrega
@@ -556,13 +561,13 @@ erDiagram
 ```
 
 Regras:
-- Uma solicitação representa uma demanda e um único dispositivo declarado.
+- Uma solicitação representa uma demanda e pode conter um ou mais itens de amostra/dispositivo declarados.
 - A solicitação pode existir antes da chegada física.
 - Uma solicitação pode ter zero ou um recebimento formal; quando houver entrega, é a única entrega física prevista para esse fluxo.
 - Um recebimento pertence a uma única solicitação.
-- A solicitação pode ter zero ou um `DeviceSample`; a amostra operacional só é criada após decisão final favorável e validações exigidas.
-- Uma recusa preserva a solicitação e o recebimento, mas não cria `DeviceSample`.
-- Um `DeviceSample` criado após aceite pode ter vários `LabTest`; cada ensaio planejado pode ter várias execuções independentes.
+- Cada item declarado (`SolicitationSample`) pode originar zero ou uma `DeviceSample`; uma solicitação pode, portanto, originar várias amostras operacionais, cada qual criada após aceite individual e validações exigidas.
+- A recusa de um item preserva a solicitação, o recebimento e o histórico daquele item, mas não cria `DeviceSample` para ele; outros itens podem seguir seu próprio fluxo de decisão.
+- Cada `DeviceSample` criada após aceite pode ter vários `LabTest`; cada ensaio planejado pode ter várias execuções independentes, inclusive em laboratórios distintos.
 
 Os dados informados na solicitação devem ser preservados como **dados declarados**. A conferência deve registrar os **dados verificados** e suas divergências, sem sobrescrever o declarado. A criação de `DeviceSample` deve usar os dados efetivamente confirmados, mantendo rastreabilidade à solicitação e ao recebimento.
 
@@ -598,11 +603,11 @@ Todos devem ser únicos, não reutilizáveis e claramente rotulados. O QR atual 
 2. **Identificação da solicitação:** o backend gera o número próprio da solicitação. Ainda não existe `DeviceSample`, protocolo SEFI ou QR de amostra.
 3. **Chegada física e custódia:** no comparecimento, registrar `Receipt.arrived_at` como instante real da chegada, `received_by_id` como recebedor físico, quantidade e condições. Criar imediatamente o evento inicial de custódia vinculado ao `Receipt`; não aguardar a criação de `DeviceSample`. A restrição de uma entrega por solicitação deve ser garantida no banco e no serviço, inclusive sob concorrência.
 4. **Checklist:** o conferente preenche checklist versionado, respostas, justificativas e evidências. A versão aplicada fica congelada no recebimento.
-5. **Decisão do conferente:** aceite, aceite com ressalvas ou recusa, com usuário, data/hora, justificativa e assinatura/autenticação conforme política aprovada.
-6. **Validação da coordenação:** obrigatória para as situações definidas na matriz de critérios. A decisão deve registrar aprovar, devolver, rejeitar ou solicitar complementação, sem apagar a decisão anterior.
+5. **Decisão por item de amostra:** aceite, aceite com ressalvas ou recusa de cada item recebido, com usuário, data/hora, justificativa e assinatura/autenticação conforme política aprovada. Aspectos comuns da entrega permanecem no nível do recebimento.
+6. **Validação da coordenação:** obrigatória para as situações definidas na matriz de critérios de cada item. A decisão registra aprovar, devolver, rejeitar ou solicitar complementação, sem apagar a decisão anterior.
 7. **Bloqueios:** critérios impeditivos não podem ser superados por justificativa simples. Exceções que exigem coordenação permanecem bloqueadas até decisão formal. Aceite com ressalvas segue as condições documentadas na matriz.
-8. **Criação da amostra operacional:** somente após decisão favorável e validações obrigatórias, criar `DeviceSample` com dados verificados. Preencher `received_at` com `Receipt.arrived_at` (data/hora original da chegada) e `received_by_id` com o recebedor físico original; `created_at` registra separadamente a criação da amostra.
-9. **Identificadores e custódia:** gerar `accession_number` e protocolo SEFI distintos, vincular solicitação/recebimento/amostra e preservar o histórico de custódia iniciado na chegada, sem reescrever eventos.
+8. **Criação da amostra operacional:** para cada item com decisão favorável e validações obrigatórias concluídas, criar uma `DeviceSample` com os dados verificados. Preencher `received_at` com `Receipt.arrived_at` (data/hora original da chegada) e `received_by_id` com o recebedor físico original; `created_at` registra separadamente a criação da amostra.
+9. **Identificação institucional e custódia:** gerar identificador institucional único para cada amostra criada, vincular solicitação/item/recebimento/amostra e preservar a custódia iniciada na chegada. Eventual protocolo do laboratório será complementar.
 10. **Fluxo laboratorial:** planejamento, execução, revisão técnica, aprovação da coordenação e laudo consolidado seguem em entidades próprias e etapas posteriores.
 
 A operação que cria a amostra, gera `accession_number` e protocolo, vincula a custódia, registra assinatura e auditoria deve ser uma operação de domínio transacional e idempotente, protegida por constraints e controle de concorrência. Se não for possível concluir tudo em uma única transação, deve existir estado intermediário recuperável e reconciliação determinística, sem duplicar amostra, identificadores, custódia, assinatura ou protocolo.
@@ -620,11 +625,13 @@ Modelo conceitual mínimo:
 | `ReceiptChecklistAnswer` | N por recebimento | Resposta, não aplicabilidade justificada, observação e evidência. |
 | `ReceiptDecision` | Histórico de decisões do recebimento | Tipo de decisão, autor, data/hora, justificativa e referência às respostas. |
 | `CoordinationReview` | 0..N conforme exceções/devoluções | Decisão, responsável, justificativa, data/hora e vínculo à decisão revisada. |
-| `DeviceSample` | 0..1 por solicitação quando originada neste fluxo | Criada após aceite; dados verificados, referência ao Receipt, `received_at` original, `received_by_id`, `accession_number` e QR. |
+| `SolicitationSample` | 1..N por solicitação | Item individual declarado, com dados da amostra/dispositivo e identificadores externos opcionais. |
+| `ReceiptSample` | 0..1 por item declarado, dentro do recebimento | Dados verificados, checklist e decisão individual; pode originar uma `DeviceSample`. |
+| `DeviceSample` | 0..1 por `ReceiptSample` aceita; N por solicitação | Criada após aceite; dados verificados, referência ao item/recebimento, `received_at` original, `received_by_id` e identificador institucional de controle. |
 | `LabTest` | N por amostra | Ensaio planejado. |
 | `TestExecution` | N por ensaio | Cada execução independente, executor, datas, método/equipamento e ocorrências. |
 
-Adotar relação opcional entre `Solicitation` e `DeviceSample`, preferencialmente FK nullable na amostra, com unicidade para valores não nulos. Isso garante no máximo uma amostra por solicitação e permite registros legados sem solicitação. A escolha física deve respeitar as convenções ORM e a migração; não tornar `solicitation_id` obrigatório em massa nem preencher vínculos por inferência.
+Adotar relação 1:N entre `Solicitation` e `SolicitationSample`, e relação 0..1 entre cada item recebido/aceito e `DeviceSample`. Para legado, manter os vínculos de origem opcionais e com unicidade apenas quando não nulos; não preencher vínculos por inferência.
 
 Campos de lote e número de série devem ser opcionais quando a natureza do dispositivo permitir. A atual unicidade por fabricante/lote/série não deve impedir solicitações distintas legítimas. A identidade da solicitação e do ingresso deve ser garantida por seus identificadores próprios; eventual alerta de possível duplicidade de material não deve substituir regra de negócio validada.
 
@@ -683,13 +690,13 @@ A reprovação automática que hoje abre CAPA deve ser preservada para o context
 ### 16.8 Critérios adicionais de aceite para o desenho
 
 Antes de aprovar a implementação, o desenho deverá demonstrar por testes e restrições:
-- não existe `DeviceSample` antes do aceite;
+- não existe `DeviceSample` antes do aceite individual do respectivo item;
 - a custódia física começa na chegada, antes da criação da amostra;
 - `DeviceSample.received_at` preserva `Receipt.arrived_at`, e `received_by_id` identifica o recebedor físico original; `created_at` registra separadamente a criação da amostra;
 - solicitação recusada preserva todos os registros e não gera amostra;
 - não é possível registrar duas entregas para a mesma solicitação, inclusive sob concorrência;
-- não é possível criar duas amostras ou dois protocolos para a mesma solicitação;
-- número da solicitação, protocolo SEFI e `accession_number` são distintos;
+- não é possível criar duas `DeviceSample` para o mesmo item nem duplicar seu identificador institucional; itens diferentes da mesma solicitação podem originar amostras distintas;
+- número da solicitação, identificador institucional de controle e identificadores externos (como Harpya) têm finalidades distintas; protocolo local de laboratório, quando existir, é complementar;
 - QR existente continua resolvendo `accession_number`;
 - solicitante externo não acessa a API atual na primeira entrega;
 - operador interno e solicitante/representante são identificados separadamente;
@@ -705,16 +712,44 @@ Antes de aprovar a implementação, o desenho deverá demonstrar por testes e re
 
 Além das questões já listadas na seção 13, confirmar:
 1. padrão e formato do número da solicitação;
-2. padrão e formato do protocolo SEFI;
-3. se ambos serão exibidos em documentos/etiquetas e em quais momentos;
-4. quais dados declarados são obrigatórios por categoria de dispositivo;
-5. quais dados serão considerados fonte oficial para criar `DeviceSample`;
-6. quais perfis internos podem cadastrar, receber, conferir e validar;
-7. atos que exigem assinatura eletrônica formal;
-8. regras de aceite com ressalvas, prazos e providências;
-9. política de dados pessoais, anexos, retenção e exportação;
-10. estratégia de tratamento dos registros legados sem vínculo seguro com solicitação.
+2. padrão e formato do identificador institucional de controle de cada amostra;
+3. forma de impressão/exibição do identificador institucional e compatibilidade com o QR atual;
+4. protocolos locais necessários por laboratório, se houver;
+5. dados declarados obrigatórios por categoria de amostra/dispositivo;
+6. fonte oficial dos dados usados para criar cada `DeviceSample`;
+7. perfis internos autorizados a cadastrar, receber, conferir e validar em cada laboratório;
+8. atos que exigem assinatura eletrônica formal;
+9. regras de aceite com ressalvas, prazos e providências;
+10. política de dados pessoais, anexos, retenção e exportação;
+11. estratégia de tratamento dos registros legados sem vínculo seguro com solicitação.
 
 ### 16.10 Status e autorização
 
-Esta atualização incorpora os cinco ajustes arquiteturais: dados declarados separados dos dados verificados; custódia iniciada no recebimento físico; preservação da data/hora e do recebedor originais; eliminação das contradições das seções anteriores; e operação transacional/idempotente para criação da amostra e geração dos identificadores. **O desenho consolidado ainda depende de aprovação expressa.** Nenhuma alteração de aplicação, banco, migração, endpoint, teste ou frontend foi realizada. A Etapa 1A não está autorizada por esta atualização documental.
+Esta atualização incorpora os ajustes arquiteturais e a regra institucional de identificação por amostra: uma solicitação pode conter vários itens; cada item aceito origina uma amostra operacional; cada amostra recebe identificador institucional único, independente do laboratório; dados declarados permanecem separados dos dados verificados; a custódia começa na chegada física; e a criação da amostra/identificador é transacional e idempotente. **O desenho consolidado ainda depende de aprovação expressa.** Nenhuma alteração de aplicação, banco, migração, endpoint, teste ou frontend foi realizada. A Etapa 1A não está autorizada por esta atualização documental.
+
+### 16.11 Identificador institucional e cardinalidade por amostra — decisão consolidada
+
+A identificação da amostra será institucional e independente do laboratório executor. Não utilizar “SEFI” no identificador principal, pois o LIMS poderá atender a outros laboratórios da instituição.
+
+**Regra obrigatória:** cada amostra individual cadastrada como item de uma solicitação e formalmente aceita receberá um único número institucional de controle. Uma solicitação poderá conter vários itens e, consequentemente, originar várias amostras operacionais. Cada item terá sua própria conferência/decisão, permitindo que um item seja aceito e outro recusado ou permaneça pendente sem bloquear indevidamente os demais.
+
+| Identificador | Escopo e momento de geração | Regra |
+|---|---|---|
+| `request_number` | Solicitação, no cadastro da demanda | Um número por solicitação; agrupa os itens vinculados à mesma demanda. |
+| `control_number` | Amostra individual, após aceite do respectivo item | Número institucional único em todo o LIMS, independente do laboratório, não reutilizável e permanente. |
+| Identificador externo (ex.: Harpya) | Item/amostra, quando informado pela origem | Opcional; preservado como referência externa, sem substituir o número institucional. |
+| Protocolo local de laboratório | Quando exigido pelo processo de determinado laboratório | Complementar, com escopo próprio; não é identificador institucional da amostra. |
+
+**Modelo conceitual necessário:**
+- `Solicitation` 1:N `SolicitationSample`: a solicitação agrupa um ou vários itens individuais declarados;
+- `Receipt` 1:N `ReceiptSample`: o recebimento físico registra os itens efetivamente entregues; aspectos comuns da entrega permanecem em `Receipt`;
+- `ReceiptSample` 0..1 `DeviceSample`: cada item aceito pode originar uma única amostra operacional; itens recusados ou pendentes não geram `DeviceSample`;
+- `DeviceSample` 1:N `LabTest`; os ensaios podem ser atribuídos a laboratórios distintos, conforme a arquitetura institucional do LIMS.
+
+Os dados externos, como número Harpya e sistema de origem, devem ficar associados ao item/amostra correspondente, e não funcionar como chave primária do LIMS. Se houver necessidade de mais de uma referência externa por amostra, utilizar estrutura própria de identificadores externos, em vez de multiplicar campos específicos de sistemas terceiros.
+
+**Compatibilidade com o código existente:** antes de criar `control_number`, coluna ou sequência nova, verificar se `DeviceSample.accession_number` já pode cumprir semanticamente a função de identificador institucional. Se puder, documentar e formalizar essa função, preservando a compatibilidade do QR e dos fluxos atuais. Se não puder, introduzir `control_number` por migração aditiva, com estratégia de coexistência/migração do QR e dos registros legados. Em nenhuma hipótese manter dois números internos apresentados como identificadores principais equivalentes.
+
+A geração do número institucional deve ocorrer no backend, na mesma transação lógica da criação da `DeviceSample`, com constraint de unicidade no banco, idempotência, trilha de auditoria e garantia de não reutilização. A forma visual (prefixo, ano, sequência) será definida institucionalmente; não deve conter código de laboratório.
+
+Esta decisão prevalece sobre qualquer menção anterior a uma solicitação corresponder a um único dispositivo, a uma amostra única por solicitação, ou ao protocolo SEFI/`accession_number` como identificador institucional exclusivo. As seções anteriores devem ser interpretadas conforme esta seção prevalente.
