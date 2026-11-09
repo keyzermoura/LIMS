@@ -1,7 +1,7 @@
 # Modelo Conceitual do Domínio — Solicitação e Recebimento
 
 **Identificador:** MOD-DOM-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Situação:** Proposta técnica para revisão funcional; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -183,8 +183,55 @@ O modelo poderá ser considerado pronto para detalhamento físico quando:
 - a estratégia de convivência com dados legados estiver documentada;
 - as regras de estados e transições tiverem responsáveis e permissões identificados.
 
-## 12. Histórico de alterações
+## 12. Recomendações técnicas para DEC04 e DEC05
+
+As recomendações abaixo refinam o modelo, mas permanecem sujeitas à validação funcional e institucional.
+
+### 12.1 Objeto de custódia
+
+Recomenda-se introduzir a entidade conceitual **ObjetoCustodia**, vinculada ao ItemRecebimento, para representar o material que efetivamente permanece sob guarda institucional. O objeto pode representar:
+- uma unidade física individual, quando houver identificação/rastreabilidade individual;
+- um agrupamento homogêneo de unidades, quando a avaliação e a guarda forem realizadas como conjunto e o procedimento técnico permitir.
+
+Os eventos de custódia devem referenciar o ObjetoCustodia, e não diretamente a AmostraOperacional, pois a custódia começa antes da criação da amostra. Quando a amostra for criada, deve ser estabelecido vínculo explícito entre a amostra e o objeto de origem. A transferência para a custódia laboratorial será um evento novo, preservando o histórico anterior.
+
+Recomenda-se evitar uma referência polimórfica sem integridade referencial. A estrutura física definitiva depende da revisão do schema e da decisão sobre agrupamento.
+
+### 12.2 Regra de granularidade
+
+A recomendação é não impor equivalência automática entre ItemDeclarado, unidade física, ObjetoCustodia, AmostraOperacional e corpo de prova.
+
+- ItemDeclarado descreve o que foi solicitado.
+- ItemRecebimento registra o que foi apresentado e conferido.
+- ObjetoCustodia representa a unidade de guarda/rastreabilidade, individual ou agrupada.
+- AmostraOperacional representa o registro laboratorial admitido após aceite.
+- Corpo de prova é definido pelo método/plano de ensaio.
+
+Criar uma amostra operacional por objeto aceito que necessite de decisão, rastreabilidade ou resultado independente. Quando várias unidades homogêneas forem avaliadas como um único conjunto, permitir agrupamento explícito, com quantidade, lote e identificação preservados. Quando houver resultados ou destinos independentes, separar os registros.
+
+### 12.3 Cenários que devem ser validados
+
+| Cenário | Representação recomendada para discussão |
+|---|---|
+| Dez agulhas do mesmo lote avaliadas como conjunto | Um ObjetoCustodia agrupado e uma AmostraOperacional do conjunto, se o procedimento permitir. |
+| Três seringas serializadas com avaliação individual | Três objetos de rastreabilidade e, em princípio, três AmostrasOperacionais. |
+| Um equipo submetido a vários ensaios | Uma AmostraOperacional pode originar vários corpos de prova/execuções. |
+| Dez unidades declaradas, cinco apresentadas | Quantidade declarada 10, apresentada 5; cinco ausentes ficam NAO_APRESENTADO e não geram custódia/amostra. |
+| Embalagem coletiva sem identificação individual interna | ObjetoCustodia pode representar a embalagem/conjunto, com quantidade e lote; individualização conforme procedimento técnico. |
+
+Os exemplos não são decisões finais sobre critérios de amostragem. Devem ser confirmados com casos reais anonimizados e responsáveis técnicos do laboratório.
+
+### 12.4 Regras de segurança conceitual
+
+1. Não exigir número de série individual em todas as categorias sem requisito técnico.
+2. Não usar fabricante + lote como identificador universal de unidade.
+3. Não criar AmostraOperacional para item não apresentado, pendente ou recusado.
+4. Não criar um registro por corpo de prova quando o conceito adequado for uma execução vinculada à amostra, salvo requisito do método.
+5. Não encerrar custódia de material recusado antes da devolução/destinação efetivamente registrada.
+6. Preservar chegada física, recebedor real e eventos de custódia anteriores à criação da amostra.
+
+## 13. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 0.1 | 2026-11-09 | Primeira proposta conceitual de entidades, relações, estados e sequência de eventos. |
+| 0.1 | 2026-11-09 | Primeira proposta conceitual de entidades, relações, estados e sequência de eventos. |\n| 0.2 | 2026-11-09 | Inclusão das recomendações de ObjetoCustodia, granularidade e cenários para DEC04/DEC05. |
