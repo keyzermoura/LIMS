@@ -1,8 +1,8 @@
 # Matriz de Decisões do Projeto LIMS
 
 **Identificador:** DEC-LIMS-001  
-**Versão:** 1.1  
-**Situação:** Proposta consolidada — aprovação funcional/institucional pendente  
+**Versão:** 1.2  
+**Situação:** DEC04/DEC05 aprovadas pelo usuário como diretrizes de desenho; formalização institucional das demais decisões e autorização de implementação pendentes  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
