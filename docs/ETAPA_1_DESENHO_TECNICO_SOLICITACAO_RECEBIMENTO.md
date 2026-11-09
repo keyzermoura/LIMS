@@ -392,3 +392,124 @@ Solicita-se revisar este desenho técnico, especialmente:
 - decisões institucionais pendentes.
 
 **Nenhuma alteração de código, banco, migração, endpoint ou interface foi realizada nesta entrega.** A implementação só deverá começar após aprovação explícita deste desenho e definição dos parâmetros institucionais necessários.
+
+
+## 15. Recomendações técnicas consolidadas para decisão
+
+Esta seção registra recomendações técnicas para orientar a revisão e reduzir ambiguidades antes da implementação. Elas **não representam, por si só, aprovação institucional definitiva** dos procedimentos nem autorização para alterar código, banco de dados, migrações, API ou interface.
+
+### 15.1 Entidade de solicitação e reaproveitamento de DeviceSample
+
+**Recomendação:** criar `Solicitation` como entidade própria, anterior ao recebimento, e manter `DeviceSample` como registro operacional do dispositivo que será efetivamente recebido e ensaiado.
+
+- Uma solicitação corresponde a exatamente um dispositivo.
+- Uma solicitação pode ter zero ou um recebimento formal.
+- Um dispositivo recebido pode possuir vários ensaios planejados (`LabTest`).
+- Cada ensaio planejado pode originar uma ou mais execuções independentes, mantendo resultados e evidências associados à execução correspondente.
+- O protocolo SEFI identifica o ingresso formalmente aceito, não devendo ser atribuído antes da conclusão das condições de aceite.
+
+Essa separação evita misturar intenção de encaminhamento, entrega física e registro laboratorial. Recomenda-se preservar os registros históricos de `DeviceSample` e estabelecer vínculo com a nova solicitação apenas quando houver correspondência confiável.
+
+### 15.2 Acesso de solicitantes externos e cadastro assistido
+
+**Recomendação:** prever desde o desenho a possibilidade de solicitante externo autenticado, sem impedir que um servidor do SEFI registre uma solicitação em nome de terceiro.
+
+- Reaproveitar o mecanismo existente de autenticação, usuários e RBAC.
+- Não criar um segundo cadastro independente de usuários ou uma estrutura paralela de papéis.
+- Distinguir o usuário que efetivamente opera o sistema do solicitante/representante em nome de quem a solicitação é registrada.
+- Aplicar autorização por perfil e por vínculo/propriedade do registro, impedindo que um solicitante externo consulte dados de terceiros.
+- Registrar claramente autoria, representação e alterações realizadas por servidor interno.
+
+A habilitação efetiva do acesso externo deverá depender de decisão institucional sobre identidade, validação cadastral, recuperação de acesso e suporte.
+
+### 15.3 Segregação de funções
+
+**Recomendação:** manter permissões granulares para recebimento, conferência, decisão, análise de exceção e validação da coordenação, reutilizando os papéis existentes sempre que possível.
+
+Quando a política institucional exigir independência, o sistema deve impedir que o mesmo usuário aprove sua própria decisão ou exceção. A regra de segregação deve ser configurável por operação e aplicada no backend, não apenas ocultando botões na interface.
+
+### 15.4 Migração incremental e preservação do legado
+
+**Recomendação:** adotar migração aditiva e compatível, em etapas.
+
+1. Criar as novas tabelas e relacionamentos sem remover estruturas existentes.
+2. Preservar identificadores, resultados, assinaturas, histórico e trilhas de auditoria dos registros legados.
+3. Migrar ou relacionar dados antigos somente quando a correspondência puder ser demonstrada com segurança.
+4. Identificar explicitamente registros históricos incompletos ou sem informação suficiente; não preencher lacunas por inferência.
+5. Manter compatibilidade temporária com os fluxos existentes, com testes de regressão.
+6. Considerar eventual descontinuação de estruturas antigas apenas em etapa posterior, após validação, plano de reversão e aprovação.
+
+A migração deverá ser testada com banco vazio, cópia representativa dos dados legados e cenários de falha/reexecução.
+
+### 15.5 Protocolo SEFI
+
+**Recomendação:** gerar o protocolo de forma transacional e idempotente somente depois de decisão final favorável e de todas as validações obrigatórias da coordenação.
+
+- O número deve ser único e gerado pelo backend.
+- A regra de composição/numeração deve ser parametrizável, sem depender de cálculo no navegador.
+- Reenvios ou duplo clique não podem gerar protocolos duplicados.
+- A geração deve registrar usuário, data/hora, solicitação, recebimento e decisão que fundamentaram o protocolo.
+- A geração automática após o aceite é a opção preferencial, desde que confirmada a regra institucional; caso contrário, poderá haver comando explícito de emissão, mantendo as mesmas pré-condições.
+
+### 15.6 Checklist e critérios de recebimento
+
+**Recomendação:** manter modelos de checklist versionados. Cada recebimento deve preservar a versão efetivamente aplicada, as respostas, justificativas, evidências e identificação do responsável.
+
+- Alterações futuras no modelo não devem modificar checklists de recebimentos anteriores.
+- Bloqueios impeditivos devem ser aplicados no backend e não podem ser contornados por uma simples justificativa.
+- Exceções que exigem coordenação devem permanecer pendentes até decisão formal.
+- Aceite com ressalvas deve exigir validação da coordenação e registro da ressalva, justificativa, responsável e providência/prazo, conforme política aprovada.
+- Correções administrativas devem manter o valor anterior e o histórico da alteração.
+
+### 15.7 Anexos e evidências
+
+**Recomendação:** tratar anexos como evidências vinculadas à solicitação, ao recebimento ou à decisão correspondente, com controle de acesso e integridade.
+
+Antes da implementação, definir formatos aceitos, limites de tamanho, retenção, armazenamento, verificação antimalware, política de download e tratamento de versões. O registro deve preservar metadados relevantes, como autor, data/hora, nome original, tipo, tamanho e identificador/hash do conteúdo. Não armazenar arquivos sensíveis em diretório público ou disponibilizá-los apenas por conhecer o endereço.
+
+### 15.8 Pendências, ressalvas e cancelamentos
+
+**Recomendação:** toda pendência deve ter situação, responsável, prazo quando aplicável, justificativa e histórico de encaminhamentos. A interface deve distinguir claramente pendente, em análise, atendida, rejeitada e vencida, conforme estados finais definidos na modelagem.
+
+Cancelamento não deve apagar solicitação, recebimento ou decisão. Deve ser uma operação formal, autorizada por perfil, justificada e auditada, com regras específicas para cada etapa do fluxo. A possibilidade e os limites do cancelamento após a entrega física dependem de decisão institucional.
+
+### 15.9 Assinaturas e decisões formais
+
+**Recomendação:** reaproveitar o mecanismo de assinatura eletrônica existente quando a natureza da decisão exigir assinatura formal, evitando criar mecanismo paralelo. Para cada ato (conferência, decisão de aceite/recusa, validação da coordenação e emissão de protocolo), a instituição deve definir se exige assinatura eletrônica ou se autenticação, autoria e trilha auditável são suficientes.
+
+A escolha deve considerar risco, responsabilidade funcional e requisitos normativos aplicáveis. Não se deve declarar conformidade regulatória ou validação formal apenas pela existência de autenticação, logs ou assinatura eletrônica.
+
+### 15.10 Ordem recomendada de execução
+
+A sequência recomendada é:
+
+| Ordem | Subetapa | Escopo principal | Condição para avançar |
+|---|---|---|---|
+| 1 | 1A — Modelo e migração | Entidades, relacionamentos, constraints e migração aditiva | Modelo revisado e estratégia de legado aprovada |
+| 2 | 1B — Solicitação | Serviços, permissões e API de cadastro/submissão | Testes de autoria, acesso e estados aprovados |
+| 3 | 1C — Recebimento | Registro da entrega única, checklist e evidências | Testes de bloqueios, exceções e concorrência aprovados |
+| 4 | 1D — Decisão e coordenação | Aceite, recusa, ressalvas e validações | Regras institucionais e segregação testadas |
+| 5 | 1E — Protocolo | Geração única, transacional e auditável | Testes de idempotência e pré-condições aprovados |
+| 6 | 1F — Interface | Telas e integração ponta a ponta | Fluxo funcional validado pelo usuário |
+| 7 | 1G — Revisão final | Segurança, auditoria, documentação e preparação de implantação | Aprovação formal antes de qualquer implantação |
+
+Recomenda-se não iniciar a interface antes de estabilizar o modelo de dados e as regras de negócio. Cada subetapa deverá ocorrer em branch de trabalho dedicada, com revisão por pull request e CI; não realizar commits diretamente em `main`.
+
+### 15.11 Decisões institucionais que permanecem pendentes
+
+As recomendações acima não eliminam a necessidade de definir:
+
+1. Regras de habilitação e validação de solicitantes externos.
+2. Mapeamento dos perfis internos para recebedor, conferente e coordenação.
+3. Casos em que a segregação de funções será obrigatória.
+4. Atos que exigirão assinatura eletrônica formal.
+5. Padrão de numeração da solicitação e do protocolo.
+6. Documentos obrigatórios por categoria de dispositivo.
+7. Prazos, responsáveis e tratamento de pendências/ressalvas.
+8. Política de anexos, retenção e segurança.
+9. Regras de edição após submissão e cancelamento após recebimento.
+10. Confirmação de emissão automática ou explícita do protocolo após o aceite.
+
+### 15.12 Limite desta atualização
+
+Esta atualização consolida recomendações para análise e decisão. **Não altera o status de aprovação do desenho técnico e não autoriza o início da implementação.** Nenhum código, esquema de banco, migração, endpoint, teste automatizado ou componente de interface foi modificado nesta atualização documental.
