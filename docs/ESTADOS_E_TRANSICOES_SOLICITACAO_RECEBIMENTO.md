@@ -296,4 +296,5 @@ Esta regra precisa ser confirmada com a gestão funcional. A conclusão do receb
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 0.1 | 2026-11-09 | Primeira proposta de estados, transições, permissões e eventos de auditoria. |\n| 0.2 | 2026-11-09 | Inclusão de recomendações para custódia pré-amostra, material recusado, agrupamento e encerramento com itens não apresentados. |
+| 0.1 | 2026-11-09 | Primeira proposta de estados, transições, permissões e eventos de auditoria. |
+| 0.2 | 2026-11-09 | Inclusão de recomendações para custódia pré-amostra, material recusado, agrupamento e encerramento com itens não apresentados. |
