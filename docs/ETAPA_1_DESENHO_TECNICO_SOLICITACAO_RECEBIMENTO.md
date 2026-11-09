@@ -206,16 +206,20 @@ A restrição única no banco será a proteção final contra duplicidade, inclu
 - gravar revisão e auditoria na mesma transação;
 - uma aprovação não pode, por si só, alterar respostas não conformes impeditivas.
 
-### 5.5 Geração do protocolo SEFI
+### 5.5 Aceite final, criação da amostra e geração dos identificadores
 
-A geração deve ser operação transacional e idempotente:
+A conclusão do aceite deve ser uma operação de domínio transacional e idempotente. Pré-condições: checklist concluído, decisão final favorável, ausência de impeditivos abertos e validação da coordenação quando exigida.
 
-- pré-condições: decisão favorável final, checklist concluído, sem impeditivos abertos e coordenação validada quando exigida;
-- alocar número segundo padrão institucional ainda pendente;
-- impor unicidade no banco;
-- persistir protocolo e transição para recebida/apta ao planejamento na mesma transação;
-- em repetição da mesma requisição, retornar o protocolo já atribuído, sem gerar outro;
-- em falha, não deixar processo parcialmente protocolado.
+Na mesma transação lógica, o serviço deverá:
+- confirmar a decisão final e a versão do recebimento;
+- criar exatamente um `DeviceSample` com os dados verificados e confirmados;
+- preencher `DeviceSample.received_at` com `Receipt.arrived_at`, a data/hora efetiva da chegada física, e `received_by_id` com o usuário que recebeu fisicamente o material;
+- manter separada a data/hora de criação da amostra nos campos técnicos próprios, como `created_at`;
+- gerar `accession_number` e protocolo SEFI distintos, preservando o QR atual vinculado a `accession_number`;
+- vincular amostra, solicitação e recebimento e preservar, sem reescrita, o histórico de custódia iniciado na chegada;
+- registrar assinatura, auditoria e chave de idempotência.
+
+A unicidade no banco deve impedir duas amostras ou dois protocolos para a mesma solicitação. Reenvios retornam o resultado já criado. Se uma única transação de banco não for tecnicamente possível, adotar estado intermediário recuperável e reconciliação determinística, sem duplicação ou perda de rastreabilidade.
 
 ## 6. API REST proposta
 
@@ -223,18 +227,18 @@ Prefixo sugerido: `/api/v1`, mantendo o padrão de roteadores já existente.
 
 | Método | Endpoint proposto | Ação | Permissão principal |
 |---|---|---|---|
-| POST | `/solicitations` | Criar solicitação | Solicitante externo ou servidor SEFI |
-| GET | `/solicitations` | Listar solicitações conforme escopo | Próprias solicitações ou perfil interno |
-| GET | `/solicitations/{id}` | Consultar detalhes | Dono da solicitação ou perfil interno |
-| PATCH | `/solicitations/{id}` | Corrigir enquanto em elaboração/pendência autorizada | Autor/dono ou servidor autorizado |
-| POST | `/solicitations/{id}/submit` | Submeter solicitação | Solicitante autorizado |
+| POST | `/solicitations` | Criar solicitação assistida | Usuário interno autorizado |
+| GET | `/solicitations` | Listar solicitações conforme atribuição | Perfil interno autorizado |
+| GET | `/solicitations/{id}` | Consultar detalhes | Perfil interno autorizado |
+| PATCH | `/solicitations/{id}` | Corrigir enquanto em elaboração/pendência autorizada | Usuário interno autorizado |
+| POST | `/solicitations/{id}/submit` | Submeter solicitação | Usuário interno autorizado |
 | POST | `/solicitations/{id}/receipt` | Registrar entrega física única | Recebedor/conferente autorizado |
 | GET | `/receipts/{id}` | Consultar recebimento | Perfil interno autorizado |
 | GET | `/receipts/{id}/checklist` | Obter checklist aplicável | Recebedor/conferente |
 | PUT | `/receipts/{id}/checklist` | Registrar respostas e evidências | Conferente responsável |
 | POST | `/receipts/{id}/decision` | Formalizar decisão do conferente | Conferente responsável |
 | POST | `/receipts/{id}/coordination-review` | Aprovar/devolver/rejeitar | Coordenação autorizada |
-| POST | `/solicitations/{id}/sefi-protocol` | Solicitar geração idempotente do protocolo | Serviço/perfil interno autorizado |
+| POST | `/solicitations/{id}/accept-and-register` | Concluir aceite, criar amostra e gerar protocolo de forma idempotente | Serviço/perfil interno autorizado |
 | GET | `/coordination/reviews` | Consultar fila de validação | Coordenação |
 | GET | `/receipt-checklists/active` | Consultar checklist ativo | Perfis internos |
 
@@ -251,17 +255,17 @@ A resposta de erro deve trazer código estável de domínio, mensagem objetiva e
 
 ## 7. Segurança, perfis e segregação de funções
 
-A autorização deve ser aplicada no backend, não apenas ocultando botões no frontend.
+A primeira entrega é exclusivamente interna. O solicitante/representante não terá conta nem acesso direto à API; um servidor SEFI registra a solicitação em seu nome. A autorização deve ser aplicada no backend, não apenas ocultando botões no frontend.
 
-| Ação | Solicitante externo | Servidor SEFI | Conferente | Coordenação |
+| Ação | Servidor SEFI autorizado | Conferente | Coordenação |
 |---|---:|---:|---:|---:|
-| Criar solicitação própria | Sim | Sim, inclusive em nome de terceiro | Conforme perfil | Conforme perfil |
-| Consultar solicitação própria | Sim | Sim | Conforme atribuição | Sim |
-| Consultar solicitação de terceiros | Não | Conforme atribuição institucional | Conforme atribuição | Conforme atribuição |
-| Registrar chegada física | Não | Conforme autorização | Sim | Conforme política |
-| Preencher checklist | Não | Conforme designação | Sim | Consulta |
-| Formalizar decisão inicial | Não | Se designado conferente | Sim | Não substitui conferente |
-| Validar exceção | Não | Não, salvo perfil formalmente autorizado | Não | Sim |
+| Criar solicitação própria ou em nome de terceiro | Sim | Conforme perfil | Conforme perfil |
+| Consultar solicitações | Conforme atribuição | Conforme atribuição | Conforme atribuição |
+| Registrar chegada física e custódia inicial | Conforme autorização | Sim | Conforme política |
+| Preencher checklist e registrar dados verificados | Conforme designação | Sim | Consulta |
+| Formalizar decisão inicial | Se designado conferente | Sim | Não substitui conferente |
+| Validar exceção | Não, salvo perfil formalmente autorizado | Não | Sim |
+| Concluir aceite, criar amostra e gerar protocolo | Serviço após pré-condições | Não diretamente | Não diretamente |
 | Gerar protocolo SEFI | Não | Serviço após pré-condições | Não diretamente | Não diretamente |
 
 A tabela é uma matriz inicial de permissões, não uma afirmação de que os papéis atuais já correspondam a esses perfis. Será necessário mapear `UserRole` e as dependências RBAC existentes antes de definir novos papéis ou permissões granulares.
@@ -290,15 +294,17 @@ Os serviços devem concentrar regras de negócio e transações. As rotas devem 
 
 ## 9. Frontend proposto
 
-Telas/fluxos mínimos:
+Telas/fluxos mínimos para usuários internos:
 
-1. **Nova solicitação:** dados do solicitante, dispositivo, finalidade, tipo e prioridade.
-2. **Minhas solicitações:** status, número, data e pendências visíveis ao solicitante.
-3. **Recebimento SEFI:** localizar solicitação, registrar chegada, quantidade, recebedor e condição física.
-4. **Conferência:** checklist versionado, observações, evidências e alertas de bloqueio.
+1. **Nova solicitação assistida:** dados do solicitante/representante, dados declarados do dispositivo, finalidade, tipo e prioridade.
+2. **Fila de solicitações:** status, número, data, solicitante/representante e pendências, conforme atribuição interna.
+3. **Recebimento SEFI:** localizar solicitação, registrar chegada física, quantidade, recebedor, condição física e início da custódia.
+4. **Conferência:** checklist versionado, dados verificados, divergências em relação ao declarado, observações, evidências e alertas de bloqueio.
 5. **Decisão:** resumo automático dos impeditivos/exceções e formalização pelo conferente.
 6. **Fila da coordenação:** exceções pendentes, evidências, decisão do conferente e ações disponíveis.
-7. **Detalhe/rastreabilidade:** linha do tempo de submissão, chegada, checklist, decisão, validação e protocolo.
+7. **Detalhe/rastreabilidade:** linha do tempo de submissão, chegada, custódia, checklist, decisão, validação, criação da amostra e protocolo.
+
+Não haverá portal externo nem tela “Minhas solicitações” para usuários externos na primeira entrega.
 
 A interface deve exibir claramente a diferença entre “recebido fisicamente”, “aceito” e “liberado para planejamento/ensaios”. O frontend não deve calcular sozinho se um bloqueio pode ser ignorado; deve apresentar a decisão do backend.
 
