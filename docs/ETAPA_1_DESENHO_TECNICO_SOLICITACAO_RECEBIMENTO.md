@@ -754,3 +754,318 @@ Os dados externos, como número Harpya e sistema de origem, devem ficar associad
 A geração do número institucional deve ocorrer no backend, na mesma transação lógica da criação da `DeviceSample`, com constraint de unicidade no banco, idempotência, trilha de auditoria e garantia de não reutilização. A forma visual (prefixo, ano, sequência) será definida institucionalmente; não deve conter código de laboratório.
 
 Esta decisão prevalece sobre qualquer menção anterior a uma solicitação corresponder a um único dispositivo, a uma amostra única por solicitação, ou ao protocolo SEFI/`accession_number` como identificador institucional exclusivo. As seções anteriores devem ser interpretadas conforme esta seção prevalente.
+
+## 17. Fluxo operacional e protótipos de interface — recebimento e aceitação
+
+Esta seção detalha o comportamento funcional e os protótipos de baixa fidelidade das telas da primeira etapa. Ela consolida a regra institucional de **um único recebimento físico por solicitação**. O recebimento é único no nível da solicitação; conferência, checklist, decisão e eventual criação da amostra operacional são individualizados por item.
+
+Os protótipos são referências funcionais para discussão e validação. Não representam telas implementadas nem autorizam alteração do frontend, API ou banco de dados.
+
+### 17.1 Regras operacionais consolidadas
+
+1. Uma solicitação submetida admite no máximo um registro de recebimento físico. A unicidade de solicitation_id no recebimento deve ser imposta no banco e verificada no serviço.
+2. O recebimento registra a chegada física uma única vez: data/hora efetiva, recebedor, conferente designado, condições gerais e observações da entrega.
+3. A solicitação pode conter vários itens declarados. O recebimento deve permitir identificar, para cada item, se foi apresentado ou não.
+4. Somente itens efetivamente apresentados recebem registro de conferência individual (ReceiptSample). Um item não apresentado deve permanecer identificado como tal na visão do recebimento, sem gerar custódia ou amostra operacional.
+5. Cada item apresentado possui checklist, evidências, observações e decisão próprios. Aspectos comuns da entrega permanecem no registro Receipt.
+6. A decisão por item será: aceita, pendente ou recusada. A condição “não apresentado” é uma situação de comparecimento, não uma decisão técnica de recusa.
+7. Pendências podem ser regularizadas no contexto do mesmo recebimento, preservando respostas e decisões anteriores. Uma nova avaliação deve gerar novo evento/versão, sem apagar o histórico.
+8. A validação da coordenação ocorre quando exigida pela matriz de critérios ou pela regra institucional aplicável. A coordenação não pode dispensar bloqueio impeditivo.
+9. A criação da amostra operacional e a geração do identificador institucional ocorrem somente após aceite final do item e conclusão das validações obrigatórias.
+10. A chegada física inicia a custódia, mesmo antes da criação da amostra operacional. O histórico deve manter continuidade quando a amostra for criada.
+11. Tentativa de registrar segundo recebimento deve ser bloqueada e apresentar o registro existente para consulta. Correções do recebimento existente devem seguir permissões, versionamento e trilha de auditoria; não devem criar outro recebimento.
+12. Material que não foi apresentado no recebimento único não pode ser incluído como se tivesse chegado posteriormente no mesmo recebimento. A entrega posterior seguirá nova solicitação ou procedimento excepcional formalmente aprovado pela instituição.
+
+### 17.2 Fluxo visual consolidado
+
+~~~mermaid
+flowchart TD
+    A([Material chega fisicamente]) --> B[Usuário interno localiza a solicitação]
+    B --> C{Solicitação possui recebimento?}
+    C -->|Sim| D[Exibir recebimento existente<br/>e bloquear novo registro]
+    C -->|Não| E[Registrar recebimento único]
+    E --> F[Gravar chegada real, recebedor,<br/>conferente e condições gerais]
+    F --> G[Iniciar custódia no recebimento]
+    G --> H[Exibir todos os itens declarados]
+    H --> I{Item foi apresentado?}
+    I -->|Não| J[Marcar como não apresentado]
+    I -->|Sim| K[Criar/registrar conferência individual]
+    K --> L[Preencher checklist e evidências]
+    L --> M{Resultado da avaliação}
+    M -->|Conforme| N[Propor aceite]
+    M -->|Pendência regularizável| O[Registrar pendência e providência]
+    M -->|Não conforme impeditivo| P[Registrar recusa ou bloqueio]
+    O --> Q{Regularização concluída?}
+    Q -->|Sim| L
+    Q -->|Não| R[Manter pendente]
+    N --> S{Validação da coordenação exigida?}
+    S -->|Sim| T[Submeter para coordenação]
+    S -->|Não| U[Confirmar aceite final]
+    T --> V{Resultado da coordenação}
+    V -->|Aprovar| U
+    V -->|Devolver| O
+    V -->|Rejeitar| P
+    U --> W[Criar uma amostra operacional para o item]
+    W --> X[Gerar identificador institucional<br/>e preservar custódia]
+    J --> Y[Manter item sem amostra operacional]
+    P --> Z[Manter decisão e justificativa<br/>sem criar amostra operacional]
+    R --> Y
+    X --> AA([Item disponível para gestão laboratorial])
+    Y --> AB([Tratamento do item sem liberação])
+    Z --> AB
+    D --> AC([Consultar registro existente])
+~~~
+
+O recebimento pode permanecer em conferência enquanto os itens são avaliados. O estado geral da solicitação/recebimento deve ser derivado ou atualizado conforme os estados individuais, sem substituir o resultado de cada item por um único aceite global.
+
+### 17.3 Tela 1 — localizar solicitação e iniciar recebimento
+
+**Objetivo:** localizar a solicitação submetida e verificar, antes de qualquer gravação, se o recebimento único já existe.
+
+**Wireframe de referência:**
+
+~~~text
+┌──────────────────────────────────────────────────────────────────────┐
+│ LIMS  /  RECEBIMENTO                                                 │
+├──────────────────────────────────────────────────────────────────────┤
+│ Localizar solicitação                                                │
+│                                                                      │
+│ Número da solicitação  [ SOL-2026-000145                 ] [Buscar]  │
+│ Solicitante            [ Nome ou instituição (opcional) ]           │
+│                                                                      │
+├──────────────────────────────────────────────────────────────────────┤
+│ RESULTADO                                                            │
+│ Solicitação: SOL-2026-000145             Situação: Aguardando entrega│
+│ Solicitante: Instituição solicitante                                 │
+│ Origem: Unidade solicitante                                          │
+│ Itens declarados: 3                                                  │
+│                                                                      │
+│ Itens:                                                               │
+│  01  Agulha hipodérmica       Referência externa: —                  │
+│  02  Seringa                  Referência externa: HARPYA-12345       │
+│  03  Equipo                   Referência externa: —                  │
+│                                                                      │
+│ [Consultar solicitação]                       [Iniciar recebimento]  │
+└──────────────────────────────────────────────────────────────────────┘
+~~~
+
+**Comportamentos e validações:**
+- Pesquisar prioritariamente pelo número da solicitação, com filtros auxiliares autorizados.
+- Exibir solicitante, origem, quantidade de itens, descrição e referências externas disponíveis.
+- Permitir iniciar recebimento somente se a solicitação estiver em estado compatível e não houver recebimento anterior.
+- Se já existir recebimento, exibir sua identificação, data/hora, responsável e situação; substituir a ação “Iniciar recebimento” por “Consultar recebimento”.
+- Não permitir criar recebimento para solicitação inexistente, cancelada ou em estado incompatível.
+- Registrar o usuário autenticado que iniciou a operação.
+
+### 17.4 Tela 2 — registrar recebimento físico único
+
+**Objetivo:** registrar os dados comuns à chegada física de todos os itens da solicitação.
+
+**Wireframe de referência:**
+
+~~~text
+┌──────────────────────────────────────────────────────────────────────┐
+│ RECEBIMENTO FÍSICO  /  SOL-2026-000145                               │
+├──────────────────────────────────────────────────────────────────────┤
+│ Solicitação: SOL-2026-000145        Itens declarados: 3              │
+│                                                                      │
+│ DADOS DA CHEGADA                                                     │
+│ Data e hora efetivas * [ 10/11/2026 ] [ 09:15 ]                      │
+│ Recebido fisicamente por * [ Usuário autenticado / selecionar ]     │
+│ Conferente responsável *    [ Selecionar usuário ]                  │
+│                                                                      │
+│ DADOS GERAIS DA ENTREGA                                              │
+│ Forma de entrega             [ Presencial                 v ]        │
+│ Condição da embalagem        [ Íntegra                    v ]        │
+│ Condição geral do material   [ Sem avaria aparente        v ]        │
+│ Local de guarda inicial      [ Área de recebimento        v ]        │
+│ Observações                  [______________________________]        │
+│                              [______________________________]        │
+│                                                                      │
+│ [Cancelar]                              [Registrar recebimento]     │
+└──────────────────────────────────────────────────────────────────────┘
+~~~
+
+**Campos e regras:**
+- Data/hora da chegada: obrigatória, com fuso horário institucional; registrar o instante efetivo, não a hora de criação posterior da amostra.
+- Recebedor físico: obrigatório; identificar a pessoa que efetivamente recebeu o material.
+- Conferente: obrigatório ou definido por regra de designação institucional.
+- Condições gerais: registrar apenas atributos comuns à entrega; características específicas de cada item ficam na tela de conferência.
+- Local de guarda: obrigatório para iniciar a rastreabilidade de custódia.
+- Observações: campo livre, com limite e tratamento definidos na implementação.
+- A gravação deve criar o recebimento e o evento inicial de custódia de forma atômica.
+- Em caso de conflito/duplicidade, retornar o recebimento existente e não criar outro.
+- Após confirmação, o cabeçalho do recebimento não deve ser silenciosamente sobrescrito; correções exigem justificativa, controle de versão e auditoria.
+
+### 17.5 Tela 3 — conferência individual dos itens
+
+**Objetivo:** apresentar todos os itens declarados e controlar a apresentação física e a conferência de cada um.
+
+**Wireframe de referência:**
+
+~~~text
+┌──────────────────────────────────────────────────────────────────────┐
+│ CONFERÊNCIA DOS ITENS  /  SOL-2026-000145                            │
+├──────────────────────────────────────────────────────────────────────┤
+│ Recebimento: REC-2026-000087        Chegada: 10/11/2026 09:15        │
+│ Recebedor: Servidor responsável     Conferente: Servidor designado   │
+│                                                                      │
+│ ITENS DA SOLICITAÇÃO                                                 │
+│ ┌────┬──────────────────┬────────────────┬────────────────────────┐ │
+│ │ Nº │ Item             │ Apresentação   │ Situação da conferência│ │
+│ ├────┼──────────────────┼────────────────┼────────────────────────┤ │
+│ │ 01 │ Agulha           │ Apresentado    │ Não iniciada           │ │
+│ │ 02 │ Seringa          │ Apresentado    │ Pendente               │ │
+│ │ 03 │ Equipo           │ Não apresentado│ Não aplicável          │ │
+│ └────┴──────────────────┴────────────────┴────────────────────────┘ │
+│                                                                      │
+│ Selecione um item para conferir:                                     │
+│ [Abrir checklist do item selecionado]                                │
+│                                                                      │
+│ Progresso: 1 de 2 itens apresentados com conferência concluída       │
+│                                                                      │
+│ [Salvar andamento]                  [Revisar resumo do recebimento]  │
+└──────────────────────────────────────────────────────────────────────┘
+~~~
+
+**Comportamentos e validações:**
+- Listar todos os itens declarados, sem omitir os não apresentados.
+- Para cada item, permitir registrar “apresentado” ou “não apresentado”.
+- Para item apresentado, abrir checklist individual com critérios, resultado, observação e evidência/anexo, quando aplicável.
+- Para item não apresentado, exigir confirmação e justificativa/observação quando definida na política; não criar ReceiptSample, custódia individual ou amostra operacional para material ausente.
+- Não confundir “não apresentado” com “recusado”.
+- O checklist deve carregar a versão aplicável e preservar a versão utilizada.
+- Não permitir conclusão de conferência enquanto houver critérios obrigatórios sem resposta.
+- A tela deve mostrar pendências por item e permitir salvar andamento sem concluir o recebimento inteiro.
+- Respostas e evidências devem ser vinculadas ao item, preservando também o contexto do recebimento.
+
+### 17.6 Tela 4 — decisão individual e validação da coordenação
+
+**Objetivo:** permitir ao conferente formalizar o resultado de cada item e encaminhar os casos que exigem validação.
+
+**Wireframe de referência:**
+
+~~~text
+┌──────────────────────────────────────────────────────────────────────┐
+│ DECISÃO DO ITEM  /  SOL-2026-000145                                  │
+├──────────────────────────────────────────────────────────────────────┤
+│ Item 01 — Agulha hipodérmica                                         │
+│ Apresentação: Apresentado          Checklist: 12/12 critérios        │
+│                                                                      │
+│ RESULTADO DA CONFERÊNCIA                                             │
+│ ( ) Aceitar                                                          │
+│ ( ) Manter pendente — regularização necessária                       │
+│ ( ) Recusar                                                          │
+│                                                                      │
+│ Critérios não conformes / exceções                                   │
+│  C07 — Identificação externa divergente                              │
+│  Classificação: [ Sujeita à coordenação v ]                          │
+│                                                                      │
+│ Justificativa *                                                      │
+│ [______________________________________________________________]     │
+│ [______________________________________________________________]     │
+│ Evidências [Adicionar anexo]                                         │
+│                                                                      │
+│ Encaminhamento                                                       │
+│ ( ) Decisão do conferente                                            │
+│ ( ) Submeter à coordenação                                           │
+│                                                                      │
+│ [Salvar rascunho] [Registrar decisão] [Encaminhar à coordenação]     │
+└──────────────────────────────────────────────────────────────────────┘
+~~~
+
+**Comportamentos e validações:**
+- Decisão sempre vinculada a um item específico; nunca aplicar automaticamente a mesma decisão a todos os itens da solicitação.
+- Justificativa obrigatória para pendência, recusa, não conformidade e devolução da coordenação.
+- Critério impeditivo não pode ser convertido em aceite por simples justificativa ou ação da coordenação.
+- Exceção sujeita à coordenação mantém o item bloqueado até decisão formal.
+- A coordenação poderá aprovar, devolver para complementação ou rejeitar, com responsável, data/hora e justificativa.
+- Devolução gera nova etapa de regularização e nova avaliação, sem apagar a decisão anterior.
+- Após aceite final, habilitar a operação de criação da amostra operacional e geração do identificador institucional, de forma transacional e idempotente.
+- O usuário não deve editar diretamente o identificador institucional.
+
+### 17.7 Tela 5 — resumo e encerramento do recebimento
+
+**Objetivo:** apresentar a situação global da solicitação e a situação individual de cada item, sem substituir as decisões individuais por um único resultado global.
+
+**Wireframe de referência:**
+
+~~~text
+┌──────────────────────────────────────────────────────────────────────┐
+│ RESUMO DO RECEBIMENTO  /  SOL-2026-000145                            │
+├──────────────────────────────────────────────────────────────────────┤
+│ Recebimento: REC-2026-000087        Chegada: 10/11/2026 09:15        │
+│ Recebedor: Servidor responsável     Conferente: Servidor designado   │
+│                                                                      │
+│ RESULTADO POR ITEM                                                   │
+│ ┌────┬──────────────────┬───────────────────┬─────────────────────┐ │
+│ │ Nº │ Item             │ Resultado         │ Identificador LIMS  │ │
+│ ├────┼──────────────────┼───────────────────┼─────────────────────┤ │
+│ │ 01 │ Agulha           │ Aceita            │ FUNED-2026-000321   │ │
+│ │ 02 │ Seringa          │ Pendente          │ —                   │ │
+│ │ 03 │ Equipo           │ Não apresentado   │ —                   │ │
+│ └────┴──────────────────┴───────────────────┴─────────────────────┘ │
+│                                                                      │
+│ Resumo: 1 aceita | 1 pendente | 1 não apresentada                    │
+│                                                                      │
+│ Histórico [Consultar eventos e decisões]                            │
+│ Custódia  [Consultar movimentações]                                  │
+│                                                                      │
+│ [Imprimir comprovante] [Consultar solicitação] [Concluir etapa]      │
+└──────────────────────────────────────────────────────────────────────┘
+~~~
+
+Os números exibidos são exclusivamente ilustrativos; o formato definitivo do identificador institucional permanece sujeito à decisão institucional já registrada na seção 16.11.
+
+**Comportamentos e validações:**
+- Exibir a situação de cada item, a decisão mais recente e o identificador institucional apenas quando a amostra tiver sido criada.
+- Permitir consulta ao histórico completo de checklist, evidências, decisões, validações e custódia.
+- Não exibir identificador institucional para item pendente, recusado ou não apresentado.
+- O recebimento poderá ter estado geral “em andamento” enquanto houver itens pendentes; “concluído” quando todos os itens tiverem tratamento final registrado, conforme regra institucional.
+- A conclusão administrativa do recebimento não deve apagar nem impedir consulta a pendências, recusas ou itens não apresentados.
+- Ações de impressão/exportação devem respeitar permissões, proteção de dados e registro de auditoria.
+
+### 17.8 Estados exibidos e semântica
+
+| Estado/situação | Significado | Cria amostra operacional? |
+|---|---|---:|
+| Não apresentado | Item declarado que não chegou fisicamente | Não |
+| Aguardando conferência | Item apresentado, ainda sem checklist concluído | Não |
+| Em conferência | Checklist em preenchimento | Não |
+| Pendente de regularização | Há providência necessária antes da decisão final | Não |
+| Aguardando coordenação | Validação formal obrigatória ainda não concluída | Não |
+| Aceito | Decisão final favorável e validações concluídas | Sim, na operação de aceite e registro |
+| Recusado | Decisão final desfavorável | Não |
+
+Os estados da solicitação, do recebimento e de cada item devem permanecer separados. O estado global do recebimento é um resumo operacional; não substitui os estados individuais.
+
+### 17.9 Critérios de aceite funcional dos protótipos
+
+Antes de aprovar o desenho para implementação, demonstrar que:
+
+1. não é possível criar dois recebimentos para a mesma solicitação, inclusive sob concorrência;
+2. a segunda tentativa apresenta o recebimento existente e não duplica custódia ou auditoria;
+3. todos os itens declarados aparecem na conferência, inclusive os não apresentados;
+4. item não apresentado não gera ReceiptSample, evento de custódia individual ou amostra operacional;
+5. cada item apresentado possui checklist e decisão independentes;
+6. uma solicitação pode ter simultaneamente itens aceitos, pendentes, recusados e não apresentados;
+7. a regularização não apaga respostas, evidências ou decisões anteriores;
+8. critério impeditivo bloqueia o aceite, mesmo após encaminhamento à coordenação;
+9. somente item com aceite final e validações obrigatórias concluídas gera uma única amostra operacional;
+10. a amostra preserva a chegada original e identifica o recebedor físico;
+11. o identificador institucional é único, não reutilizável e compatível com a estratégia de QR já existente;
+12. a custódia iniciada no recebimento permanece íntegra após a criação da amostra;
+13. todas as operações críticas possuem autoria, data/hora, controle de versão e trilha de auditoria.
+
+### 17.10 Pontos que permanecem para validação institucional
+
+Os protótipos não fixam decisões ainda pendentes, tais como:
+- conteúdo definitivo e classificação dos critérios do checklist por categoria de material;
+- quais situações exigem obrigatoriamente validação da coordenação;
+- prazo e procedimento formal para regularização de pendências;
+- procedimento institucional para material complementar ou item não apresentado que venha a ser entregue posteriormente;
+- política de comprovante de recebimento e assinatura;
+- formato visual final do identificador institucional e apresentação no QR;
+- regras de encerramento administrativo do recebimento quando existirem itens pendentes.
+
+**Status:** fluxo e protótipos documentais propostos para revisão. Esta seção não autoriza implementação de frontend, backend, API, banco de dados, migrações ou implantação.
