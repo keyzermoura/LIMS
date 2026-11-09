@@ -585,24 +585,25 @@ Não conceder acesso externo por meio dos papéis atuais nem presumir que oculta
 
 **Condição para fase futura externa:** implementar autorização por propriedade/escopo no backend em todas as rotas de lista, detalhe, pesquisa, exportação e recursos relacionados (incluindo amostras, ensaios, CAPA, custódia, usuários quando aplicável e anexos); testar tentativas de acesso cruzado e assegurar que respostas não revelem a existência de registros de terceiros. A habilitação dependerá de revisão de segurança e aprovação institucional.
 
-#### C. Três identificadores independentes
+#### C. Identificadores com escopos distintos
 
-Não reutilizar `accession_number` como protocolo SEFI. O identificador atual participa da identificação interna e do QR Code, e sua semântica deve ser preservada.
+A solicitação, a amostra e os protocolos locais têm funções diferentes. O identificador principal da amostra deve ser institucional e independente do laboratório. Não assumir que `accession_number` e um futuro `control_number` precisam coexistir: a equivalência funcional deve ser verificada no código antes de criar campo ou sequência nova.
 
 | Identificador | Quando nasce | Finalidade |
 |---|---|---|
-| Número da solicitação | No cadastro da solicitação | Identificar a demanda antes da entrega e durante a conferência. |
-| Protocolo SEFI | Após decisão final favorável e validações obrigatórias | Identificar o ingresso formalmente aceito no SEFI. |
-| `accession_number` | Na criação do `DeviceSample`, após aceite | Identificar internamente a amostra operacional e manter compatibilidade com custódia, ensaios e QR atual. |
+| Número da solicitação (`request_number`) | No cadastro da solicitação | Identificar a demanda e agrupar seus itens de amostra. |
+| Número institucional de controle (`control_number`) | Após aceite de cada item e criação da respectiva `DeviceSample` | Identificar individualmente a amostra em todo o LIMS, independentemente do laboratório. |
+| Identificador externo (ex.: Harpya) | Quando informado para o item/amostra | Manter referência ao sistema de origem; não substitui o identificador institucional. |
+| Protocolo local de laboratório | Quando exigido pelo processo laboratorial | Identificar o ingresso/fluxo daquele laboratório; é complementar e não substitui o número institucional. |
 
-Todos devem ser únicos, não reutilizáveis e claramente rotulados. O QR atual permanece vinculado ao `accession_number`; não deve passar a representar o número da solicitação ou o protocolo SEFI. A regra de composição dos números é parametrizável e depende de decisão institucional. A criação da amostra, o `accession_number` e a emissão do protocolo devem ser transacionais/idempotentes, com tratamento explícito de falha parcial e reenvio.
+O QR atual deve continuar funcional. Se `accession_number` já representar adequadamente o identificador institucional, ele poderá ser formalizado como implementação técnica de `control_number`. Se não representar, a introdução de novo campo deve prever migração e compatibilidade do QR. A criação da amostra e do identificador institucional deve ser transacional e idempotente.
 
 ### 16.2 Fluxo transacional revisado
 
-1. **Cadastro assistido:** usuário interno autorizado registra solicitante/representante e dados declarados de um dispositivo.
-2. **Identificação da solicitação:** o backend gera o número próprio da solicitação. Ainda não existe `DeviceSample`, protocolo SEFI ou QR de amostra.
+1. **Cadastro assistido:** usuário interno autorizado registra solicitante/representante e um ou mais itens de amostra/dispositivo com seus dados declarados.
+2. **Identificação da solicitação:** o backend gera o número próprio da solicitação. Ainda não existem `DeviceSample` nem identificadores institucionais das amostras; identificadores externos podem ser registrados nos respectivos itens.
 3. **Chegada física e custódia:** no comparecimento, registrar `Receipt.arrived_at` como instante real da chegada, `received_by_id` como recebedor físico, quantidade e condições. Criar imediatamente o evento inicial de custódia vinculado ao `Receipt`; não aguardar a criação de `DeviceSample`. A restrição de uma entrega por solicitação deve ser garantida no banco e no serviço, inclusive sob concorrência.
-4. **Checklist:** o conferente preenche checklist versionado, respostas, justificativas e evidências. A versão aplicada fica congelada no recebimento.
+4. **Checklist:** o conferente preenche os aspectos comuns da entrega no `Receipt` e os critérios específicos de cada item em `ReceiptSample`, com respostas, justificativas e evidências. As versões aplicadas ficam congeladas.
 5. **Decisão por item de amostra:** aceite, aceite com ressalvas ou recusa de cada item recebido, com usuário, data/hora, justificativa e assinatura/autenticação conforme política aprovada. Aspectos comuns da entrega permanecem no nível do recebimento.
 6. **Validação da coordenação:** obrigatória para as situações definidas na matriz de critérios de cada item. A decisão registra aprovar, devolver, rejeitar ou solicitar complementação, sem apagar a decisão anterior.
 7. **Bloqueios:** critérios impeditivos não podem ser superados por justificativa simples. Exceções que exigem coordenação permanecem bloqueadas até decisão formal. Aceite com ressalvas segue as condições documentadas na matriz.
@@ -610,7 +611,7 @@ Todos devem ser únicos, não reutilizáveis e claramente rotulados. O QR atual 
 9. **Identificação institucional e custódia:** gerar identificador institucional único para cada amostra criada, vincular solicitação/item/recebimento/amostra e preservar a custódia iniciada na chegada. Eventual protocolo do laboratório será complementar.
 10. **Fluxo laboratorial:** planejamento, execução, revisão técnica, aprovação da coordenação e laudo consolidado seguem em entidades próprias e etapas posteriores.
 
-A operação que cria a amostra, gera `accession_number` e protocolo, vincula a custódia, registra assinatura e auditoria deve ser uma operação de domínio transacional e idempotente, protegida por constraints e controle de concorrência. Se não for possível concluir tudo em uma única transação, deve existir estado intermediário recuperável e reconciliação determinística, sem duplicar amostra, identificadores, custódia, assinatura ou protocolo.
+A operação que cria cada amostra aceita e gera seu identificador institucional, vincula item/recebimento/custódia e registra assinatura e auditoria deve ser transacional e idempotente, protegida por constraints e controle de concorrência. A emissão de protocolo local, quando necessária, deve ser tratada separadamente. Se não for possível concluir tudo em uma única transação, deve existir estado intermediário recuperável e reconciliação determinística, sem duplicar amostra, identificadores, custódia, assinatura ou protocolo.
 
 ### 16.3 Modelo lógico e nulabilidade
 
@@ -618,16 +619,16 @@ Modelo conceitual mínimo:
 
 | Entidade | Relação/regra | Conteúdo essencial |
 |---|---|---|
-| `Solicitation` | 1 solicitação para 1 dispositivo declarado | Número, solicitante/representante, operador interno, dados declarados, origem, datas, prioridade e estado. |
-| `Receipt` | 0..1 por solicitação | Data/hora física da chegada, recebedor físico, conferente, local, condições, dados verificados, estado e versão do checklist. |
-| `ReceiptCustodyEvent` | N por recebimento | Custódia desde a chegada, com responsável, data/hora, local, origem/destino e evidências. |
-| `ReceiptChecklistVersion` | Uma versão aplicada por recebimento | Itens, critérios, classificação e regras vigentes na data. |
-| `ReceiptChecklistAnswer` | N por recebimento | Resposta, não aplicabilidade justificada, observação e evidência. |
-| `ReceiptDecision` | Histórico de decisões do recebimento | Tipo de decisão, autor, data/hora, justificativa e referência às respostas. |
-| `CoordinationReview` | 0..N conforme exceções/devoluções | Decisão, responsável, justificativa, data/hora e vínculo à decisão revisada. |
-| `SolicitationSample` | 1..N por solicitação | Item individual declarado, com dados da amostra/dispositivo e identificadores externos opcionais. |
+| `Solicitation` | 1 solicitação para 1..N itens declarados | Número, solicitante/representante, operador interno, origem, datas, prioridade e estado. |
+| `Receipt` | 0..1 por solicitação, conforme premissa de entrega única | Data/hora física da chegada, recebedor físico, conferente, local e condições comuns da entrega. |
+| `ReceiptCustodyEvent` | N por recebimento | Custódia da entrega desde a chegada, com responsável, data/hora, local, origem/destino e evidências. |
+| `ReceiptChecklistVersion` | Uma versão aplicada por item recebido | Critérios de avaliação do item, classificação e regras vigentes na data. |
+| `ReceiptChecklistAnswer` | N por item recebido | Resposta, não aplicabilidade justificada, observação e evidência. |
+| `ReceiptDecision` | Histórico de decisões por item recebido | Tipo de decisão, autor, data/hora, justificativa e referência às respostas do item. |
+| `CoordinationReview` | 0..N por item, conforme exceções/devoluções | Decisão, responsável, justificativa, data/hora e vínculo à decisão do item revisada. |
+| `SolicitationSample` | 1..N por solicitação | Item individual declarado, com dados da amostra/dispositivo e referência externa opcional (Harpya ou outro sistema). |
 | `ReceiptSample` | 0..1 por item declarado, dentro do recebimento | Dados verificados, checklist e decisão individual; pode originar uma `DeviceSample`. |
-| `DeviceSample` | 0..1 por `ReceiptSample` aceita; N por solicitação | Criada após aceite; dados verificados, referência ao item/recebimento, `received_at` original, `received_by_id` e identificador institucional de controle. |
+| `DeviceSample` | 0..1 por `ReceiptSample` aceita; N por solicitação | Criada após aceite; dados verificados, referência ao item/recebimento, `received_at` original, `received_by_id` e identificador institucional (`control_number`, sujeito à avaliação de equivalência com `accession_number`). |
 | `LabTest` | N por amostra | Ensaio planejado. |
 | `TestExecution` | N por ensaio | Cada execução independente, executor, datas, método/equipamento e ocorrências. |
 
