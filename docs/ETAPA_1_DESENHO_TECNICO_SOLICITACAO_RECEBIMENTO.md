@@ -65,7 +65,7 @@ A alteração da restrição de unicidade e da obrigatoriedade dos campos existe
 | `coordination_reviews` | Decisões da coordenação | Vinculada à exceção e à decisão do conferente |
 | `solicitation_status_history` | Histórico de transições, se não integralmente coberto pela auditoria atual | Solicitação |
 
-A tabela `device_samples` deverá receber uma referência única à solicitação (`solicitation_id`), ou a relação equivalente escolhida após a avaliação das convenções ORM. A cardinalidade deve ser 1:1. A solicitação poderá existir antes da amostra ser operacionalmente liberada.
+A relação entre `device_samples` e `solicitations` será opcional para acomodar registros legados, com unicidade para vínculos não nulos e cardinalidade máxima 1:1. A solicitação poderá existir antes da amostra ser operacionalmente liberada.
 
 ### 3.2 Campos conceituais
 
