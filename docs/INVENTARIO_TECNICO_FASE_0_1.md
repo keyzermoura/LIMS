@@ -1,8 +1,8 @@
 # Inventário Técnico do LIMS — Fase 0.1
 
 **Identificador:** INV-TEC-001  
-**Versão:** 1.0  
-**Situação:** Inventário documental preliminar concluído — revisão técnica pendente  
+**Versão:** 1.1  
+**Situação:** Inventário estático ampliado; CI do commit de referência verificada; revisão operacional pendente  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch inspecionada:** `main`  
 **Commit de referência:** `5bbabac4868c0b1152f273abb91e1632a1cfe98f`  
@@ -283,3 +283,94 @@ Este inventário é preliminar e estático. Não autoriza implementação, migra
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-09 | Inventário técnico estático inicial da branch `main`, sem execução de testes ou alteração de código. |
+
+
+---
+
+## 17. Complemento da revisão técnica — versão 1.1
+
+**Data:** 2026-11-09  
+**Commit de código/documentação verificado:** `8381fb8c54759d44c3df00817dd33ef0546c5fd3`  
+**Escopo adicional:** execução recente de CI, revisão das migrações e mapeamento das dependências principais entre modelos.
+
+### 17.1 Resultado da integração contínua
+
+Foi consultada a execução GitHub Actions de ID `42706884432`, vinculada ao commit acima, na branch `main`. Resultado geral: **concluída com sucesso**.
+
+| Job | Verificações observadas | Resultado |
+|---|---|---|
+| Backend | Ruff, mypy, Alembic upgrade head, Alembic check, testes SQLite e testes PostgreSQL 16 | Sucesso |
+| Frontend | Typecheck e build | Sucesso |
+| Docker | Validação do Compose, build das imagens, subida da stack, seed de demonstração e smoke test | Sucesso |
+
+No job de backend, tanto `alembic upgrade head` quanto `alembic check` terminaram com sucesso. Os testes foram executados nas duas configurações indicadas pelo workflow: SQLite e PostgreSQL 16. No job Docker, o smoke test da API, SPA e trilha também terminou com sucesso.
+
+**Interpretação e limites:**
+- Isso comprova que o pipeline automatizado passou para o commit consultado, no ambiente efêmero do GitHub Actions.
+- A execução não equivale a teste de aceitação institucional, validação de sistema computadorizado ou homologação para uso regulado.
+- O PostgreSQL utilizado é um serviço de teste descartável do workflow; não é o banco institucional nem ambiente de produção.
+- O CI não comprova política de backup/restauração, TLS institucional, gestão operacional de segredos, permissões reais, monitoramento ou recuperação de desastre.
+- A aprovação de `alembic check` indica que o metadata SQLAlchemy não apresentou diferenças detectáveis pelo Alembic após aplicar as migrações naquele ambiente. Não demonstra, isoladamente, equivalência com todo caminho alternativo de inicialização de schema nem valida os efeitos de todos os triggers e permissões em produção.
+- A execução bem-sucedida do smoke test Docker comprova o cenário automatizado descrito no workflow, não a implantação institucional.
+
+A afirmação anterior da seção 10 de que a execução de CI não havia sido consultada fica **superada por este complemento**. Não foram executados comandos de teste manualmente nesta atividade; foram consultados os resultados da execução automatizada já concluída.
+
+### 17.2 Cadeia de migrações observada
+
+A cadeia Alembic identificada é:
+
+`a1cd5ac5805f` → `0002_guards` → `0003_audit_export`
+
+- **Migração inicial:** cria as tabelas centrais de usuários, amostras, assinaturas eletrônicas, tokens de renovação, auditoria, custódia, ensaios, CAPA e versões de resultados, além de constraints, índices e tipos enumerados.
+- **`0002_guards`:** cria sequences de numeração e funções/triggers PostgreSQL para append-only de auditoria, resultados e custódia; proteção de campos da assinatura eletrônica; bloqueio de exclusão de amostras, ensaios e CAPA; e índices adicionais.
+- **`0003_audit_export`:** acrescenta os valores `EXPORT` e `EXPORT_VERIFIED` ao enum PostgreSQL de ações de auditoria. O downgrade é intencionalmente no-op, pois a remoção de valores de enum exige recriação do tipo e a trilha é append-only.
+
+A revisão do metadata e a execução do CI não substituem uma análise específica de reversibilidade operacional. Em particular, a migração `0003` declara explicitamente que seu downgrade não remove os valores acrescentados.
+
+### 17.3 Mapa resumido de dependências entre modelos
+
+| Origem | Dependência | Relação observada | Implicação |
+|---|---|---|---|
+| `DeviceSample` | `User` | Recebedor e custodiante atual | A amostra depende de usuários existentes para atribuição e guarda |
+| `LabTest` | `DeviceSample` | Cada ensaio referencia uma amostra | O ciclo de ensaio só começa depois da existência da amostra operacional |
+| `LabTest` | `User` | Responsável atribuído, executor e signatário | Há atribuições funcionais registradas no ensaio |
+| `LabTest` | `ElectronicSignature` | Assinatura vinculada | O vínculo formal de assinatura é persistido no ensaio |
+| `LabTestResult` | `LabTest`, `User`, `ElectronicSignature` | Versão de resultado, signatário e assinatura | Histórico de resultados depende do ensaio e da assinatura |
+| `ChainOfCustody` | `DeviceSample`, `User`, `ElectronicSignature` | Evento de transferência, origem/destino e assinatura opcional | A custódia atual está estruturalmente subordinada à amostra |
+| `CapaAction` | `DeviceSample` e/ou `LabTest`, `User`, `ElectronicSignature` | Origem, responsável, criador, encerrador e assinatura | CAPA se ancora em amostra ou ensaio, sem entidade de recebimento |
+| `AuditLog` | `User`, `ElectronicSignature` | Ator e assinatura opcionais; entidade registrada por tipo/ID textual | A trilha aceita entidades genéricas, mas o vínculo da entidade auditada não é FK polimórfica |
+| `ElectronicSignature` | `User` | Usuário e snapshots de identidade/função | O manifesto preserva dados históricos do signatário |
+| `RefreshToken` | `User` | Sessão vinculada ao usuário | Autenticação e renovação de sessão dependem do cadastro de usuário |
+
+### 17.4 Consequências arquiteturais para o novo fluxo
+
+1. O encadeamento atual é essencialmente `DeviceSample → LabTest → LabTestResult`, com custódia e CAPA conectadas à amostra/ensaio.
+2. Não existe, no modelo atual inspecionado, entidade-pai que represente a solicitação institucional e seu conjunto de itens declarados.
+3. Não existe entidade própria de recebimento físico anterior à amostra; por isso, o requisito de registrar chegada, custódia inicial, conferência e não apresentação antes do aceite não deve ser implementado como simples extensão dos campos atuais de `DeviceSample`.
+4. A futura modelagem deverá definir relações explícitas entre solicitação, itens declarados, recebimento único, conferências/decisões por item e amostras criadas somente após aceite.
+5. O modelo de auditoria genérica pode registrar eventos dessas novas entidades por `entity_type`/`entity_id`, mas a integridade referencial e a estratégia de versionamento dessas entidades ainda precisarão ser projetadas.
+6. A criação de amostra deverá preservar compatibilidade com `accession_number`, QR Code, referências legadas e registros históricos, sem presumir que as regras atuais de serial/lote/fabricante sejam adequadas para todos os itens recebidos.
+
+### 17.5 Estado atualizado do inventário
+
+| Verificação | Estado |
+|---|---|
+| Estrutura e stack do repositório | Inspecionadas estaticamente |
+| Modelos e dependências principais | Mapeados em nível estrutural |
+| Cadeia de migrações | Identificada e revisada estaticamente |
+| Paridade metadata/migrações | CI reportou `alembic check` aprovado no commit consultado |
+| Testes SQLite | CI reportou sucesso |
+| Testes PostgreSQL 16 | CI reportou sucesso |
+| Typecheck e build frontend | CI reportou sucesso |
+| Build e smoke test Docker | CI reportou sucesso |
+| Ambiente institucional, dados reais, backup/restore e controles operacionais | Não verificados |
+| Validação institucional/regulatória | Não realizada |
+
+**Conclusão atualizada:** a revisão estática e a verificação do pipeline automatizado estão concluídas para o escopo desta atividade. O inventário técnico da Fase 0.1 pode ser considerado fechado em nível de repositório/CI, com ressalvas operacionais expressas. A Fase 0 como um todo permanece aberta: ainda faltam glossário, consolidação formal das decisões, modelo de domínio, estados/transições, estratégia de migração e critérios de aceite.
+
+## 18. Histórico de alterações
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.0 | 2026-11-09 | Inventário técnico estático inicial da branch `main`, sem execução de testes ou alteração de código. |
+| 1.1 | 2026-11-09 | Complemento com resultado do CI, cadeia de migrações, mapa de dependências entre modelos e estado atualizado da Fase 0.1. |
