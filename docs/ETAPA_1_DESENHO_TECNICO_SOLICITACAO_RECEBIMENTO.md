@@ -513,3 +513,195 @@ As recomendações acima não eliminam a necessidade de definir:
 ### 15.12 Limite desta atualização
 
 Esta atualização consolida recomendações para análise e decisão. **Não altera o status de aprovação do desenho técnico e não autoriza o início da implementação.** Nenhum código, esquema de banco, migração, endpoint, teste automatizado ou componente de interface foi modificado nesta atualização documental.
+
+---
+
+## 16. Revisão arquitetural obrigatória — versão prevalente
+
+Esta seção substitui qualquer orientação conflitante das seções anteriores, em especial a criação de `DeviceSample` antes da entrega e a habilitação imediata de contas externas. Foi incluída após confronto do desenho com o código atual. As seções anteriores permanecem como histórico de elaboração, mas não devem ser usadas isoladamente como especificação de implementação.
+
+### 16.1 Decisões estruturais corrigidas
+
+#### A. Solicitação, recebimento e amostra operacional são registros distintos
+
+O código atual de `DeviceSample` representa uma amostra efetivamente recebida. Os campos `received_at` e `received_by_id` são obrigatórios. Além disso, `sample_service.create_sample` gera o `accession_number`, define estado inicial de recebido, cria a custódia inicial, exige assinatura de criação e registra auditoria.
+
+Por isso, **não criar `DeviceSample` no cadastro prévio da solicitação**.
+
+Modelo prevalente:
+
+```mermaid
+erDiagram
+    SOLICITATION ||--o| RECEIPT : recebe
+    SOLICITATION ||--o| DEVICE_SAMPLE : origina_apos_aceite
+    DEVICE_SAMPLE ||--o{ LAB_TEST : possui
+    LAB_TEST ||--o{ TEST_EXECUTION : tem
+    TEST_EXECUTION ||--o{ TEST_RESULT : produz
+    RECEIPT ||--o{ RECEIPT_CHECKLIST_ANSWER : documenta
+    RECEIPT ||--o{ RECEIPT_DECISION : recebe
+    RECEIPT ||--o{ COORDINATION_REVIEW : pode_exigir
+    SOLICITATION ||--o{ ATTACHMENT : agrega
+    RECEIPT ||--o{ ATTACHMENT : agrega
+    DEVICE_SAMPLE ||--o{ CHAIN_OF_CUSTODY : movimenta
+```
+
+Regras:
+- Uma solicitação representa uma demanda e um único dispositivo declarado.
+- A solicitação pode existir antes da chegada física.
+- Uma solicitação pode ter zero ou um recebimento formal; quando houver entrega, é a única entrega física prevista para esse fluxo.
+- Um recebimento pertence a uma única solicitação.
+- A solicitação pode ter zero ou um `DeviceSample`; a amostra operacional só é criada após decisão final favorável e validações exigidas.
+- Uma recusa preserva a solicitação e o recebimento, mas não cria `DeviceSample`.
+- Um `DeviceSample` criado após aceite pode ter vários `LabTest`; cada ensaio planejado pode ter várias execuções independentes.
+
+Os dados informados na solicitação devem ser preservados como **dados declarados**. A conferência deve registrar os **dados verificados** e suas divergências, sem sobrescrever o declarado. A criação de `DeviceSample` deve usar os dados efetivamente confirmados, mantendo rastreabilidade à solicitação e ao recebimento.
+
+#### B. Acesso externo fica desabilitado na primeira entrega
+
+As rotas atuais de amostras, ensaios, CAPA e custódia não implementam isolamento por propriedade em todas as consultas. O RBAC atual controla permissões por papel, mas isso não equivale a restringir cada registro ao solicitante titular. A consulta de usuários também não deve ser exposta a solicitantes externos.
+
+**Decisão para a primeira entrega:** somente usuários internos autorizados operam a aplicação. Um servidor SEFI registra a solicitação em nome do solicitante/representante, preservando:
+- identidade do usuário autenticado que realizou a operação;
+- identificação e dados de contato do solicitante/representante;
+- indicação de cadastro próprio ou em nome de terceiro;
+- autoria e histórico de alterações.
+
+Não conceder acesso externo por meio dos papéis atuais nem presumir que ocultar telas seja suficiente.
+
+**Condição para fase futura externa:** implementar autorização por propriedade/escopo no backend em todas as rotas de lista, detalhe, pesquisa, exportação e recursos relacionados (incluindo amostras, ensaios, CAPA, custódia, usuários quando aplicável e anexos); testar tentativas de acesso cruzado e assegurar que respostas não revelem a existência de registros de terceiros. A habilitação dependerá de revisão de segurança e aprovação institucional.
+
+#### C. Três identificadores independentes
+
+Não reutilizar `accession_number` como protocolo SEFI. O identificador atual participa da identificação interna e do QR Code, e sua semântica deve ser preservada.
+
+| Identificador | Quando nasce | Finalidade |
+|---|---|---|
+| Número da solicitação | No cadastro da solicitação | Identificar a demanda antes da entrega e durante a conferência. |
+| Protocolo SEFI | Após decisão final favorável e validações obrigatórias | Identificar o ingresso formalmente aceito no SEFI. |
+| `accession_number` | Na criação do `DeviceSample`, após aceite | Identificar internamente a amostra operacional e manter compatibilidade com custódia, ensaios e QR atual. |
+
+Todos devem ser únicos, não reutilizáveis e claramente rotulados. O QR atual permanece vinculado ao `accession_number`; não deve passar a representar o número da solicitação ou o protocolo SEFI. A regra de composição dos números é parametrizável e depende de decisão institucional. A criação da amostra, o `accession_number` e a emissão do protocolo devem ser transacionais/idempotentes, com tratamento explícito de falha parcial e reenvio.
+
+### 16.2 Fluxo transacional revisado
+
+1. **Cadastro assistido:** usuário interno autorizado registra solicitante/representante e dados declarados de um dispositivo.
+2. **Identificação da solicitação:** o backend gera o número próprio da solicitação. Ainda não existe `DeviceSample`, protocolo SEFI ou QR de amostra.
+3. **Entrega única:** no comparecimento físico, o servidor registra o recebimento, data/hora, responsável e condições observadas. A restrição de uma entrega por solicitação deve ser garantida no banco e no serviço, inclusive sob concorrência.
+4. **Checklist:** o conferente preenche checklist versionado, respostas, justificativas e evidências. A versão aplicada fica congelada no recebimento.
+5. **Decisão do conferente:** aceite, aceite com ressalvas ou recusa, com usuário, data/hora, justificativa e assinatura/autenticação conforme política aprovada.
+6. **Validação da coordenação:** obrigatória para as situações definidas na matriz de critérios. A decisão deve registrar aprovar, devolver, rejeitar ou solicitar complementação, sem apagar a decisão anterior.
+7. **Bloqueios:** critérios impeditivos não podem ser superados por justificativa simples. Exceções que exigem coordenação permanecem bloqueadas até decisão formal. Aceite com ressalvas segue as condições documentadas na matriz.
+8. **Criação da amostra operacional:** somente após decisão favorável e validações obrigatórias, criar `DeviceSample` com dados conferidos, `received_at`, `received_by_id`, identificador interno, custódia inicial e auditoria.
+9. **Protocolo SEFI:** gerar conforme regra institucional, uma única vez, associado à solicitação, recebimento, decisão e amostra.
+10. **Fluxo laboratorial:** planejamento, execução, revisão técnica, aprovação da coordenação e laudo consolidado seguem em entidades próprias e etapas posteriores.
+
+A operação que cria a amostra e gera os identificadores deve ser protegida contra duplo clique, concorrência e reenvio de requisição. Se não for possível concluir tudo na mesma transação, deve existir estado intermediário recuperável, sem duplicar amostra, custódia ou protocolo.
+
+### 16.3 Modelo lógico e nulabilidade
+
+Modelo conceitual mínimo:
+
+| Entidade | Relação/regra | Conteúdo essencial |
+|---|---|---|
+| `Solicitation` | 1 solicitação para 1 dispositivo declarado | Número, solicitante/representante, operador interno, dados declarados, origem, datas, prioridade e estado. |
+| `Receipt` | 0..1 por solicitação | Data/hora, recebedor, local, condições, estado e referência à versão do checklist. |
+| `ReceiptChecklistVersion` | Uma versão aplicada por recebimento | Itens, critérios, classificação e regras vigentes na data. |
+| `ReceiptChecklistAnswer` | N por recebimento | Resposta, não aplicabilidade justificada, observação e evidência. |
+| `ReceiptDecision` | Histórico de decisões do recebimento | Tipo de decisão, autor, data/hora, justificativa e referência às respostas. |
+| `CoordinationReview` | 0..N conforme exceções/devoluções | Decisão, responsável, justificativa, data/hora e vínculo à decisão revisada. |
+| `DeviceSample` | 0..1 por solicitação | Criado somente após aceite; dados verificados, recebimento, `accession_number` e QR. |
+| `LabTest` | N por amostra | Ensaio planejado. |
+| `TestExecution` | N por ensaio | Cada execução independente, executor, datas, método/equipamento e ocorrências. |
+
+A implementação deverá decidir se a relação entre `Solicitation` e `DeviceSample` será FK nullable na amostra ou FK nullable na solicitação. A escolha deve garantir no máximo uma amostra por solicitação, permitir registros legados sem solicitação e não exigir preenchimento artificial. Recomenda-se manter a relação transitória nullable durante a migração e aplicar unicidade apenas para vínculos não nulos. Não tornar `solicitation_id` obrigatório em massa sem backfill demonstrável.
+
+Campos de lote e número de série devem ser opcionais quando a natureza do dispositivo permitir. A atual unicidade por fabricante/lote/série não deve impedir solicitações distintas legítimas. A identidade da solicitação e do ingresso deve ser garantida por seus identificadores próprios; eventual alerta de possível duplicidade de material não deve substituir regra de negócio validada.
+
+### 16.4 Estados independentes
+
+Não reutilizar `SampleStatus` ou `TestOutcome` para representar recusa de recebimento.
+
+Devem ser separados, no mínimo:
+- estado da solicitação;
+- estado do recebimento;
+- decisão de recebimento;
+- estado da amostra operacional;
+- estado do ensaio planejado;
+- estado de cada execução;
+- estado da revisão técnica;
+- estado da aprovação da coordenação;
+- estado/versão do laudo.
+
+Uma reprovação de ensaio continua sendo resultado técnico e pode acionar a CAPA conforme regra existente. Uma recusa de recebimento é decisão administrativa/técnica anterior à criação da amostra e não deve disparar indevidamente o fluxo de CAPA de resultado reprovado.
+
+### 16.5 Segurança, assinatura e trilha de auditoria
+
+- Autorizar cada operação no backend, com papel, escopo do registro e estado de negócio.
+- Não presumir que `CurrentUser` ou permissão RBAC genérica fornece isolamento por propriedade.
+- Revisar a rota de emissão de token de assinatura: o usuário deve estar autorizado para a entidade e ação solicitadas antes da emissão, além da validação no consumo.
+- Inventariar `SignatureAction` e `SignatureMeaning`; novas ações de recebimento/decisão/revisão podem exigir atualização de enum, schemas, serviços e testes.
+- Exigir controle otimista de versão nas operações concorrentes de checklist, decisão, coordenação e alterações de solicitação. O uso atual de `version` não deve ser tratado como versionamento automático do ORM.
+- Definir idempotência para criação e transições críticas. Reenvio de uma mesma operação não pode duplicar recebimento, amostra, assinatura, evento de custódia ou protocolo.
+- Preservar trilha de auditoria, mas revisar minimização de dados pessoais, finalidade, acesso, exportação, retenção, mascaramento e política de guarda conforme LGPD e requisitos institucionais.
+- Anexos devem ter controle de acesso, metadados, hash/integridade, verificação antimalware, limites, retenção e armazenamento não público.
+
+### 16.6 Migrações, enums, sequências e triggers
+
+A estratégia deve considerar os mecanismos reais do repositório:
+
+1. **Enums PostgreSQL nativos:** inventariar os tipos e valores existentes antes de criar novos estados/ações. Alterações em enums podem não ser reversíveis de forma simples. Não assumir que um downgrade de enum é seguro; documentar irreversibilidade quando inevitável e testar em banco descartável.
+2. **Triggers de imutabilidade:** manter sincronizados `backend/app/db/sql/001_immutability.sql` e o snapshot implantável em `0002_guards.py`. Novas tabelas append-only devem receber proteção e testes em ambos os caminhos.
+3. **Sequências:** a allowlist em `backend/app/db/dialect.py` inclui atualmente `sample_accession_seq` e `capa_code_seq`. Qualquer sequência nova exige implementação coordenada para PostgreSQL e SQLite, migração e testes.
+4. **Legado:** criar estruturas novas de forma aditiva; mapear dados existentes sem inferir solicitante, decisão, recebimento ou datas ausentes. Manter vínculos opcionais para registros legados sem correspondência segura.
+5. **Upgrade/downgrade:** testar banco vazio, banco com dados representativos, reexecução após falha, reversão quando suportada e recuperação documentada quando não houver downgrade seguro. A CI atual não deve ser considerada evidência suficiente de reversibilidade sem testes específicos.
+
+### 16.7 Revisão técnica, aprovação e laudo — escopo posterior, mas já previsto no desenho
+
+A Etapa 1 não deve implementar silenciosamente o ciclo inteiro do laudo, mas o modelo geral do LIMS deve reservar entidades e estados próprios para:
+- execução independente de ensaio, com repetição/interrupção e vínculo à tentativa anterior;
+- resultados e evidências associados à execução;
+- revisão técnica com aprovação, devolução para correção e histórico;
+- aprovação da coordenação do conjunto de resultados;
+- laudo consolidado por solicitação, com versões emitidas/substituídas e assinaturas;
+- equipamento e situação metrológica na data da execução;
+- versão do método efetivamente utilizada;
+- condições ambientais, quando aplicáveis.
+
+A reprovação automática que hoje abre CAPA deve ser preservada para o contexto de resultado técnico, mas não reutilizada como consequência automática de recusa de recebimento.
+
+### 16.8 Critérios adicionais de aceite para o desenho
+
+Antes de aprovar a implementação, o desenho deverá demonstrar por testes e restrições:
+- não existe `DeviceSample` antes do aceite;
+- solicitação recusada preserva todos os registros e não gera amostra;
+- não é possível registrar duas entregas para a mesma solicitação, inclusive sob concorrência;
+- não é possível criar duas amostras ou dois protocolos para a mesma solicitação;
+- número da solicitação, protocolo SEFI e `accession_number` são distintos;
+- QR existente continua resolvendo `accession_number`;
+- solicitante externo não acessa a API atual na primeira entrega;
+- operador interno e solicitante/representante são identificados separadamente;
+- dados declarados não são sobrescritos pelos dados conferidos;
+- critérios impeditivos não podem ser ignorados;
+- exceções aguardam coordenação;
+- ações de assinatura são autorizadas antes da emissão do token;
+- decisões e alterações concorrentes exigem versão esperada;
+- migração preserva registros, assinaturas, resultados, custódia e auditoria legados;
+- testes de enum, triggers, sequências, upgrade e downgrade são executados no PostgreSQL.
+
+### 16.9 Decisões institucionais ainda pendentes
+
+Além das questões já listadas na seção 13, confirmar:
+1. padrão e formato do número da solicitação;
+2. padrão e formato do protocolo SEFI;
+3. se ambos serão exibidos em documentos/etiquetas e em quais momentos;
+4. quais dados declarados são obrigatórios por categoria de dispositivo;
+5. quais dados serão considerados fonte oficial para criar `DeviceSample`;
+6. quais perfis internos podem cadastrar, receber, conferir e validar;
+7. atos que exigem assinatura eletrônica formal;
+8. regras de aceite com ressalvas, prazos e providências;
+9. política de dados pessoais, anexos, retenção e exportação;
+10. estratégia de tratamento dos registros legados sem vínculo seguro com solicitação.
+
+### 16.10 Status e autorização
+
+Esta revisão corrige o desenho para refletir as limitações reais do código e os três bloqueadores arquiteturais. **O desenho ainda depende de aprovação expressa.** Nenhuma alteração de aplicação, banco, migração, endpoint, teste ou frontend foi realizada. A Etapa 1A não está autorizada por esta atualização documental.
