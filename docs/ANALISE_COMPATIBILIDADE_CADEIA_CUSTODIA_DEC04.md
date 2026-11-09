@@ -126,7 +126,7 @@ Há ainda um detalhe atual a revisar futuramente: o evento RECEIPT sintético da
 
 A migração inicial define chain_of_custody.device_sample_id como NOT NULL, com FK para device_samples e ON DELETE RESTRICT. Também cria índices para device_sample_id, custodiante de origem/destino e transferred_at.
 
-A alteração necessária para suportar eventos pré-amostra não é apenas adicionar uma FK: o vínculo legado obrigatório com DeviceSample precisa tornar-se opcional para novos eventos ligados a ObjetoCustodia, preservando os registros existentes.
+A alteração necessária para suportar eventos pré-amostra não é apenas adicionar uma FK: o vínculo legado obrigatório com DeviceSample precisa tornar-se opcional para novos eventos ligados a ObjetoCustodia, preservando os registros existentes. Além disso, o modelo lógico CustodyEvent prevê event_type e recorded_by_id, mas esses campos não existem hoje em ChainOfCustody; sua inclusão e obrigatoriedade para eventos novos precisam ser definidas no mapeamento físico. O campo atual transferred_at corresponde ao instante do evento e created_at pode servir como instante de registro.
 
 ### 4.2 Imutabilidade
 
@@ -221,6 +221,9 @@ Proposta lógica:
 - garantir por CHECK que exatamente um dos dois campos esteja preenchido em cada evento;
 - manter FKs explícitas e ON DELETE RESTRICT;
 - manter append-only, timestamps, autoria, localização, justificativa, selo e referência de assinatura;
+- reconhecer que o modelo físico atual não possui event_type nem recorded_by_id explícitos; ambos precisam ser avaliados como colunas aditivas ou ter seu significado formalmente mapeado, sem inferência retroativa;
+- transferred_at representa o instante do evento e created_at pode representar o registro no sistema; location_from/location_to são textos, não FKs de localização;
+- notes pode guardar observações livres, mas não substitui automaticamente condition_note estruturado nem vínculos de evidência.
 - criar índice de consulta por custody_object_id e transferred_at;
 - eventos do fluxo novo devem apontar para CustodyObject, inclusive depois da criação da amostra;
 - eventos legados continuam apontando para DeviceSample;
