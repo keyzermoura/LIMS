@@ -142,6 +142,13 @@ docker compose --profile tools run --rm seed
 > assinaturas do seed são fixtures já consumidas. O fluxo interativo de
 > reautenticação é exercitado pela interface.
 
+Validar a stack como no CI (health da API, SPA pelo Nginx, login, amostras e
+verificação da trilha):
+
+```bash
+bash scripts/docker-smoke.sh
+```
+
 ### 3.2 Desenvolvimento local
 
 Back-end:
@@ -553,7 +560,8 @@ Limitações do MVP (não aptas a produção sem trabalho adicional):
 8. **Cobertura PostgreSQL no CI**: a suíte roda em SQLite por padrão e em
    PostgreSQL quando `LIMS_TEST_DATABASE_URL` está definido. O workflow
    `.github/workflows/ci.yml` executa as duas modalidades (com serviço
-   PostgreSQL 16) e o build do front-end; ele ainda não rodou neste ambiente.
+   PostgreSQL 16), o build do front-end e um job Docker que constrói as
+   imagens e roda `scripts/docker-smoke.sh` na stack completa.
 9. **Sem qualificação formal**: este repositório é uma base técnica, não um
    sistema validado (IQ/OQ/PQ) nem um dossiê regulatório.
 

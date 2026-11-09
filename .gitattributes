@@ -1,0 +1,3 @@
+# Scripts precisam de LF mesmo em checkouts no Windows; CRLF quebra o bash
+# do runner (e de qualquer container Linux).
+*.sh text eol=lf
