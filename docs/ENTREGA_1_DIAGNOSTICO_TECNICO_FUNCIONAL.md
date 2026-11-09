@@ -564,10 +564,8 @@ A implementação será considerada funcionalmente aceita quando:
 ### 14.13 Pendências de definição institucional antes do desenvolvimento
 
 As decisões principais desta etapa estão consolidadas. Permanecem apenas definições de parametrização que não devem ser inventadas pela implementação:
-- quais situações específicas tornam obrigatória a validação da coordenação;
 - quais tipos de solicitação e prioridades serão disponibilizados;
 - quais campos/documentos serão obrigatórios para cada tipo de dispositivo ou solicitação;
-- quais critérios do checklist são impeditivos para aceite e quais admitem ressalva;
 - política de autenticação e validação cadastral dos solicitantes externos;
 - padrão de numeração e apresentação do protocolo SEFI.
 
@@ -583,3 +581,161 @@ Essas definições podem ser registradas em catálogo/configuração institucion
 - [ ] Definição dos parâmetros institucionais pendentes.
 - [ ] Aprovação final dos parâmetros e do desenho técnico.
 - [ ] Implementação em branch de trabalho dedicada, sem alteração direta da branch principal.
+
+
+## 15. Matriz de validação da coordenação e critérios impeditivos do recebimento
+
+**Situação:** proposta aprovada pelo usuário em 09/11/2026 como regra inicial de negócio para a Etapa 1. Esta aprovação consolida o desenho funcional; não autoriza, por si só, alterações de código, banco de dados ou migrações.
+
+### 15.1 Princípios de decisão
+
+1. A validação da coordenação é condicional e deve ocorrer apenas nas situações previstas nesta matriz ou quando o conferente registrar encaminhamento fundamentado.
+2. Divergências que comprometam a identificação inequívoca do dispositivo não podem ser dispensadas por autorização administrativa simples.
+3. Risco não controlado à segurança, suspeita de contaminação ou condição que inviabilize a avaliação impede o aceite até avaliação e tratamento documentados.
+4. O checklist deve distinguir não conformidade impeditiva, exceção sujeita à coordenação e ocorrência administrativa corrigível pelo conferente.
+5. A decisão e a validação são eventos distintos: a coordenação não apaga nem substitui a avaliação original do conferente.
+6. Aceite com ressalvas não significa liberação automática para planejamento ou ensaio quando ainda existir ação impeditiva pendente.
+
+### 15.2 Matriz de situações que exigem validação da coordenação
+
+| Situação identificada | Tratamento inicial | Validação da coordenação | Regra/limite |
+|---|---|---|---|
+| Quantidade recebida diferente da declarada | Registrar quantidade e divergência | Obrigatória | Avaliar impacto no escopo e decidir por aceite, ressalva ou recusa. |
+| Quantidade recebida insuficiente para os ensaios planejados | Registrar insuficiência | Obrigatória | Definir se o escopo pode ser ajustado ou se a solicitação deve ser complementada/revista. |
+| Embalagem danificada, sem evidência conclusiva de comprometimento do dispositivo | Registrar dano e evidências | Obrigatória | Não liberar automaticamente para ensaio; avaliar risco de integridade. |
+| Lacre violado ou indício de abertura/manipulação | Registrar condição e evidências | Obrigatória | Avaliar rastreabilidade, integridade e possibilidade de aceitação com restrições. |
+| Dano físico aparente no dispositivo, com impacto ainda incerto | Registrar localização, extensão e evidências | Obrigatória | A coordenação decide se a condição impede, limita ou não interfere na avaliação. |
+| Documento complementar ausente, sem prejuízo à identificação inequívoca | Registrar pendência documental | Obrigatória | Definir se pode ser aceito com ressalva e prazo/condição para regularização. |
+| Condição de transporte ou armazenamento potencialmente inadequada | Registrar informação disponível e requisito aplicável | Obrigatória | Avaliar se há evidência de comprometimento do dispositivo ou do resultado. |
+| Pedido de prioridade excepcional ou fora dos critérios institucionais | Registrar justificativa do solicitante/conferente | Obrigatória | Aprovação não altera critérios técnicos nem precedência legal/institucional. |
+| Outra exceção não prevista, encaminhada fundamentadamente pelo conferente | Registrar fato, risco e justificativa | Obrigatória quando encaminhada | A coordenação deve decidir expressamente e justificar. |
+
+**Situações que não são passíveis de dispensa pela coordenação como simples exceção de recebimento:**
+
+| Situação | Classificação | Consequência |
+|---|---|---|
+| Dispositivo recebido não corresponde ao solicitado | Impeditiva | Não aceitar como o dispositivo objeto daquela solicitação. Corrigir a solicitação ou registrar nova demanda, conforme regra institucional. |
+| Fabricante não identificável ou divergente de modo que impeça identificar o produto solicitado | Impeditiva | Suspender a decisão até esclarecimento documental ou correção formal. |
+| Lote divergente ou não identificável, quando sua identificação for aplicável e necessária à rastreabilidade | Impeditiva | Não liberar para planejamento/ensaio até regularização. |
+| Número de série divergente, quando informado e aplicável à identificação individual | Impeditiva | Não aceitar até esclarecimento/correção formal. |
+| Documentação legal/técnica definida como obrigatória para aquele tipo de solicitação ausente | Impeditiva | Manter pendente ou recusar; a coordenação não pode dispensar requisito institucional obrigatório. |
+| Suspeita de contaminação, vazamento ou risco não controlado à saúde/segurança | Impeditiva | Isolar/segregar conforme procedimento de segurança e impedir aceite/liberação até tratamento formal. |
+
+A coordenação pode orientar a correção, determinar avaliação adicional ou decidir pela recusa, mas não pode converter uma divergência de identidade ou um requisito obrigatório em conformidade sem evidência e regularização. Se a instituição admitir exceção normativa em algum caso específico, essa exceção deverá ser formalmente definida em procedimento próprio, com fundamento e controle, antes de ser parametrizada no sistema.
+
+### 15.3 Critérios do checklist de recebimento
+
+O checklist deve ser versionado e permitir marcar cada item como **Conforme**, **Não conforme** ou **Não aplicável**. Não aplicabilidade e não conformidade exigem justificativa conforme a configuração do item.
+
+| Código | Critério verificado | Classe | Regra de resposta |
+|---|---|---|---|
+| C01 | O dispositivo recebido corresponde ao descrito na solicitação | Impeditivo | Não conforme bloqueia aceite. |
+| C02 | Fabricante está identificado e é compatível com a solicitação | Impeditivo | Não conforme bloqueia aceite até esclarecimento. |
+| C03 | Lote está identificado e é compatível, quando aplicável | Impeditivo | Não conforme bloqueia aceite até regularização. |
+| C04 | Número de série está compatível, quando aplicável e informado | Impeditivo | Divergência bloqueia aceite até esclarecimento. |
+| C05 | Quantidade recebida foi contada e registrada | Impeditivo para conclusão da conferência | Divergência deve ser registrada e encaminhada à coordenação; não pode ser ignorada. |
+| C06 | Não há dano que comprometa identificação, segurança ou avaliação | Impeditivo quando o comprometimento for confirmado | Se o impacto for incerto, encaminhar à coordenação; se houver comprometimento confirmado, não aceitar para ensaio. |
+| C07 | Não há risco não controlado de contaminação, vazamento ou segurança | Impeditivo | Não conforme bloqueia aceite e exige tratamento de segurança. |
+| C08 | Documentação obrigatória para o caso está disponível | Impeditivo | Ausência bloqueia aceite até regularização. |
+| C09 | Embalagem está íntegra e sem sinais relevantes de violação/manipulação | Exceção sujeita à coordenação | Não conforme exige evidência e decisão da coordenação. |
+| C10 | Condições de transporte/armazenamento atendem aos requisitos aplicáveis | Exceção sujeita à coordenação | Não conforme exige avaliação da coordenação quando houver potencial impacto. |
+| C11 | Documentos complementares requeridos estão disponíveis | Exceção sujeita à coordenação | Ausência pode admitir ressalva somente com decisão justificada. |
+| C12 | Quantidade recebida é suficiente para o escopo de ensaios | Exceção sujeita à coordenação | Insuficiência exige decisão sobre ajuste do escopo ou outra providência. |
+| C13 | Não há dano físico aparente com possível influência nos ensaios | Exceção sujeita à coordenação | Dano de impacto incerto exige avaliação documentada. |
+| C14 | Condições para eventual aceite com ressalvas estão atendidas | Exceção sujeita à coordenação | Exige justificativa, ação requerida e validação da coordenação. |
+| C15 | Prioridade excepcional está fundamentada e autorizada | Exceção sujeita à coordenação | Não altera requisitos técnicos de recebimento ou ensaio. |
+| C16 | Dados cadastrais apresentam erro material de digitação sem impacto na identificação | Correção pelo conferente | Corrigir com registro de auditoria. |
+| C17 | Dados de contato estão completos para comunicação | Correção administrativa | Solicitar complemento; não constitui por si só não conformidade do dispositivo. |
+| C18 | Observações necessárias foram registradas | Administrativo | Exigir preenchimento quando houver ocorrência ou ressalva. |
+| C19 | Identificação externa da embalagem foi registrada quando disponível | Administrativo | Ausência não bloqueia por si só, salvo regra específica aplicável. |
+| C20 | Documento complementar posteriormente recebido foi anexado e relacionado | Administrativo | Registrar autoria, data/hora e vínculo; não apagar pendência/histórico anterior. |
+
+A aplicabilidade de lote, série, documentação e condições de transporte deve ser parametrizada por tipo de dispositivo/solicitação. O sistema não deve exigir número de série para produtos que não possuam identificação serial individual.
+
+### 15.4 Regras de bloqueio e encaminhamento
+
+O motor de decisão deverá aplicar a seguinte ordem:
+
+1. **Verificar completude:** impedir a conclusão se itens obrigatórios não tiverem resposta ou se faltarem dados essenciais da conferência.
+2. **Verificar bloqueios impeditivos:** qualquer critério impeditivo não conforme mantém a solicitação sem aceite e sem protocolo SEFI. O registro deve indicar a pendência, a evidência e a providência necessária.
+3. **Verificar exceções:** se houver ocorrência classificada como sujeita à coordenação, encaminhar a decisão para validação, mantendo o estado pendente.
+4. **Formalizar decisão:** sem bloqueios e sem exceção pendente, o conferente poderá formalizar aceite ou recusa conforme as evidências.
+5. **Concluir validação:** quando exigida, a coordenação registra aprovação ou devolução/rejeição, com justificativa. A devolução mantém o processo pendente para correção ou nova avaliação.
+6. **Gerar protocolo:** somente após aceite final, sem bloqueio impeditivo e com validação favorável da coordenação quando aplicável.
+
+O sistema deve impedir que uma resposta "Não conforme" em item impeditivo seja neutralizada por uma simples marcação de "aceito com ressalvas". A regularização deverá ser registrada como novo evento, mantendo o histórico do apontamento original.
+
+### 15.5 Condições para aceite com ressalvas
+
+O aceite com ressalvas somente poderá ocorrer quando todas as condições abaixo forem atendidas:
+
+- a identidade do dispositivo estiver confirmada de forma inequívoca;
+- não existir risco não controlado à saúde, à segurança ou à integridade do material;
+- não houver requisito obrigatório de documentação pendente;
+- a ocorrência não inviabilizar a avaliação nem comprometer de forma não controlada a validade dos resultados;
+- a ressalva, as evidências e a justificativa estiverem registradas;
+- a ação necessária, responsável e condição/prazo de regularização estiverem definidos, quando aplicável;
+- a coordenação tiver validado a exceção.
+
+Quando a ressalva exigir providência antes do planejamento ou da execução, o dispositivo poderá permanecer fisicamente recebido e segregado/pendente, mas não poderá avançar para ensaios até a baixa formal da pendência. O estado físico de recebimento não equivale à liberação técnica.
+
+### 15.6 Responsabilidades e trilha de auditoria
+
+- **Recebedor:** registra a chegada e os dados objetivos da entrega.
+- **Conferente:** executa o checklist, registra evidências e formaliza a decisão inicial.
+- **Coordenação:** avalia apenas exceções encaminhadas ou situações configuradas como obrigatórias; aprova ou devolve com justificativa.
+- **Sistema:** aplica bloqueios, impede transições incompatíveis, preserva versões do checklist e registra eventos.
+
+Cada resposta do checklist deve preservar: código e versão do critério, resultado, justificativa, responsável, data/hora e referência às evidências. Cada revisão da coordenação deve preservar decisão, justificativa, responsável, data/hora e vínculo à decisão do conferente. Correções não devem sobrescrever o registro original.
+
+### 15.7 Estrutura lógica sugerida para parametrização
+
+| Estrutura conceitual | Finalidade e atributos principais |
+|---|---|
+| `receipt_checklist_templates` | Identificação e versão do checklist; vigência; estado ativo/inativo. |
+| `receipt_checklist_criteria` | Código, descrição, aplicabilidade, classe (impeditivo, coordenação, administrativo), obrigatoriedade de resposta/justificativa e ordem. |
+| `receipt_checklist_responses` | Recebimento, critério e versão, resultado, justificativa, autor e data/hora. |
+| `receipt_exceptions` | Ocorrência, classificação, evidências, risco/impacto, providência e estado. |
+| `coordination_reviews` | Decisão do coordenador, justificativa, responsável, data/hora e vínculo à exceção/decisão do conferente. |
+
+Os nomes são conceituais, não constituem definição final de tabelas ou autorização para migração. A implementação deverá avaliar compatibilidade com as entidades e convenções existentes no repositório.
+
+### 15.8 Critérios de aceite funcionais complementares
+
+A implementação deverá demonstrar, por testes automatizados, que:
+
+1. divergência de dispositivo, fabricante, lote ou série aplicável bloqueia o aceite até regularização;
+2. ausência de documento obrigatório bloqueia o aceite;
+3. risco não controlado de segurança impede aceite e liberação;
+4. divergência de quantidade encaminha à coordenação e não é descartada;
+5. dano/violação de embalagem e dano físico de impacto incerto exigem avaliação da coordenação;
+6. documento complementar ausente pode ser tratado como exceção somente com decisão justificada;
+7. aceite com ressalvas exige identidade confirmada, ausência de bloqueios e validação da coordenação;
+8. pendência que condicione planejamento/ensaio bloqueia a transição para essa etapa;
+9. resposta não conforme impeditiva não pode ser contornada por aceite com ressalvas;
+10. correções e reavaliações preservam os registros anteriores;
+11. itens não aplicáveis respeitam as regras de aplicabilidade configuradas;
+12. alterações futuras no checklist não modificam conferências já realizadas.
+
+### 15.9 Pendências institucionais remanescentes
+
+A matriz e os critérios iniciais estão aprovados como regra funcional. Antes da implementação, ainda devem ser confirmados:
+- catálogo de tipos de solicitação, categorias de dispositivo e prioridades;
+- documentos obrigatórios por tipo de dispositivo/solicitação;
+- aplicabilidade de lote, série, transporte e armazenamento por categoria;
+- procedimento de segregação e tratamento de material com risco ou dano;
+- prazos e responsáveis institucionais para regularização de ressalvas;
+- padrão de numeração e apresentação do protocolo SEFI;
+- perfis institucionais autorizados a validar, devolver, recusar e cancelar.
+
+Esses parâmetros devem ser configuráveis e formalizados, sem enfraquecer os bloqueios de identificação, documentação obrigatória e segurança definidos nesta matriz.
+
+### 15.10 Situação após aprovação
+
+- [x] Matriz de situações sujeitas à validação da coordenação aprovada.
+- [x] Critérios impeditivos do checklist aprovados.
+- [x] Regras de aceite com ressalvas e bloqueios consolidadas.
+- [x] Requisitos funcionais complementares para testes definidos.
+- [ ] Confirmar parâmetros institucionais remanescentes.
+- [ ] Submeter o desenho técnico de banco de dados e API para aprovação.
+- [ ] Após aprovação específica, implementar em branch dedicada, sem alteração direta da `main`.
