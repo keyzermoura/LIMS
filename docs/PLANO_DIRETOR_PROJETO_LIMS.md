@@ -1,8 +1,8 @@
 # Plano Diretor do Projeto LIMS — Fases, Etapas, Prazos e Governança
 
 - **Projeto:** LIMS institucional — início pelo fluxo SEFI/FUNED
-- **Repositório:** \`keyzermoura/LIMS\`
-- **Branch documental:** \`main\`
+- **Repositório:** `keyzermoura/LIMS`
+- **Branch documental:** `main`
 - **Versão:** 1.0 — proposta de linha de base
 - **Data:** 09/11/2026
 - **Responsável pela aprovação institucional:** a definir
