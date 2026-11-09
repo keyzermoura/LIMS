@@ -210,7 +210,7 @@ Regras:
 
 **Finalidade:** registrar início, transferência, localização, responsável e encerramento da custódia de cada CustodyObject.
 
-**Decisão de mapeamento recomendada após inspeção:** CustodyEvent é o nome lógico do conceito; não deve originar uma segunda tabela física. O conceito será representado pela tabela existente chain_of_custody, estendida de forma aditiva.
+**Decisão de mapeamento recomendada com base na inspeção estática:** CustodyEvent é o nome lógico do conceito; não deve originar uma segunda tabela física. O conceito será representado pela tabela existente chain_of_custody, estendida de forma aditiva.
 
 | Campo lógico | Mapeamento físico atual/proposto | Chave/regra | Observação |
 |---|---|---|---|
@@ -491,10 +491,10 @@ erDiagram
 10. FKs de \`chain_of_custody.device_sample_id\` e \`chain_of_custody.custody_object_id\` com ON DELETE RESTRICT.
 11. Índice de consulta \`(custody_object_id, transferred_at)\`, mantendo o índice legado por amostra.
 12. Não permitir eventos do novo fluxo sem tipo de evento e autoria explícita, após a decisão sobre as colunas aditivas correspondentes.
-9. UNIQUE no identificador institucional efetivamente adotado.
-10. CHECKs para quantidades positivas, respostas/estados válidos e alvo único de ExternalReference.
-11. Integridade que impeça CustodyObject e DeviceSample para item não apresentado.
-12. Proteção contra exclusão de registros referenciados por eventos formais.
+13. UNIQUE no identificador institucional efetivamente adotado.
+14. CHECKs para quantidades positivas, respostas/estados válidos e alvo único de ExternalReference.
+15. Integridade que impeça CustodyObject e DeviceSample para item não apresentado.
+16. Proteção contra exclusão de registros referenciados por eventos formais.
 
 Algumas regras cruzam várias tabelas e podem exigir constraints compostas, triggers cuidadosamente justificados ou transações de serviço. Não confiar exclusivamente em validação frontend.
 
