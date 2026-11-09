@@ -538,7 +538,7 @@ CustodyObject.custody_status também deve ser derivado dos eventos ou atualizado
 - ReceiptDecision (receipt_item_id, decided_at);
 - CoordinationValidation (status, reviewed_at);
 - ExternalReference (reference_type, reference_value);
-- DeviceSampleCustodyObject (device_sample_id, custody_object_id) UNIQUE.
+- DeviceSample (custody_object_id) UNIQUE, quando não nulo.
 
 Evitar índices redundantes e indexação indiscriminada de campos de texto/evidência. Validar seletividade e impacto de escrita antes da criação.
 
