@@ -55,7 +55,7 @@ A alteração da restrição de unicidade e da obrigatoriedade dos campos existe
 
 | Entidade proposta | Finalidade | Relação principal |
 |---|---|---|
-| `solicitations` | Demanda cadastrada por solicitante externo ou servidor | Uma solicitação para um dispositivo |
+| `solicitations` | Demanda cadastrada por servidor SEFI em nome do solicitante/representante | Uma solicitação para um dispositivo |
 | `receipts` | Registro da chegada física e conferência | Solicitação 1 : 0..1 recebimento |
 | `receipt_checklist_templates` | Versões dos modelos de checklist | Um modelo possui critérios |
 | `receipt_checklist_criteria` | Critérios configurados por versão | Um critério pode ser respondido em vários recebimentos |
@@ -74,7 +74,7 @@ A tabela `device_samples` deverá receber uma referência única à solicitaçã
 |---|---|---|
 | id | UUID | Chave primária |
 | request_number | string | Identificador da solicitação, único e gerado no cadastro |
-| requester_user_id | UUID, opcional | Usuário externo autenticado, se aplicável |
+| requester_user_id | Não aplicável na primeira entrega | Não criar vínculo com conta externa; preservar identificação e contato do solicitante/representante como dados cadastrais. |
 | requester_name / requester_email | string | Identificação de contato preservada no momento do cadastro |
 | submitted_by_user_id | UUID | Usuário que efetivamente cadastrou/submeteu |
 | origin_unit | string | Unidade/organização solicitante |
@@ -179,10 +179,13 @@ Uma transação deverá:
 1. consultar a solicitação e verificar se está apta a receber;
 2. bloquear concorrência sobre a solicitação ou usar controle otimista;
 3. verificar ausência de recebimento anterior;
-4. criar o recebimento com quantidade e responsáveis;
-5. alterar estado para em conferência;
-6. registrar evento de auditoria;
-7. confirmar a transação.
+4. criar o recebimento com data/hora efetiva da chegada, recebedor físico, quantidade e condições observadas;
+5. criar evento inicial de custódia vinculado ao recebimento, com responsável, data/hora, local e condição de guarda;
+6. alterar estado para em conferência;
+7. registrar evento de auditoria;
+8. confirmar a transação.
+
+A custódia começa na chegada física, antes da existência de `DeviceSample`. Os eventos iniciais devem pertencer ao agregado `Receipt` (por exemplo, `ReceiptCustodyEvent`) ou a uma estrutura de custódia generalizada que aceite origem `Receipt` e, após o aceite, `DeviceSample`. Não criar uma amostra antecipadamente apenas para registrar a guarda do material.
 
 A restrição única no banco será a proteção final contra duplicidade, inclusive em requisições simultâneas.
 
@@ -265,8 +268,7 @@ A primeira entrega é exclusivamente interna. O solicitante/representante não t
 | Preencher checklist e registrar dados verificados | Conforme designação | Sim | Consulta |
 | Formalizar decisão inicial | Se designado conferente | Sim | Não substitui conferente |
 | Validar exceção | Não, salvo perfil formalmente autorizado | Não | Sim |
-| Concluir aceite, criar amostra e gerar protocolo | Serviço após pré-condições | Não diretamente | Não diretamente |
-| Gerar protocolo SEFI | Não | Serviço após pré-condições | Não diretamente | Não diretamente |
+| Concluir aceite, criar amostra e gerar protocolo | Serviço após pré-condições | Não diretamente | Não diretamente | Não diretamente |
 
 A tabela é uma matriz inicial de permissões, não uma afirmação de que os papéis atuais já correspondam a esses perfis. Será necessário mapear `UserRole` e as dependências RBAC existentes antes de definir novos papéis ou permissões granulares.
 
@@ -598,8 +600,8 @@ Todos devem ser únicos, não reutilizáveis e claramente rotulados. O QR atual 
 5. **Decisão do conferente:** aceite, aceite com ressalvas ou recusa, com usuário, data/hora, justificativa e assinatura/autenticação conforme política aprovada.
 6. **Validação da coordenação:** obrigatória para as situações definidas na matriz de critérios. A decisão deve registrar aprovar, devolver, rejeitar ou solicitar complementação, sem apagar a decisão anterior.
 7. **Bloqueios:** critérios impeditivos não podem ser superados por justificativa simples. Exceções que exigem coordenação permanecem bloqueadas até decisão formal. Aceite com ressalvas segue as condições documentadas na matriz.
-8. **Criação da amostra operacional:** somente após decisão favorável e validações obrigatórias, criar `DeviceSample` com dados conferidos, `received_at`, `received_by_id`, identificador interno, custódia inicial e auditoria.
-9. **Protocolo SEFI:** gerar conforme regra institucional, uma única vez, associado à solicitação, recebimento, decisão e amostra.
+8. **Criação da amostra operacional:** somente após decisão favorável e validações obrigatórias, criar `DeviceSample` com dados verificados. Preencher `received_at` com `Receipt.arrived_at` (data/hora original da chegada) e `received_by_id` com o recebedor físico original; `created_at` registra separadamente a criação da amostra.
+9. **Identificadores e custódia:** gerar `accession_number` e protocolo SEFI distintos, vincular solicitação/recebimento/amostra e preservar o histórico de custódia iniciado na chegada, sem reescrever eventos.
 10. **Fluxo laboratorial:** planejamento, execução, revisão técnica, aprovação da coordenação e laudo consolidado seguem em entidades próprias e etapas posteriores.
 
 A operação que cria a amostra, gera `accession_number` e protocolo, vincula a custódia, registra assinatura e auditoria deve ser uma operação de domínio transacional e idempotente, protegida por constraints e controle de concorrência. Se não for possível concluir tudo em uma única transação, deve existir estado intermediário recuperável e reconciliação determinística, sem duplicar amostra, identificadores, custódia, assinatura ou protocolo.
@@ -611,12 +613,13 @@ Modelo conceitual mínimo:
 | Entidade | Relação/regra | Conteúdo essencial |
 |---|---|---|
 | `Solicitation` | 1 solicitação para 1 dispositivo declarado | Número, solicitante/representante, operador interno, dados declarados, origem, datas, prioridade e estado. |
-| `Receipt` | 0..1 por solicitação | Data/hora, recebedor, local, condições, estado e referência à versão do checklist. |
+| `Receipt` | 0..1 por solicitação | Data/hora física da chegada, recebedor físico, conferente, local, condições, dados verificados, estado e versão do checklist. |
+| `ReceiptCustodyEvent` | N por recebimento | Custódia desde a chegada, com responsável, data/hora, local, origem/destino e evidências. | 
 | `ReceiptChecklistVersion` | Uma versão aplicada por recebimento | Itens, critérios, classificação e regras vigentes na data. |
 | `ReceiptChecklistAnswer` | N por recebimento | Resposta, não aplicabilidade justificada, observação e evidência. |
 | `ReceiptDecision` | Histórico de decisões do recebimento | Tipo de decisão, autor, data/hora, justificativa e referência às respostas. |
 | `CoordinationReview` | 0..N conforme exceções/devoluções | Decisão, responsável, justificativa, data/hora e vínculo à decisão revisada. |
-| `DeviceSample` | 0..1 por solicitação | Criado somente após aceite; dados verificados, recebimento, `accession_number` e QR. |
+| `DeviceSample` | 0..1 por solicitação quando originada neste fluxo | Criada após aceite; dados verificados, referência ao Receipt, `received_at` original, `received_by_id`, `accession_number` e QR. |
 | `LabTest` | N por amostra | Ensaio planejado. |
 | `TestExecution` | N por ensaio | Cada execução independente, executor, datas, método/equipamento e ocorrências. |
 
@@ -713,4 +716,4 @@ Além das questões já listadas na seção 13, confirmar:
 
 ### 16.10 Status e autorização
 
-Esta revisão corrige o desenho para refletir as limitações reais do código e os três bloqueadores arquiteturais. **O desenho ainda depende de aprovação expressa.** Nenhuma alteração de aplicação, banco, migração, endpoint, teste ou frontend foi realizada. A Etapa 1A não está autorizada por esta atualização documental.
+Esta atualização incorpora os cinco ajustes arquiteturais: dados declarados separados dos dados verificados; custódia iniciada no recebimento físico; preservação da data/hora e do recebedor originais; eliminação das contradições das seções anteriores; e operação transacional/idempotente para criação da amostra e geração dos identificadores. **O desenho consolidado ainda depende de aprovação expressa.** Nenhuma alteração de aplicação, banco, migração, endpoint, teste ou frontend foi realizada. A Etapa 1A não está autorizada por esta atualização documental.
