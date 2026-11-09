@@ -1,14 +1,14 @@
 # Matriz de Lacunas Arquiteturais do LIMS
 
 - **Projeto:** LIMS — Serviço de Ensaios Físicos (SEFI/FUNED)
-- **Repositório:** \`keyzermoura/LIMS\`
-- **Branch documental:** \`main\`
+- **Repositório:** `keyzermoura/LIMS`
+- **Branch documental:** `main`
 - **Data de elaboração:** 09/11/2026
 - **Natureza:** análise arquitetural e planejamento; não constitui autorização de implementação.
 - **Documentos de referência:**
-  - \`docs/ENTREGA_1_DIAGNOSTICO_TECNICO_FUNCIONAL.md\`
-  - \`docs/ETAPA_1_DESENHO_TECNICO_SOLICITACAO_RECEBIMENTO.md\`
-  - \`README.md\`
+  - `docs/ENTREGA_1_DIAGNOSTICO_TECNICO_FUNCIONAL.md`
+  - `docs/ETAPA_1_DESENHO_TECNICO_SOLICITACAO_RECEBIMENTO.md`
+  - `README.md`
 
 ---
 
@@ -77,22 +77,22 @@ O diagnóstico também aponta lacunas no ciclo laboratorial: execução independ
 
 | ID | Capacidade / requisito | Situação identificada | Lacuna ou risco | Prioridade | Direcionamento / evidência de aceite |
 |---|---|---|---|---|---|
-| A01 | Cadastro independente da solicitação | Parcial — evoluir | O cadastro atual é centrado em \`DeviceSample\`; não representa integralmente a demanda anterior à chegada. | P0 | Criar entidade de solicitação, com solicitante, origem, dados declarados, datas e estado próprios. Testar cadastro sem criação de amostra operacional. |
+| A01 | Cadastro independente da solicitação | Parcial — evoluir | O cadastro atual é centrado em `DeviceSample`; não representa integralmente a demanda anterior à chegada. | P0 | Criar entidade de solicitação, com solicitante, origem, dados declarados, datas e estado próprios. Testar cadastro sem criação de amostra operacional. |
 | A02 | Itens declarados na solicitação | Documentada — não implementada | O desenho prevê múltiplos itens por solicitação; o diagnóstico anterior descreveu relação 1:1 entre solicitação e dispositivo para a rotina do SEFI. Há uma diferença de escopo que precisa ser resolvida. | P0 | Confirmar se o modelo institucional será 1 solicitação : 1 dispositivo ou se comportará vários itens. Não implementar cardinalidade antes dessa decisão. |
-| A03 | Recebimento físico separado | Documentada — não implementada | A chegada precisa existir antes de \`DeviceSample\`, com data/hora, recebedor e condições próprias. | P0 | Criar registro de recebimento independente e demonstrar que uma solicitação pode existir sem recebimento e sem amostra operacional. |
+| A03 | Recebimento físico separado | Documentada — não implementada | A chegada precisa existir antes de `DeviceSample`, com data/hora, recebedor e condições próprias. | P0 | Criar registro de recebimento independente e demonstrar que uma solicitação pode existir sem recebimento e sem amostra operacional. |
 | A04 | Um recebimento principal por solicitação | Decisão definida / implementar | A regra aprovada limita a um recebimento físico principal. É necessário impedir duplicidade inclusive sob concorrência. | P0 | Restrição de unicidade no banco, operação transacional e teste concorrente. Segunda tentativa deve carregar o recebimento existente. |
-| A05 | Todos os itens declarados representados no recebimento | Parcial — evoluir | A tela lista todos os itens, mas o modelo descrito não garante persistência individual dos itens não apresentados. | P0 | Projetar \`ReceiptItem\`/\`ReceiptLine\` para todos os itens declarados, com situação de apresentação e histórico. |
-| A06 | Item não apresentado | Documentada — não implementada | Ausência física não pode ser confundida com recusa técnica nem gerar amostra ou custódia individual. | P0 | Persistir a situação “não apresentado”; testar que não cria \`DeviceSample\`, \`ReceiptSample\` nem evento de custódia do material ausente. |
+| A05 | Todos os itens declarados representados no recebimento | Parcial — evoluir | A tela lista todos os itens, mas o modelo descrito não garante persistência individual dos itens não apresentados. | P0 | Projetar `ReceiptItem`/`ReceiptLine` para todos os itens declarados, com situação de apresentação e histórico. |
+| A06 | Item não apresentado | Documentada — não implementada | Ausência física não pode ser confundida com recusa técnica nem gerar amostra ou custódia individual. | P0 | Persistir a situação “não apresentado”; testar que não cria `DeviceSample`, `ReceiptSample` nem evento de custódia do material ausente. |
 | A07 | Conferência individual por item | Documentada — não implementada | Checklist, evidências, observações e decisão precisam estar ligados ao item e à versão avaliada. | P0 | Modelar respostas por critério, versão do checklist, autor, data/hora e evidências. |
 | A08 | Decisão de recebimento por item | Documentada — não implementada | Aceite, pendência, recusa e não apresentação têm semânticas diferentes. | P0 | Separar estado de apresentação, situação da conferência e decisão. Testar combinações de resultados entre itens. |
 | A09 | Coordenação e exceções | Documentada — não implementada | Exceções exigem encaminhamento e decisão formal; critérios impeditivos não podem ser dispensados. | P0 | Criar registro próprio de análise da coordenação, com decisão, justificativa, autor, data/hora e vínculo à ocorrência. |
 | A10 | Regularização e reavaliação | Documentada — não implementada | A correção de pendência não pode apagar a resposta ou decisão anterior. | P1 | Registrar novas versões/eventos de regularização e reavaliação; demonstrar histórico íntegro. |
 | A11 | Dados declarados versus conferidos | Decisão definida / implementar | Sobrescrever os dados informados na solicitação com os dados conferidos eliminaria a evidência da divergência. | P0 | Preservar os dois conjuntos e registrar a resolução de divergências. |
-| A12 | Identificadores distintos | Parcial — evoluir | Número da solicitação, protocolo SEFI e \`accession_number\` possuem momentos e finalidades distintos. | P0 | Manter os três conceitos separados, com unicidade e rótulos claros; preservar compatibilidade do QR atual. |
-| A13 | Criação da amostra após aceite | Documentada — não implementada | \`DeviceSample\` já representa material recebido e inicia custódia; criá-lo antes do aceite conflita com seu significado atual. | P0 | Criar a amostra operacional somente após aceite final e validações. Testar transação atômica e idempotência. |
-| A14 | Preservação da chegada e do recebedor | Decisão definida / implementar | A criação posterior da amostra não pode alterar a data/hora real da chegada nem atribuir a recepção a quem apenas concluiu o cadastro. | P0 | Copiar \`Receipt.arrived_at\` e o recebedor físico real para os campos operacionais correspondentes, preservando autoria da criação. |
+| A12 | Identificadores distintos | Parcial — evoluir | Número da solicitação, protocolo SEFI e `accession_number` possuem momentos e finalidades distintos. | P0 | Manter os três conceitos separados, com unicidade e rótulos claros; preservar compatibilidade do QR atual. |
+| A13 | Criação da amostra após aceite | Documentada — não implementada | `DeviceSample` já representa material recebido e inicia custódia; criá-lo antes do aceite conflita com seu significado atual. | P0 | Criar a amostra operacional somente após aceite final e validações. Testar transação atômica e idempotência. |
+| A14 | Preservação da chegada e do recebedor | Decisão definida / implementar | A criação posterior da amostra não pode alterar a data/hora real da chegada nem atribuir a recepção a quem apenas concluiu o cadastro. | P0 | Copiar `Receipt.arrived_at` e o recebedor físico real para os campos operacionais correspondentes, preservando autoria da criação. |
 | A15 | Entrega posterior de item ausente | Decisão definida / decisão complementar pendente | Não se pode incluir material entregue posteriormente como se estivesse presente na chegada original. A regra de exceção precisa ser formalizada. | P1 | Exigir nova solicitação ou evento complementar formalmente autorizado, sem criar segundo recebimento principal nem alterar a chegada original. |
-| A16 | Protocolo legado, QR e referências antigas | Parcial — validar tecnicamente | Mudança de significado do \`accession_number\` pode quebrar consultas, etiquetas, QR e registros antigos. | P0 | Mapear consumidores do identificador e testar leitura dos QR existentes antes de qualquer migração. |
+| A16 | Protocolo legado, QR e referências antigas | Parcial — validar tecnicamente | Mudança de significado do `accession_number` pode quebrar consultas, etiquetas, QR e registros antigos. | P0 | Mapear consumidores do identificador e testar leitura dos QR existentes antes de qualquer migração. |
 
 ### 4.1 Decisão estrutural ainda necessária: cardinalidade da solicitação
 
@@ -111,11 +111,11 @@ Há uma divergência entre documentos que não deve ser resolvida implicitamente
 
 | ID | Capacidade / requisito | Situação identificada | Lacuna ou risco | Prioridade | Direcionamento / evidência de aceite |
 |---|---|---|---|---|---|
-| B01 | Catálogo de ensaios | Parcial — evoluir | \`LabTest\` existe, mas deve ser avaliado se representa catálogo, planejamento ou instância de ensaio. | P1 | Separar definição/catalogação do ensaio e ensaio planejado para uma amostra. |
+| B01 | Catálogo de ensaios | Parcial — evoluir | `LabTest` existe, mas deve ser avaliado se representa catálogo, planejamento ou instância de ensaio. | P1 | Separar definição/catalogação do ensaio e ensaio planejado para uma amostra. |
 | B02 | Método e versão aplicável | Não identificada — projetar | O método efetivamente utilizado precisa ser preservado, inclusive quando o procedimento mudar depois. | P1 | Criar catálogo e versões de método; vincular cada execução à versão vigente utilizada. |
 | B03 | Planejamento dos ensaios | Parcial — evoluir | Planejamento e execução estão concentrados no modelo atual. | P1 | Manter plano de ensaios separado das execuções efetivas. |
 | B04 | Distribuição aos analistas | Parcial — evoluir | Há associação de responsável, mas faltam regras completas de fila, disponibilidade, prazos e reatribuição. | P2 | Registrar atribuição e reatribuição, responsável, justificativa e histórico. |
-| B05 | Execução independente | Não identificada — projetar | Um ensaio planejado pode ter múltiplas tentativas; versão de resultado não substitui nova execução. | P0 | Criar \`TestExecution\`, com início/fim, executor, estado, ocorrência e vínculo ao ensaio planejado. |
+| B05 | Execução independente | Não identificada — projetar | Um ensaio planejado pode ter múltiplas tentativas; versão de resultado não substitui nova execução. | P0 | Criar `TestExecution`, com início/fim, executor, estado, ocorrência e vínculo ao ensaio planejado. |
 | B06 | Repetição, interrupção e invalidação | Parcial — evoluir | Emendas de resultado não representam repetição experimental ou interrupção. | P1 | Registrar nova execução, motivo, vínculo à tentativa anterior e destino dos resultados anteriores. |
 | B07 | Resultados estruturados | Parcial — evoluir | Resultado atual existe, mas precisa suportar múltiplos parâmetros, unidades, critérios, cálculos e resultados por execução. | P1 | Definir modelo de resultados tipados, unidades, limites, regra de cálculo e vínculo à execução. |
 | B08 | Dados brutos e memória de cálculo | Não identificada — projetar | O README/diagnóstico apontam limitação de anexos e evidências. Um valor final isolado pode não sustentar a rastreabilidade metrológica. | P0 | Armazenar ou referenciar dados brutos, arquivos originais, cálculos, versão do algoritmo e hash. |
@@ -196,9 +196,9 @@ Há uma divergência entre documentos que não deve ser resolvida implicitamente
 | ID | Questão | Situação | Decisão necessária |
 |---|---|---|---|
 | DEC01 | Uma solicitação pode conter um ou vários dispositivos/itens? | Divergência documental | Definir cardinalidade e semântica de solicitação, item, unidade física e amostra operacional. |
-| DEC02 | Qual a entidade persistente para todos os itens do recebimento? | Proposta ainda não incorporada | Aprovar \`ReceiptItem\` ou \`ReceiptLine\`, inclusive para itens não apresentados. |
+| DEC02 | Qual a entidade persistente para todos os itens do recebimento? | Proposta ainda não incorporada | Aprovar `ReceiptItem` ou `ReceiptLine`, inclusive para itens não apresentados. |
 | DEC03 | Como representar entrega posterior de item não apresentado? | Regra principal definida; exceção pendente | Definir nova solicitação ou evento complementar autorizado, sem segundo recebimento principal. |
-| DEC04 | Como se relacionam \`ReceiptItem\`, \`ReceiptSample\` e \`DeviceSample\`? | Não fechado | Definir cardinalidades, estados e transição para amostra operacional. |
+| DEC04 | Como se relacionam `ReceiptItem`, `ReceiptSample` e `DeviceSample`? | Não fechado | Definir cardinalidades, estados e transição para amostra operacional. |
 | DEC05 | Como distinguir dispositivo, unidade recebida, amostra de ensaio e corpo de prova? | Não fechado | Definir glossário e modelo de domínio com exemplos reais do SEFI. |
 | DEC06 | Qual a regra de numeração do protocolo SEFI? | Pendente | Definir formato, escopo, sequência, reinício por ano (se aplicável) e não reutilização. |
 | DEC07 | O identificador institucional será global entre laboratórios? | Diretriz geral definida | Definir entidade geradora e escopo de unicidade institucional. |
@@ -221,7 +221,7 @@ A recomendação é não iniciar imediatamente a implementação de todas as fun
 Entregas:
 1. resolver DEC01 — cardinalidade e semântica de itens;
 2. aprovar modelo de domínio para solicitação, recebimento, item, dispositivo e amostra operacional;
-3. definir relação entre \`ReceiptItem\`, conferência, checklist, decisão, custódia e \`DeviceSample\`;
+3. definir relação entre `ReceiptItem`, conferência, checklist, decisão, custódia e `DeviceSample`;
 4. fechar estratégia dos identificadores e compatibilidade com QR;
 5. desenhar migração dos dados legados;
 6. aprovar regras de exceção para entrega posterior.
@@ -355,7 +355,7 @@ A revisão deve produzir, em conjunto:
 1. glossário dos conceitos: solicitação, item solicitado, unidade física recebida, recebimento, dispositivo, amostra operacional, amostra de ensaio e corpo de prova;
 2. diagrama ER com cardinalidades e opcionalidades;
 3. máquina de estados de solicitação, recebimento e item;
-4. relação entre \`ReceiptItem\`, checklist, decisão, custódia e \`DeviceSample\`;
+4. relação entre `ReceiptItem`, checklist, decisão, custódia e `DeviceSample`;
 5. estratégia de migração dos registros existentes;
 6. cenários de teste e critérios de aceite.
 
