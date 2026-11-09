@@ -254,4 +254,5 @@ A ausência de registro de aprovação formal não invalida a documentação de 
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 1.0 | 2026-11-09 | Primeira consolidação das decisões DEC01–DEC12 e regras funcionais previamente acordadas. |\n| 1.1 | 2026-11-09 | Inclusão de recomendações técnicas para DEC04, DEC05, DEC07 e DEC08; aprovação institucional permanece pendente. |
+| 1.0 | 2026-11-09 | Primeira consolidação das decisões DEC01–DEC12 e regras funcionais previamente acordadas. |
+| 1.1 | 2026-11-09 | Inclusão de recomendações técnicas para DEC04, DEC05, DEC07 e DEC08; aprovação institucional permanece pendente. |
