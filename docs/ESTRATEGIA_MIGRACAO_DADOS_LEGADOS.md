@@ -1,7 +1,7 @@
 # Estratégia de Migração e Convivência com Dados Legados
 
 **Identificador:** MIG-LIMS-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Situação:** Proposta técnica para revisão; não aprovada para execução  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -175,6 +175,19 @@ O desenho físico deve prever:
 
 Não definir agora nomes de colunas, constraints, sequences ou triggers. Esses detalhes dependem do modelo entidade-relacionamento aprovado e da revisão do schema real.
 
+### 8.1 Compatibilidade com o conceito de ObjetoCustodia
+
+A recomendação conceitual mais recente é que novos eventos de custódia sejam vinculados a um ObjetoCustodia persistente, que represente uma unidade física ou agrupamento homogêneo. A implementação deverá preservar integralmente os eventos atuais de `ChainOfCustody`, sem convertê-los retroativamente em eventos de ObjetoCustodia.
+
+Se for aprovada uma nova estrutura de custódia:
+- manter os registros históricos existentes e suas chaves;
+- criar relações entre novos objetos de custódia e amostras apenas para eventos originados no novo fluxo;
+- estabelecer associação entre amostra legada e ObjetoCustodia somente quando houver evidência e regra aprovada;
+- não copiar eventos antigos para a nova tabela como se tivessem sido produzidos pelo novo fluxo;
+- documentar como consultas e linhas do tempo apresentarão, em sequência temporal, eventos legados e novos sem duplicidade.
+
+A forma de coexistência entre `ChainOfCustody` e o novo modelo precisa ser definida no modelo físico e testada antes de qualquer migração.
+
 ## 9. Plano de validação e reconciliação
 
 Cada migração deverá produzir evidências antes e depois. A matriz mínima proposta:
@@ -273,4 +286,4 @@ Este documento não autoriza implementação, backfill, migração de banco ou a
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 0.1 | 2026-11-09 | Primeira proposta de estratégia de migração aditiva, convivência com legado, validação e recuperação. |
+| 0.1 | 2026-11-09 | Primeira proposta de estratégia de migração aditiva, convivência com legado, validação e recuperação. |\n| 0.2 | 2026-11-09 | Alinhamento da estratégia com a recomendação conceitual de ObjetoCustodia e preservação de ChainOfCustody legado. |
