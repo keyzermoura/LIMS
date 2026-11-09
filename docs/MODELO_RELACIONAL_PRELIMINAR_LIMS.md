@@ -1,8 +1,8 @@
 # Modelo Relacional Preliminar do LIMS
 
 **Identificador:** MOD-REL-001  
-**Versão:** 0.2  
-**Situação:** Proposta técnica preliminar atualizada conforme diretrizes DEC04/DEC05 aprovadas pelo usuário para orientar o desenho; revisão arquitetural/institucional e autorização de implementação pendentes  
+**Versão:** 0.3  
+**Situação:** Proposta técnica preliminar atualizada conforme diretrizes DEC04/DEC05 e análise de compatibilidade da cadeia de custódia; revisão arquitetural/institucional e autorização de implementação pendentes  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -206,27 +206,31 @@ Regras:
 
 **DEC04/DEC05:** a entidade e as cardinalidades abaixo foram aprovadas pelo usuário como diretriz de desenho do projeto em 2026-11-09. A formalização institucional e a validação dos procedimentos técnicos aplicáveis permanecem pendentes. O fracionamento deve ser uma operação explícita, auditável e quantitativamente reconciliada.
 
-### 5.7 CustodyEvent
+### 5.7 CustodyEvent — mapeamento lógico para ChainOfCustody
 
 **Finalidade:** registrar início, transferência, localização, responsável e encerramento da custódia de cada CustodyObject.
 
-| Campo lógico | Chave/regra | Observação |
-|---|---|---|
-| id | PK | Chave interna. |
-| custody_object_id | FK → CustodyObject.id, NOT NULL | Objeto sob custódia. |
-| event_type | NOT NULL | Entrada, transferência solicitada/confirmada, mudança de localização, devolução, destinação ou encerramento. |
-| occurred_at | NOT NULL | Instante real do evento. |
-| from_user_id / to_user_id | FK → User.id, conforme evento | Responsável que entrega e que recebe. |
-| from_location_id / to_location_id | conforme arquitetura | Local de origem/destino. |
-| condition_note | NULL | Condição do material no evento. |
-| evidence_reference | NULL | Referência a evidência, se aplicável. |
-| recorded_by_id | FK → User.id, NOT NULL | Autor do lançamento. |
-| recorded_at | NOT NULL | Momento do registro no sistema. |
-| reason | NULL/NOT NULL condicional | Justificativa conforme tipo de evento. |
+**Decisão de mapeamento recomendada após inspeção:** CustodyEvent é o nome lógico do conceito; não deve originar uma segunda tabela física. O conceito será representado pela tabela existente chain_of_custody, estendida de forma aditiva.
 
-Os eventos devem ser append-only no fluxo ordinário. Correções devem gerar evento compensatório ou mecanismo de retificação auditável, sem reescrever silenciosamente a cadeia.
+| Campo lógico | Mapeamento físico atual/proposto | Chave/regra | Observação |
+|---|---|---|---|
+| id | chain_of_custody.id | PK | Preservar UUID e eventos legados. |
+| device_sample_id | chain_of_custody.device_sample_id | FK nullable → DeviceSample.id | Alvo exclusivo dos eventos legados. Tornar nullable em migração aditiva. |
+| custody_object_id | nova coluna chain_of_custody.custody_object_id | FK nullable → CustodyObject.id | Alvo exclusivo dos eventos do novo fluxo, antes e depois da criação da amostra. |
+| target exclusivity | CHECK novo | exatamente um alvo preenchido | (device_sample_id IS NOT NULL AND custody_object_id IS NULL) OR (device_sample_id IS NULL AND custody_object_id IS NOT NULL). |
+| event_type | nova coluna candidata | obrigatório para eventos novos | Entrada, transferência, mudança de localização, devolução, destinação, encerramento ou outra taxonomia aprovada. Não inferir retroativamente para registros antigos. |
+| occurred_at | transferred_at | NOT NULL | Instante efetivo do evento. |
+| from_user_id / to_user_id | from_custodian_id / to_custodian_id | FKs atuais | Preservar semântica de quem entrega e quem recebe. |
+| from_location_id / to_location_id | location_from / location_to | textos atuais | Não são FKs de localização no schema atual. |
+| recorded_by_id | nova coluna candidata ou vínculo auditável explícito | FK → User.id | O modelo atual não registra autor do lançamento diretamente na linha de custódia; assinatura/AuditLog não devem ser presumidos como substitutos sem decisão. |
+| recorded_at | created_at | NOT NULL | Instante de gravação no banco. |
+| reason | reason | NOT NULL | Justificativa existente. |
+| condition_note / evidence_reference | notes e/ou vínculo de Evidence | a definir | notes é texto livre e não substitui automaticamente condição estruturada ou evidência vinculada. |
+| seal_number / signature_id | colunas atuais | nullable | Preservar compatibilidade. |
 
-**Convivência com ChainOfCustody:** não se recomenda manter dois históricos paralelos para o mesmo evento. A alternativa preferencial para avaliação é estender o modelo/tabela de custódia existente com uma FK nullable para CustodyObject, mantendo compatibilidade com a FK legada para DeviceSample. Eventos anteriores continuam consultáveis; eventos novos pré-amostra apontam para CustodyObject; após o aceite, o vínculo com DeviceSample é estabelecido sem duplicar o evento inicial. Essa alternativa depende de inspeção do schema real e de testes de integridade. Se a extensão não for segura, deve-se definir uma migração controlada e uma visão unificada, antes de criar tabela de eventos paralela.
+A constraint de alvo exclusivo deve ser expressa por CHECK e acompanhada por FKs explícitas. Não usar FK polimórfica. Eventos legados continuam com device_sample_id preenchido e custody_object_id nulo; eventos do novo fluxo usam o inverso. Eventos novos permanecem vinculados ao CustodyObject mesmo depois da criação de DeviceSample, permitindo uma cadeia única sem duplicar o evento inicial.
+
+Os eventos devem ser append-only no fluxo ordinário. A proteção atual contra UPDATE/DELETE deve permanecer ativa. Correções devem gerar evento compensatório ou mecanismo de retificação auditável, sem reescrever silenciosamente a cadeia.
 
 ### 5.8 ChecklistTemplate e ChecklistVersion
 
@@ -426,7 +430,8 @@ erDiagram
   SOLICITATION_ITEM ||--o| RECEIPT_ITEM : represented_by
   USER ||--o{ RECEIPT : receives
   RECEIPT_ITEM ||--o{ CUSTODY_OBJECT : materializes
-  CUSTODY_OBJECT ||--|{ CUSTODY_EVENT : has
+  CUSTODY_OBJECT ||--o{ CHAIN_OF_CUSTODY : has_new_flow_events
+  DEVICE_SAMPLE ||--o{ CHAIN_OF_CUSTODY : has_legacy_events
   RECEIPT_ITEM ||--o{ CHECKLIST_RESPONSE : evaluated_by
   CHECKLIST_TEMPLATE ||--|{ CHECKLIST_VERSION : versions
   CHECKLIST_VERSION ||--|{ CHECKLIST_CRITERION : defines
@@ -444,6 +449,7 @@ erDiagram
 **Observações do diagrama:**
 - A relação SolicitationItem–ReceiptItem foi desenhada como opcional no lado do recebimento porque o recebimento ainda não existe enquanto a solicitação está em preparação. Quando Receipt existir, deve haver exatamente um ReceiptItem para cada SolicitationItem, inclusive para os não apresentados.
 - A relação CUSTODY_OBJECT–DEVICE_SAMPLE é 1:0..1 no desenho-base. A opcionalidade preserva amostras legadas sem vínculo e objetos ainda não aceitos; novas amostras do fluxo de aceite devem ter exatamente um objeto de origem.
+- CHAIN_OF_CUSTODY representa um único histórico físico. Cada evento aponta para exatamente um alvo: DeviceSample (eventos legados) ou CustodyObject (eventos do novo fluxo), nunca ambos.
 - A relação legada DeviceSample–LabTest é ilustrativa da associação existente identificada no inventário; os nomes físicos e a cardinalidade exata devem ser confirmados no schema.
 - As referências externas devem ter exatamente um alvo por registro, apesar de o diagrama mostrar os três possíveis alvos.
 
@@ -463,6 +469,9 @@ erDiagram
 | ReceiptItem → ReceiptDecision | 1:N | Histórico de decisões, sem sobrescrita. |
 | ReceiptDecision → CoordinationValidation | 1:0..N | Apenas quando exigida; histórico preservado. |
 | CustodyObject → DeviceSample | 1:0..1 | FK nullable e UNIQUE em DeviceSample.custody_object_id; obrigatória para novas amostras do fluxo de aceite. |
+| CustodyObject → ChainOfCustody | 1:N | Eventos do novo fluxo vinculados ao objeto, inclusive após a criação da amostra. |
+| DeviceSample → ChainOfCustody (legado) | 1:N | Preservar eventos existentes; novos eventos do fluxo integrado apontam para CustodyObject. |
+| ChainOfCustody → alvo | exatamente 1 | CHECK XOR entre device_sample_id e custody_object_id. |
 | DeviceSample → LabTest | 1:N (a confirmar) | Preservar relação existente. |
 | ExternalReference → alvo | exatamente 1 | Solicitação OU item OU amostra, nunca múltiplos simultâneos. |
 
@@ -478,6 +487,10 @@ erDiagram
 6. UNIQUE em \`ChecklistVersion(checklist_template_id, version_number)\`.
 7. UNIQUE em \`ChecklistCriterion(checklist_version_id, criterion_code)\`.
 8. UNIQUE em \`DeviceSample.custody_object_id\` para valores não nulos; não criar tabela associativa N:M.
+9. CHECK de alvo exclusivo em \`chain_of_custody\`: exatamente um entre \`device_sample_id\` e \`custody_object_id\` preenchido.
+10. FKs de \`chain_of_custody.device_sample_id\` e \`chain_of_custody.custody_object_id\` com ON DELETE RESTRICT.
+11. Índice de consulta \`(custody_object_id, transferred_at)\`, mantendo o índice legado por amostra.
+12. Não permitir eventos do novo fluxo sem tipo de evento e autoria explícita, após a decisão sobre as colunas aditivas correspondentes.
 9. UNIQUE no identificador institucional efetivamente adotado.
 10. CHECKs para quantidades positivas, respostas/estados válidos e alvo único de ExternalReference.
 11. Integridade que impeça CustodyObject e DeviceSample para item não apresentado.
@@ -621,12 +634,12 @@ O modelo estará pronto para detalhamento físico quando:
 
 Realizar uma **revisão arquitetural do modelo atualizado**, com foco em compatibilização com o schema existente e validação técnica dos cenários operacionais. Em seguida:
 
-1. inspecionar modelos SQLAlchemy, migrações, FKs, consultas, triggers, relatórios e testes de \`ChainOfCustody\`;
-2. confirmar o ponto físico mais seguro para a FK nullable e UNIQUE entre \`DeviceSample\` e \`CustodyObject\`, preservando amostras legadas;
-3. revisar a operação de fracionamento/individualização e a reconciliação de quantidades;
+1. revisar a análise \`ANALISE_COMPATIBILIDADE_CADEIA_CUSTODIA_DEC04.md\` e confirmar a estratégia de tabela única com alvo exclusivo;
+2. decidir COMP02–COMP07, especialmente tipo de evento, autoria explícita, assinatura e projeção de custodiante/localização;
+3. reavaliar obrigatoriedade de serial e unicidade serial/lote/fabricante à luz da DEC05;
 4. fechar DEC07 e DEC08 e resolver EST01–EST10 nos pontos que afetam persistência e autorização;
-5. preparar mapeamento físico e plano de migração aditiva, sem executá-los;
-6. submeter o modelo ao portão de aprovação institucional e obter autorização específica antes de qualquer implementação.
+5. preparar o mapeamento físico SQLAlchemy e o plano de migração aditiva, sem executá-los;
+6. submeter o pacote ao portão de aprovação institucional e obter autorização específica antes de qualquer implementação.
 
 As diretrizes DEC04/DEC05 aprovadas para o desenho não autorizam alterações em código, banco, API, frontend, migrações ou infraestrutura.
 
@@ -636,3 +649,4 @@ As diretrizes DEC04/DEC05 aprovadas para o desenho não autorizam alterações e
 |---|---|---|
 | 0.1 | 2026-11-09 | Primeira proposta relacional, com entidades, PK/FK, cardinalidades, integridade, convivência com legado e estratégia de migração aditiva. |
 | 0.2 | 2026-11-09 | Atualização conforme aprovação do usuário para DEC04/DEC05: CustodyObject–DeviceSample 1:0..1, remoção da associação N:M, atualização do DER, constraints e transação de aceite. Revisão arquitetural/institucional e autorização de implementação permanecem pendentes. |
+| 0.3 | 2026-11-09 | Análise de compatibilidade com o schema existente: CustodyEvent passa a ser explicitamente o mapeamento lógico da tabela ChainOfCustody; proposta de duas FKs explícitas com CHECK de alvo exclusivo, preservação de eventos legados e identificação de campos aditivos necessários. Nenhum código ou schema foi alterado. |
