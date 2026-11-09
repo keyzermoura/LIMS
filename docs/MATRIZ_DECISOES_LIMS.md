@@ -1,7 +1,7 @@
 # Matriz de Decisões do Projeto LIMS
 
 **Identificador:** DEC-LIMS-001  
-**Versão:** 1.0  
+**Versão:** 1.1  
 **Situação:** Proposta consolidada — aprovação funcional/institucional pendente  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -34,11 +34,11 @@ Prioridade: **P0** bloqueadora; **P1** alta; **P2** média.
 | DEC01 | Cardinalidade e semântica dos itens da solicitação | Recomendação técnica adotada no desenho; aprovação institucional pendente | P0 |
 | DEC02 | Persistência de todos os itens no recebimento | Proposta | P0 |
 | DEC03 | Entrega posterior de item não apresentado | Definida no desenho; exceção formal pendente | P1 |
-| DEC04 | Relação entre item recebido, custódia e amostra operacional | Pendente | P0 |
-| DEC05 | Dispositivo, unidade física, amostra e corpo de prova | Parcialmente definido; exemplos pendentes | P0 |
+| DEC04 | Relação entre item recebido, custódia e amostra operacional | Recomendação técnica proposta; aprovação funcional pendente | P0 |
+| DEC05 | Dispositivo, unidade física, amostra e corpo de prova | Recomendação técnica proposta; validação por exemplos pendente | P0 |
 | DEC06 | Protocolo local do SEFI | Pendente | P1 |
-| DEC07 | Identificador institucional da amostra | Diretriz definida; compatibilidade técnica pendente | P0 |
-| DEC08 | Migração de amostras legadas | Pendente | P0 |
+| DEC07 | Identificador institucional da amostra | Recomenda-se formalizar accession_number após verificação técnica; aprovação institucional pendente | P0 |
+| DEC08 | Migração de amostras legadas | Recomendação técnica proposta: preservar sem backfill indiscriminado | P0 |
 | DEC09 | Atos que exigem assinatura eletrônica | Pendente | P1 |
 | DEC10 | Categorias de materiais e checklists | Pendente | P1 |
 | DEC11 | Escopo organizacional e multi laboratório | Diretriz de extensibilidade definida; arquitetura inicial pendente | P1 |
@@ -84,15 +84,40 @@ Prioridade: **P0** bloqueadora; **P1** alta; **P2** média.
 
 ### DEC04 — Relação entre item recebido, conferência, custódia e amostra operacional
 
-- **Questão:** como se relacionam o item declarado, o registro de recebimento, os eventos de custódia e a amostra operacional?
-- **Estado:** Pendente. **Prioridade:** P0.
-- **Contexto:** no sistema atual, custódia e eventos iniciais estão ligados diretamente à amostra operacional; no fluxo pretendido, a custódia começa na chegada física, antes da criação da amostra.
-- **Princípios definidos:** um recebimento principal por solicitação; conferência e decisão independentes por item; custódia começa na chegada; amostra operacional e identificador são criados somente após aceite final e validações obrigatórias.
-- **Alternativas a avaliar:** eventos de custódia ligados a uma entidade de material recebido; custódia por unidade física; associação posterior e auditável à amostra operacional; ou modelo híbrido com evento de recebimento e transferência para custódia da amostra.
-- **Recomendação:** não reutilizar sem análise a relação atual de custódia para representar período anterior à amostra. Projetar vínculo rastreável entre custódia pré-aceite e amostra criada.
-- **Impactos:** modelo de domínio, histórico, integridade, concorrência, relatórios e compatibilidade.
-- **Responsável:** arquitetura técnica e responsável funcional.
-- **Próximo passo:** produzir diagrama de sequência e cardinalidades antes de aprovar a solução.
+- **Questão:** como registrar a custódia desde a chegada física e manter vínculo íntegro quando a amostra operacional for criada depois?
+- **Estado:** Recomendação técnica proposta para o desenho; aprovação funcional/institucional pendente. **Prioridade:** P0.
+- **Recomendação:** introduzir no modelo conceitual um objeto de custódia do material recebido (denominação provisória: **ObjetoCustodia**), subordinado ao ItemRecebimento. Ele representa o material efetivamente apresentado que permanece sob guarda. Pode representar uma unidade individual ou um conjunto homogêneo/agrupado quando a identificação individual não for necessária e a regra técnica permitir.
+- **Eventos:** registrar a chegada e a primeira guarda no ObjetoCustodia, com data/hora efetiva, recebedor físico, localização e condição. Transferências posteriores são eventos append-only. A amostra operacional criada após aceite mantém referência rastreável ao ObjetoCustodia de origem; a transferência para a custódia laboratorial é um evento explícito, não a criação retroativa da cadeia.
+- **Integridade:** evitar referência polimórfica sem integridade referencial. Recomenda-se que os eventos de custódia apontem para uma entidade persistente de objeto de custódia, e que esta se relacione com ItemRecebimento e, quando aplicável, UnidadeRecebida e AmostraOperacional. A implementação física e cardinalidade final dependem de DEC05.
+- **Alternativa não recomendada:** vincular eventos pré-aceite diretamente a DeviceSample, pois a amostra ainda não existe; também não se recomenda uma FK polimórfica livre que aceite IDs sem garantir o tipo e a existência do objeto.
+- **Recusa:** material recusado continua sob custódia até devolução/transferência efetivamente registrada. A recusa não encerra automaticamente a custódia.
+- **Impactos:** novo relacionamento de custódia, API, relatórios, auditoria e compatibilidade com ChainOfCustody existente.
+- **Responsáveis:** responsável técnico/laboratorial, responsável funcional e arquitetura técnica.
+- **Próximo passo:** validar com exemplos de material individual e agrupado; depois detalhar modelo físico. Não implementar antes do G0.
+
+### DEC05 — Dispositivo, unidade física, amostra operacional e corpo de prova
+
+- **Questão:** quais níveis materiais devem ser representados e quando cada um gera uma amostra operacional?
+- **Estado:** Recomendação técnica proposta; validação com exemplos reais e aprovação funcional pendentes. **Prioridade:** P0.
+- **Definições recomendadas:**
+  - **ItemDeclarado:** linha de produto/material informada na solicitação, com quantidade declarada.
+  - **ItemRecebimento:** registro da apresentação e conferência da linha declarada; registra quantidade efetivamente apresentada.
+  - **Unidade física:** objeto individual que pode ser identificado separadamente (por exemplo, uma seringa, agulha ou equipo).
+  - **ObjetoCustodia:** unidade física ou agrupamento homogêneo que constitui uma unidade de guarda/rastreabilidade no processo.
+  - **AmostraOperacional:** registro LIMS criado após aceite para controlar o trabalho laboratorial e seus resultados; não deve ser tratado automaticamente como sinônimo de cada unidade física.
+  - **Corpo de prova:** unidade/porção preparada ou selecionada para um ensaio específico, subordinada à amostra ou ao plano de ensaio conforme método.
+- **Regra recomendada para criação de amostra:** criar uma AmostraOperacional por objeto aceito que precise de rastreabilidade, decisão ou resultado independente no LIMS. Se várias unidades físicas forem tecnicamente homogêneas e avaliadas como um único conjunto, permitir um agrupamento explícito com quantidade e identificação preservadas; não criar uma amostra por unidade apenas por conveniência de modelagem. Se cada unidade tiver identidade, resultado ou destino independente, cada uma deve ter registro próprio.
+- **Corpos de prova:** uma amostra pode originar vários corpos de prova e vários ensaios. A quantidade de corpos de prova decorre do método/plano de ensaio, não da quantidade de itens declarados.
+- **Exemplos de aplicação a validar:**
+  1. Dez agulhas do mesmo fabricante, lote e especificação, avaliadas como conjunto: um ObjetoCustodia agrupado e uma amostra operacional do conjunto, se a regra laboratorial permitir; discriminar unidades quando houver necessidade de rastreio individual.
+  2. Três seringas com números de série distintos e resultados individuais: três objetos de rastreabilidade e, em princípio, três amostras operacionais.
+  3. Um equipo submetido a vários ensaios: uma amostra operacional pode originar vários corpos de prova/execuções, sem multiplicar a amostra por ensaio.
+  4. Dez unidades recebidas, mas apenas cinco apresentadas: quantidade declarada 10, apresentada 5; as cinco ausentes permanecem NAO_APRESENTADO e não geram custódia nem amostra.
+  5. Embalagem coletiva sem identificação individual das unidades internas: registrar o agrupamento/embalagem como objeto de custódia, detalhando quantidade e lote, até que procedimento técnico determine a individualização.
+- **Restrições:** não usar apenas fabricante+lote como chave universal de unidade; não assumir serial obrigatório; não equiparar corpo de prova a amostra operacional; não criar amostra para material não apresentado, pendente ou recusado.
+- **Evidência necessária:** validar os exemplos com registros reais anonimizados e representantes de categorias distintas do SEFI.
+- **Responsáveis:** responsável técnico/laboratorial e responsável funcional.
+- **Próximo passo:** selecionar casos reais representativos e confirmar a regra de agrupamento antes de congelar cardinalidades.
 
 ### DEC05 — Dispositivo, unidade física, amostra operacional e corpo de prova
 
@@ -115,13 +140,26 @@ Prioridade: **P0** bloqueadora; **P1** alta; **P2** média.
 
 ### DEC07 — Identificador institucional da amostra
 
-- **Questão:** qual o escopo e a implementação do identificador único da amostra?
-- **Estado:** Diretriz definida; compatibilidade técnica pendente. **Prioridade:** P0.
-- **Diretrizes definidas:** cada amostra operacional aceita recebe identificador institucional único; o identificador é global no âmbito institucional, não restrito ao SEFI; número Harpya é referência externa opcional, informada pela vigilância quando aplicável; demandas sem Harpya recebem identificador do LIMS; referências externas e protocolos locais são complementares; o identificador é gerado pelo backend na mesma transação de criação da amostra, com unicidade no banco, idempotência, auditoria e sem reutilização.
-- **Questão técnica:** verificar se o campo accession_number da amostra já cumpre a função e pode ser formalizado, preservando QR Code e compatibilidade. Se não cumprir, avaliar campo novo e migração aditiva.
-- **Pendente:** formato visual, entidade geradora, sequência e escopo entre laboratórios.
-- **Responsável:** gestão institucional e arquitetura técnica.
-- **Próximo passo:** mapear usos atuais de accession_number e consumidores do QR antes de propor migração.
+- **Questão:** qual campo representa o identificador institucional único da amostra?
+- **Estado:** Diretriz funcional definida; recomendação técnica proposta; aprovação institucional e verificação de consumidores pendentes. **Prioridade:** P0.
+- **Diretrizes definidas:** cada amostra operacional aceita recebe identificador institucional único no âmbito institucional, sem prefixo SEFI como restrição de escopo. Harpya é referência externa opcional. O identificador LIMS é gerado no backend, com unicidade no banco, idempotência, auditoria e sem reutilização.
+- **Recomendação:** adotar `DeviceSample.accession_number` como candidato preferencial a identificador institucional, pois já existe e é gerado pelo sistema. Não criar outro campo equivalente nem renumerar registros antes de mapear todos os usos e comprovar que o campo atual atende ao escopo global institucional.
+- **Condições para confirmar:** verificar unicidade histórica, sequence, formato, colisões potenciais entre laboratórios, QR Code, etiquetas, relatórios, exportações e integrações. O formato visual atual `LIMS-AAAA-######` é uma implementação observada, não uma decisão institucional sobre formato futuro.
+- **Se o campo atual não atender:** preservar `accession_number` e introduzir eventual identificador novo de forma aditiva, com mapeamento explícito e compatibilidade. Não alterar payload/algoritmo do QR sem análise e autorização.
+- **Responsáveis:** gestão institucional, responsável funcional e arquitetura técnica.
+- **Próximo passo:** produzir relatório de referências de código e testes de unicidade/escopo antes da decisão final.
+
+### DEC08 — Migração de amostras legadas
+
+- **Questão:** como tratar amostras antigas sem solicitação/recebimento vinculados no novo modelo?
+- **Estado:** Recomendação técnica proposta; aprovação institucional pendente. **Prioridade:** P0.
+- **Recomendação principal:** manter amostras legadas sem vínculo com Solicitação/Recebimento quando não houver evidência documental inequívoca. Não criar recebimentos fictícios, não preencher relações por aproximação de datas, fabricante, lote ou texto e não reescrever a cadeia histórica.
+- **Migração:** aditiva e compatível (expand/contract); novas relações opcionais para legado e exigidas no novo fluxo conforme regras aprovadas. Preservar IDs, accession_number, QR, datas, autoria, status, ensaios, resultados, assinaturas, auditoria e eventos ChainOfCustody.
+- **Associação seletiva:** somente para casos documentados e confirmados, com evidência, critério determinístico, responsável, data/hora e relatório de reconciliação. Casos ambíguos permanecem sem vínculo.
+- **Backfill:** não executar backfill indiscriminado. A ausência de vínculo deve ser estado legítimo do legado.
+- **Rollback:** backup restaurável e ensaio de recuperação em ambiente isolado; não presumir que downgrade Alembic seja suficiente.
+- **Responsáveis:** arquitetura técnica, TI responsável pelo banco e responsável funcional/qualidade.
+- **Próximo passo:** diagnóstico somente leitura do banco-alvo e inventário dos consumidores, após autorização e disponibilidade de ambiente seguro.
 
 ### DEC08 — Migração de amostras legadas
 
@@ -216,4 +254,4 @@ A ausência de registro de aprovação formal não invalida a documentação de 
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 1.0 | 2026-11-09 | Primeira consolidação das decisões DEC01–DEC12 e regras funcionais previamente acordadas. |
+| 1.0 | 2026-11-09 | Primeira consolidação das decisões DEC01–DEC12 e regras funcionais previamente acordadas. |\n| 1.1 | 2026-11-09 | Inclusão de recomendações técnicas para DEC04, DEC05, DEC07 e DEC08; aprovação institucional permanece pendente. |
