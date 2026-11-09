@@ -227,24 +227,24 @@ As regras abaixo foram expressamente acordadas no desenho funcional e devem ser 
 
 | ID | Aprovador competente | Evidência/ata/processo | Data | Estado formal |
 |---|---|---|---|---|
-| DEC04–DEC05 | Usuário responsável pelo direcionamento do projeto (aprovação da diretriz de desenho) | Aprovação registrada nesta conversa; recomendações REC-LIMS-DEC-001 | 2026-11-09 | Aprovadas para orientar o desenho; formalização institucional pendente |\n| DEC01–DEC03, DEC06–DEC12 | A definir conforme governança institucional | A registrar | — | Pendente de aprovação formal |
+| DEC04–DEC05 | Usuário responsável pelo direcionamento do projeto (aprovação da diretriz de desenho) | Aprovação registrada nesta conversa; recomendações REC-LIMS-DEC-001 | 2026-11-09 | Aprovadas para orientar o desenho; formalização institucional pendente |
+| DEC01–DEC03, DEC06–DEC12 | A definir conforme governança institucional | A registrar | — | Pendente de aprovação formal |
 
 A ausência de registro de aprovação formal não invalida a documentação de uma orientação funcional, mas impede tratá-la como aprovação institucional definitiva.
 
 ## 7. Próximos passos para fechamento da Fase 0
 
-1. Revisar este registro e confirmar se as decisões já definidas refletem corretamente o processo.
-2. Validar institucionalmente a diretriz DEC01 (solicitação com múltiplos itens declarados) usando exemplos reais e concluir DEC05 sobre a relação entre item declarado, unidade física e amostra.
-3. Fechar DEC04 e DEC05 por meio do modelo conceitual e de um diagrama de sequência.
-4. Definir DEC07 após análise de accession_number e QR Code.
-5. Elaborar estratégia de migração para DEC08.
-6. Identificar responsáveis institucionais para DEC09–DEC12.
-7. Após as decisões bloqueadoras, produzir modelo entidade-relacionamento, estados/transições e critérios de aceite.
-8. Submeter o pacote ao portão G0. Somente após aprovação explícita e autorização específica poderá começar a implementação da Fase 1.
+1. Formalizar institucionalmente DEC04/DEC05 e confirmar a compatibilidade das regras com os procedimentos técnicos e a emissão de laudos.
+2. Revisar o modelo relacional preliminar atualizado, incluindo a relação CustodyObject–DeviceSample 1:0..1.
+3. Definir DEC07 após análise de accession_number e QR Code.
+4. Elaborar e validar a estratégia de migração para DEC08.
+5. Resolver DEC02, DEC06 e DEC09–DEC12 conforme responsabilidades institucionais.
+6. Submeter o pacote atualizado ao portão G0. A aprovação das diretrizes DEC04/DEC05 não autoriza, por si só, implementação, migração ou implantação.
 
 ## 8. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-09 | Primeira consolidação das decisões DEC01–DEC12 e regras funcionais previamente acordadas. |
-| 1.1 | 2026-11-09 | Inclusão de recomendações técnicas para DEC04, DEC05, DEC07 e DEC08; aprovação institucional permanece pendente. |\n| 1.2 | 2026-11-09 | Registro da aprovação do usuário para orientar o desenho em DEC04/DEC05; definição de CustodyObject–DeviceSample como 1:0..1; remoção de seções duplicadas; formalização institucional e autorização de implementação permanecem pendentes. |
+| 1.1 | 2026-11-09 | Inclusão de recomendações técnicas para DEC04, DEC05, DEC07 e DEC08; aprovação institucional permanece pendente. |
+| 1.2 | 2026-11-09 | Registro da aprovação do usuário para orientar o desenho em DEC04/DEC05; definição de CustodyObject–DeviceSample como 1:0..1; remoção de seções duplicadas; formalização institucional e autorização de implementação permanecem pendentes. |
