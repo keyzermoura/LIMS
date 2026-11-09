@@ -33,7 +33,7 @@ A proposta considera a arquitetura atualmente observada no repositório: FastAPI
 | `LabTest` / `lab_tests` | Continuar representando os ensaios planejados para o dispositivo. Não transformar cada execução em um novo `LabTest`. |
 | `User` / `users` | Identificar operador interno, recebedor, conferente e coordenador. Solicitante/representante é dado cadastral na primeira entrega, sem conta externa. |
 | Serviço de auditoria | Registrar eventos de solicitação, recebimento, conferência, decisão e validação. |
-| Cadeia de custódia | Reutilizar para movimentações físicas posteriores, sem confundir movimentação com recebimento inicial. |
+| Cadeia de custódia | Registrar a custódia inicial desde a chegada física no agregado `Receipt` (ou estrutura generalizada) e manter a continuidade após a criação de `DeviceSample`. |
 | Assinatura eletrônica | Reavaliar sua aplicação a decisões formais segundo política institucional; não presumir que todo registro operacional exige assinatura eletrônica. |
 
 ### 2.2 Ajustes necessários
@@ -57,6 +57,7 @@ A alteração da restrição de unicidade e da obrigatoriedade dos campos existe
 |---|---|---|
 | `solicitations` | Demanda cadastrada por servidor SEFI em nome do solicitante/representante | Uma solicitação para um dispositivo |
 | `receipts` | Registro da chegada física e conferência | Solicitação 1 : 0..1 recebimento |
+| `receipt_custody_events` | Custódia física desde a chegada até a transferência/encerramento | Um ou vários eventos por recebimento |
 | `receipt_checklist_templates` | Versões dos modelos de checklist | Um modelo possui critérios |
 | `receipt_checklist_criteria` | Critérios configurados por versão | Um critério pode ser respondido em vários recebimentos |
 | `receipt_checklist_responses` | Respostas imutáveis da conferência | Recebimento + critério + versão |
@@ -268,7 +269,7 @@ A primeira entrega é exclusivamente interna. O solicitante/representante não t
 | Preencher checklist e registrar dados verificados | Conforme designação | Sim | Consulta |
 | Formalizar decisão inicial | Se designado conferente | Sim | Não substitui conferente |
 | Validar exceção | Não, salvo perfil formalmente autorizado | Não | Sim |
-| Concluir aceite, criar amostra e gerar protocolo | Serviço após pré-condições | Não diretamente | Não diretamente | Não diretamente |
+| Concluir aceite, criar amostra e gerar protocolo | Serviço após pré-condições | Não diretamente | Não diretamente |
 
 A tabela é uma matriz inicial de permissões, não uma afirmação de que os papéis atuais já correspondam a esses perfis. Será necessário mapear `UserRole` e as dependências RBAC existentes antes de definir novos papéis ou permissões granulares.
 
@@ -614,7 +615,7 @@ Modelo conceitual mínimo:
 |---|---|---|
 | `Solicitation` | 1 solicitação para 1 dispositivo declarado | Número, solicitante/representante, operador interno, dados declarados, origem, datas, prioridade e estado. |
 | `Receipt` | 0..1 por solicitação | Data/hora física da chegada, recebedor físico, conferente, local, condições, dados verificados, estado e versão do checklist. |
-| `ReceiptCustodyEvent` | N por recebimento | Custódia desde a chegada, com responsável, data/hora, local, origem/destino e evidências. | 
+| `ReceiptCustodyEvent` | N por recebimento | Custódia desde a chegada, com responsável, data/hora, local, origem/destino e evidências. |
 | `ReceiptChecklistVersion` | Uma versão aplicada por recebimento | Itens, critérios, classificação e regras vigentes na data. |
 | `ReceiptChecklistAnswer` | N por recebimento | Resposta, não aplicabilidade justificada, observação e evidência. |
 | `ReceiptDecision` | Histórico de decisões do recebimento | Tipo de decisão, autor, data/hora, justificativa e referência às respostas. |
