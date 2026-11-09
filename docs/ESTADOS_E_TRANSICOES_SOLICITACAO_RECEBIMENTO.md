@@ -1,0 +1,268 @@
+# Estados e Transições — Solicitação e Recebimento
+
+**Identificador:** EST-REC-001  
+**Versão:** 0.1  
+**Situação:** Proposta para revisão funcional; não aprovada para implementação  
+**Repositório:** keyzermoura/LIMS  
+**Branch:** main  
+**Data:** 2026-11-09
+
+---
+
+## 1. Objetivo e limites
+
+Definir uma proposta de estados, transições, pré-condições, perfis e eventos de auditoria para o fluxo de solicitação e recebimento físico do LIMS. O documento detalha o modelo conceitual MOD-DOM-001 e deverá ser revisado com o responsável funcional e a qualidade.
+
+Não constitui especificação física definitiva nem autorização para alterar código, banco, API, frontend ou infraestrutura. Os nomes de estados são conceituais e poderão ser ajustados após validação.
+
+## 2. Princípios de modelagem
+
+1. Não concentrar o ciclo inteiro em um único campo de status.
+2. Manter estados separados para Solicitação, Recebimento, apresentação do item, conferência, decisão, validação e custódia.
+3. Uma transição formal deve registrar ator, papel, data/hora, estado anterior, estado novo, justificativa e evidências aplicáveis.
+4. Não permitir que uma mudança de estado apague ou sobrescreva uma decisão anterior.
+5. Bloqueios impeditivos não podem ser dispensados pela coordenação.
+6. Reenvios e concorrência não podem gerar recebimentos, amostras ou identificadores duplicados.
+7. O estado agregado do recebimento deve ser derivado das situações de seus itens, sem substituir o histórico individual.
+
+## 3. Dimensões de estado
+
+### 3.1 Solicitação
+
+| Estado | Significado |
+|---|---|
+| RASCUNHO | Cadastro iniciado, ainda não submetido. |
+| SUBMETIDA | Solicitação formalizada e disponível para recebimento. |
+| RECEBIMENTO_REGISTRADO | Chegada física principal registrada. |
+| EM_TRATAMENTO | Existem itens em conferência, pendência ou validação. |
+| CONCLUIDA | Todos os itens foram encerrados conforme as regras do processo. |
+| CANCELADA | Solicitação cancelada por usuário autorizado, com motivo e sem apagar histórico. |
+
+### 3.2 Recebimento
+
+| Estado | Significado |
+|---|---|
+| REGISTRADO | Chegada principal registrada; itens ainda não necessariamente conferidos. |
+| EM_CONFERENCIA | Conferência de um ou mais itens iniciada. |
+| AGUARDANDO_REGULARIZACAO | Existe ao menos uma pendência que impede a decisão final de item. |
+| AGUARDANDO_COORDENACAO | Existe decisão ou exceção que exige revisão da coordenação. |
+| PARCIALMENTE_DECIDIDO | Há itens encerrados e outros ainda em tratamento. |
+| CONCLUIDO | Todos os itens possuem desfecho permitido e não há ação obrigatória pendente. |
+| CANCELADO | Registro cancelado por exceção formal autorizada; chegada e custódia histórica permanecem preservadas. |
+
+### 3.3 Apresentação do item
+
+| Estado | Significado |
+|---|---|
+| AGUARDANDO_CHEGADA | Item declarado ainda não avaliado na chegada. |
+| APRESENTADO | Material correspondente foi fisicamente apresentado. |
+| NAO_APRESENTADO | Material não chegou na ocasião registrada. |
+
+NAO_APRESENTADO é estado de apresentação, não resultado de conferência ou decisão de recusa. Não inicia custódia e não permite criação de amostra operacional.
+
+### 3.4 Conferência do item
+
+| Estado | Significado |
+|---|---|
+| NAO_INICIADA | Conferência ainda não iniciada. |
+| EM_ANDAMENTO | Critérios aplicáveis estão sendo avaliados. |
+| CONCLUIDA | Critérios obrigatórios foram respondidos e a avaliação foi formalizada. |
+
+Cada resposta de checklist terá resultado próprio: CONFORME, NAO_CONFORME ou NAO_APLICAVEL, com justificativa obrigatória quando aplicável. A classificação do critério (impeditivo, saneável ou informativo) deve vir de checklist versionado.
+
+### 3.5 Regularização
+
+| Estado | Significado |
+|---|---|
+| NAO_HA_PENDENCIA | Não há pendência aberta. |
+| PENDENTE | Há providência necessária antes da decisão final. |
+| EM_REGULARIZACAO | Providência está sendo tratada. |
+| REGULARIZADA | Evidência/providência foi recebida e reavaliada. |
+| NAO_REGULARIZAVEL | A condição não pode ser sanada no fluxo; encaminhar para decisão de recusa ou outra destinação autorizada. |
+
+A regularização não apaga a pendência original. Deve criar novo evento, registrar evidência e preservar quem reavaliou.
+
+### 3.6 Decisão do item
+
+| Estado | Significado |
+|---|---|
+| NAO_DECIDIDA | Ainda não há decisão formal. |
+| ACEITA | Requisitos de admissão atendidos e validações obrigatórias concluídas. |
+| PENDENTE | Não é possível concluir enquanto houver condição a regularizar ou revisar. |
+| RECUSADA | Item não admitido, com fundamento e evidência quando aplicável. |
+
+Decisão PENDENTE não equivale a encerramento. Uma decisão anterior deve permanecer no histórico quando substituída por nova decisão autorizada.
+
+### 3.7 Validação da coordenação
+
+| Estado | Significado |
+|---|---|
+| NAO_EXIGIDA | Regras do fluxo não exigem validação. |
+| AGUARDANDO | Encaminhamento formal aguardando coordenação. |
+| APROVADA | Coordenação validou a decisão dentro de sua competência. |
+| DEVOLVIDA | Coordenação devolveu para complementação ou correção. |
+| REJEITADA | Coordenação não validou a decisão, com justificativa. |
+
+A coordenação não pode converter critério impeditivo não conforme em conforme nem dispensar requisito obrigatório. A devolução/rejeição deve indicar o motivo e a ação necessária.
+
+### 3.8 Custódia
+
+| Estado | Significado |
+|---|---|
+| NAO_INICIADA | Material não foi apresentado; não existe custódia física registrada. |
+| SOB_GUARDA | Material apresentado sob responsabilidade institucional. |
+| TRANSFERENCIA_PENDENTE | Transferência iniciada, mas ainda não confirmada pelo recebedor de destino. |
+| SOB_NOVA_RESPONSABILIDADE | Transferência concluída e aceita pelo novo responsável. |
+| ENCERRADA | Custódia encerrada por destinação formalmente registrada. |
+
+Custódia inicia na chegada física do material apresentado, independentemente do aceite. Material recusado também exige registro de sua guarda e da destinação/devolução até a entrega efetiva ao responsável externo.
+
+## 4. Transições permitidas — proposta
+
+### 4.1 Solicitação
+
+| Origem | Destino | Quem pode executar | Pré-condições | Evento/auditoria |
+|---|---|---|---|---|
+| RASCUNHO | SUBMETIDA | Usuário interno autorizado | Solicitante e ao menos um item declarados; campos obrigatórios válidos. | SOLICITACAO_SUBMETIDA |
+| SUBMETIDA | RECEBIMENTO_REGISTRADO | Sistema, após criação transacional do recebimento | Solicitação válida; ainda não existe recebimento principal. | RECEBIMENTO_VINCULADO |
+| RECEBIMENTO_REGISTRADO | EM_TRATAMENTO | Sistema | Conferência iniciada ou pendência/validação criada. | SOLICITACAO_EM_TRATAMENTO |
+| EM_TRATAMENTO | CONCLUIDA | Sistema | Todos os itens possuem desfecho permitido; nenhuma pendência ou validação obrigatória aberta. | SOLICITACAO_CONCLUIDA |
+| RASCUNHO ou SUBMETIDA | CANCELADA | Perfil autorizado a definir | Justificativa e verificação de que não há material sob custódia sem destinação. | SOLICITACAO_CANCELADA |
+
+Após registro de chegada física, cancelamento não pode apagar o recebimento nem encerrar custódia automaticamente. Exige tratamento formal dos materiais.
+
+### 4.2 Recebimento
+
+| Origem | Destino | Quem pode executar | Pré-condições |
+|---|---|---|---|
+| inexistente | REGISTRADO | Recebedor autorizado | Solicitação submetida; registrar chegada efetiva, recebedor físico e dados gerais; unicidade de solicitação garantida no banco. |
+| REGISTRADO | EM_CONFERENCIA | Conferente autorizado | Itens apresentados identificados; checklist aplicável disponível. |
+| EM_CONFERENCIA | AGUARDANDO_REGULARIZACAO | Sistema/conferente | Uma ou mais pendências abertas. |
+| EM_CONFERENCIA | AGUARDANDO_COORDENACAO | Sistema/conferente | Regra versionada exige revisão da coordenação. |
+| EM_CONFERENCIA | PARCIALMENTE_DECIDIDO | Sistema | Ao menos um item decidido e outros ainda em tratamento. |
+| EM_CONFERENCIA | CONCLUIDO | Sistema | Todos os itens encerrados; sem ação obrigatória pendente. |
+| AGUARDANDO_REGULARIZACAO | EM_CONFERENCIA | Sistema/conferente | Pendência regularizada e reavaliada, ou encaminhada a outro desfecho permitido. |
+| AGUARDANDO_COORDENACAO | EM_CONFERENCIA | Sistema | Coordenação aprovou/devolveu/rejeitou e a ação subsequente foi registrada. |
+| PARCIALMENTE_DECIDIDO | CONCLUIDO | Sistema | Todos os itens encerrados e todas as condições de fechamento atendidas. |
+
+Os estados agregados são informativos e devem ser calculados a partir dos estados dos itens. O sistema deve impedir fechamento se houver item apresentado sem decisão ou material sob custódia sem destinação definida.
+
+### 4.3 Item de recebimento
+
+| Origem | Destino | Quem pode executar | Pré-condições |
+|---|---|---|---|
+| AGUARDANDO_CHEGADA | APRESENTADO | Recebedor autorizado | Material fisicamente presente; quantidade/identificação efetiva registradas. |
+| AGUARDANDO_CHEGADA | NAO_APRESENTADO | Recebedor autorizado | Ausência confirmada e registrada na chegada. |
+| APRESENTADO | conferência EM_ANDAMENTO | Conferente autorizado | Material sob custódia e checklist carregado. |
+| EM_ANDAMENTO | conferência CONCLUIDA | Conferente autorizado | Todos os critérios obrigatórios respondidos; justificativas e evidências requeridas presentes. |
+
+Depois de registrado como NAO_APRESENTADO, o item não pode ser alterado para APRESENTADO como se tivesse chegado na data original. Entrega posterior exige nova solicitação ou exceção institucional formal, com evento e data/hora reais.
+
+### 4.4 Decisão e validação
+
+| Evento | Resultado | Regra |
+|---|---|---|
+| Formalizar aceite | ACEITA | Checklist concluído; nenhum impeditivo não conforme; pendências resolvidas; validação da coordenação concluída quando exigida. |
+| Formalizar pendência | PENDENTE | Há requisito saneável ou informação faltante que impede conclusão. Deve indicar providência e responsável/prazo quando aplicável. |
+| Formalizar recusa | RECUSADA | Fundamento documentado; critérios e evidências aplicáveis registrados; destinação do material sob custódia definida. |
+| Encaminhar coordenação | AGUARDANDO | Exceção/regra exige validação; pacote de evidências e decisão do conferente completos. |
+| Coordenador aprova | APROVADA | Dentro da competência e sem dispensar bloqueios impeditivos. |
+| Coordenador devolve | DEVOLVIDA | Justificativa e complementação requerida registradas. |
+| Coordenador rejeita | REJEITADA | Justificativa formal; item retorna ao fluxo definido ou segue para recusa, conforme regra aprovada. |
+
+## 5. Matriz de permissões — proposta inicial
+
+| Ação | Operador/Recebedor | Conferente/Técnico | Coordenador | Administrador |
+|---|---:|---:|---:|---:|
+| Cadastrar solicitação | Sim, se autorizado | Sim, se autorizado | Sim, se autorizado | Configurável |
+| Registrar chegada física | Sim | Sim, se designado | Sim, se designado | Não por privilégio automático |
+| Marcar item apresentado/não apresentado | Sim, no ato da chegada | Sim, se designado | Não por padrão | Não por privilégio automático |
+| Preencher checklist | Não por padrão | Sim | Apenas quando formalmente designado | Não por privilégio automático |
+| Registrar pendência | Não por padrão | Sim | Sim, na revisão | Não por privilégio automático |
+| Formalizar decisão do conferente | Não por padrão | Sim, se autorizado | Conforme segregação aprovada | Não por privilégio automático |
+| Validar decisão encaminhada | Não | Não | Sim, se designado | Não por privilégio automático |
+| Corrigir registro concluído | Não | Apenas com permissão específica, justificativa e histórico | Conforme permissão específica | Não deve editar conteúdo técnico por padrão |
+| Configurar checklists e regras | Não | Não | Conforme governança | Administrador técnico com aprovação de conteúdo pelo responsável competente |
+
+Esta matriz não mapeia automaticamente os perfis existentes do software. O inventário identificou perfis como ADMIN, FISCAL, TECNICO, CUSTODIANTE e AUDITOR, mas sua equivalência com funções operacionais precisa ser avaliada. A segregação de funções e a possibilidade de autoaprovação devem ser decididas institucionalmente.
+
+## 6. Eventos mínimos de auditoria
+
+Cada evento deve preservar, no mínimo:
+
+- identificador do agregado e do item afetado;
+- tipo do evento e dimensão de estado alterada;
+- estado anterior e estado novo;
+- ator, papel/permissão efetiva e origem da ação;
+- data/hora com fuso e referência temporal inequívoca;
+- justificativa, motivo e observações aplicáveis;
+- versão do checklist/regra utilizada;
+- referências e hashes de evidências quando houver;
+- identificador de correlação da operação;
+- referência ao evento anterior quando houver correção, devolução ou regularização.
+
+Eventos sugeridos:
+
+1. SOLICITACAO_CRIADA / SOLICITACAO_SUBMETIDA / SOLICITACAO_CANCELADA.
+2. CHEGADA_FISICA_REGISTRADA / RECEBIMENTO_REGISTRADO.
+3. ITEM_APRESENTADO / ITEM_NAO_APRESENTADO.
+4. CUSTODIA_INICIADA / CUSTODIA_TRANSFERENCIA_SOLICITADA / CUSTODIA_TRANSFERIDA / CUSTODIA_ENCERRADA.
+5. CHECKLIST_INICIADO / CRITERIO_AVALIADO / CHECKLIST_CONCLUIDO.
+6. PENDENCIA_ABERTA / PENDENCIA_REGULARIZADA / PENDENCIA_NAO_REGULARIZAVEL.
+7. DECISAO_ACEITE / DECISAO_PENDENCIA / DECISAO_RECUSA.
+8. VALIDACAO_COORDENACAO_SOLICITADA / APROVADA / DEVOLVIDA / REJEITADA.
+9. AMOSTRA_OPERACIONAL_CRIADA / IDENTIFICADOR_INSTITUCIONAL_ATRIBUIDO.
+10. REGISTRO_CORRIGIDO / EXCECAO_AUTORIZADA.
+
+## 7. Regras bloqueadoras
+
+1. Não criar segundo recebimento principal para a mesma solicitação.
+2. Não registrar chegada com data/hora retroativa para acomodar entrega posterior.
+3. Não criar custódia de item não apresentado.
+4. Não criar amostra operacional para item não apresentado, pendente ou recusado.
+5. Não aceitar item com critério impeditivo não conforme.
+6. Não concluir recebimento com item apresentado sem decisão formal.
+7. Não encerrar custódia sem destino/transferência documentados.
+8. Não permitir ao coordenador dispensar requisito impeditivo.
+9. Não permitir que usuário sem permissão altere decisão formal.
+10. Não sobrescrever decisão, checklist ou evento de custódia concluído.
+11. Não criar amostra ou identificador duplicado em reenvio, concorrência ou repetição da operação.
+12. Não associar registro legado por inferência sem evidência confiável.
+
+## 8. Questões que exigem decisão antes da implementação
+
+| ID | Questão | Prioridade |
+|---|---|---|
+| EST01 | Quais perfis institucionais podem cadastrar solicitação, receber material e conferir? | P0 |
+| EST02 | Conferente pode ser o mesmo usuário que registrou a chegada? | P0 |
+| EST03 | Coordenação é obrigatória para quais tipos de exceção e decisões? | P0 |
+| EST04 | Qual destino e fluxo de custódia se aplicam a item recusado? | P0 |
+| EST05 | Quando um recebimento é considerado concluído se alguns itens não foram apresentados? | P0 |
+| EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 |
+| EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 |
+| EST08 | Como tratar correção excepcional de item marcado como não apresentado ou de decisão já formalizada? | P1 |
+| EST09 | Qual regra de prazo e encerramento de pendências? | P1 |
+| EST10 | Qual a política de segregação de funções e autoaprovação? | P0 |
+
+## 9. Critérios de aceite do desenho
+
+O desenho de estados e transições estará pronto para detalhamento técnico quando:
+
+- cada estado tiver significado, responsável e evento de entrada/saída;
+- transições proibidas e pré-condições estiverem explicitadas;
+- a matriz de permissões estiver aprovada pelo responsável institucional;
+- as regras de coordenação, assinatura e segregação de funções estiverem definidas;
+- a custódia de material recusado e o fechamento de itens não apresentados estiverem resolvidos;
+- os critérios impeditivos/saneáveis estiverem vinculados a checklists versionados;
+- os cenários forem validados com exemplos reais do SEFI;
+- os eventos de auditoria e correção estiverem aprovados.
+
+## 10. Próximo passo
+
+Realizar revisão funcional orientada pelas questões EST01–EST10. Após as respostas, consolidar a máquina de estados e produzir os critérios de aceite verificáveis para a Etapa 1. A implementação permanece bloqueada até conclusão da Fase 0, aprovação do portão G0 e autorização específica.
+
+## 11. Histórico de alterações
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.1 | 2026-11-09 | Primeira proposta de estados, transições, permissões e eventos de auditoria. |
