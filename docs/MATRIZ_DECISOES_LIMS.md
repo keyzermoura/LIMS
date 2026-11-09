@@ -34,8 +34,8 @@ Prioridade: **P0** bloqueadora; **P1** alta; **P2** média.
 | DEC01 | Cardinalidade e semântica dos itens da solicitação | Recomendação técnica adotada no desenho; aprovação institucional pendente | P0 |
 | DEC02 | Persistência de todos os itens no recebimento | Proposta | P0 |
 | DEC03 | Entrega posterior de item não apresentado | Definida no desenho; exceção formal pendente | P1 |
-| DEC04 | Relação entre item recebido, custódia e amostra operacional | Recomendação técnica proposta; aprovação funcional pendente | P0 |
-| DEC05 | Dispositivo, unidade física, amostra e corpo de prova | Recomendação técnica proposta; validação por exemplos pendente | P0 |
+| DEC04 | Relação entre item recebido, custódia e amostra operacional | Aprovada como diretriz de desenho do projeto; formalização institucional pendente | P0 |
+| DEC05 | Dispositivo, unidade física, amostra e corpo de prova | Aprovada como diretriz de desenho do projeto; formalização institucional pendente | P0 |
 | DEC06 | Protocolo local do SEFI | Pendente | P1 |
 | DEC07 | Identificador institucional da amostra | Recomenda-se formalizar accession_number após verificação técnica; aprovação institucional pendente | P0 |
 | DEC08 | Migração de amostras legadas | Recomendação técnica proposta: preservar sem backfill indiscriminado | P0 |
@@ -85,48 +85,51 @@ Prioridade: **P0** bloqueadora; **P1** alta; **P2** média.
 ### DEC04 — Relação entre item recebido, conferência, custódia e amostra operacional
 
 - **Questão:** como registrar a custódia desde a chegada física e manter vínculo íntegro quando a amostra operacional for criada depois?
-- **Estado:** Recomendação técnica proposta para o desenho; aprovação funcional/institucional pendente. **Prioridade:** P0.
-- **Recomendação:** introduzir no modelo conceitual um objeto de custódia do material recebido (denominação provisória: **ObjetoCustodia**), subordinado ao ItemRecebimento. Ele representa o material efetivamente apresentado que permanece sob guarda. Pode representar uma unidade individual ou um conjunto homogêneo/agrupado quando a identificação individual não for necessária e a regra técnica permitir.
-- **Eventos:** registrar a chegada e a primeira guarda no ObjetoCustodia, com data/hora efetiva, recebedor físico, localização e condição. Transferências posteriores são eventos append-only. A amostra operacional criada após aceite mantém referência rastreável ao ObjetoCustodia de origem; a transferência para a custódia laboratorial é um evento explícito, não a criação retroativa da cadeia.
-- **Integridade:** evitar referência polimórfica sem integridade referencial. Recomenda-se que os eventos de custódia apontem para uma entidade persistente de objeto de custódia, e que esta se relacione com ItemRecebimento e, quando aplicável, UnidadeRecebida e AmostraOperacional. A implementação física e cardinalidade final dependem de DEC05.
-- **Alternativa não recomendada:** vincular eventos pré-aceite diretamente a DeviceSample, pois a amostra ainda não existe; também não se recomenda uma FK polimórfica livre que aceite IDs sem garantir o tipo e a existência do objeto.
-- **Recusa:** material recusado continua sob custódia até devolução/transferência efetivamente registrada. A recusa não encerra automaticamente a custódia.
-- **Impactos:** novo relacionamento de custódia, API, relatórios, auditoria e compatibilidade com ChainOfCustody existente.
+- **Estado:** **Aprovada pelo usuário como diretriz de desenho do projeto em 2026-11-09**; formalização institucional pela autoridade competente permanece pendente. **Prioridade:** P0.
+- **Decisão adotada:** introduzir a entidade **ObjetoCustodia**, subordinada ao ItemRecebimento, para representar o material efetivamente apresentado que permanece sob guarda. O objeto pode representar uma unidade individual ou um agrupamento homogêneo autorizado pelo procedimento técnico.
+- **Início da custódia:** a custódia começa na chegada física, antes do aceite e da criação de DeviceSample. O evento inicial deve preservar data/hora efetiva, recebedor físico, localização e condição do material.
+- **Eventos:** transferências, mudanças de localização, devolução e encerramento devem ser eventos auditáveis e cronológicos. Correções não apagam eventos anteriores; geram retificação vinculada.
+- **Relação com a amostra:** cada ObjetoCustodia pode estar associado a **no máximo uma DeviceSample**. No fluxo ordinário de material aceito que será ensaiado, a criação da DeviceSample deve ocorrer com vínculo obrigatório ao objeto de origem, na mesma transação. Amostras legadas podem permanecer sem vínculo. Uma DeviceSample do novo fluxo não deve reunir vários ObjetosCustodia.
+- **Recusa e pendência:** material pendente ou recusado permanece sob custódia até devolução ou outra destinação efetivamente registrada. A decisão de recusa não encerra automaticamente a custódia.
+- **Compatibilidade com ChainOfCustody:** não criar histórico paralelo nem duplicar o evento de chegada. A extensão física da estrutura existente depende de inspeção de FKs, consultas, triggers, relatórios e testes; a solução deve oferecer uma única visão cronológica para eventos legados e novos.
+- **Alternativas rejeitadas para o desenho-base:** vincular eventos pré-aceite diretamente a DeviceSample, que ainda não existe; usar FK polimórfica sem integridade referencial; manter associação N:M entre ObjetoCustodia e DeviceSample.
+- **Impactos:** modelo relacional, custódia, API, relatórios, auditoria, transação de aceite e compatibilidade com dados legados.
 - **Responsáveis:** responsável técnico/laboratorial, responsável funcional e arquitetura técnica.
-- **Próximo passo:** validar com exemplos de material individual e agrupado; depois detalhar modelo físico. Não implementar antes do G0.
+- **Próximo passo:** refletir a cardinalidade 1:0..1 no modelo relacional preliminar e, após revisão técnica do schema legado, preparar proposta de mapeamento físico. Esta aprovação de desenho não autoriza migração nem implementação.
 
 ### DEC05 — Dispositivo, unidade física, amostra operacional e corpo de prova
 
 - **Questão:** quais níveis materiais devem ser representados e quando cada um gera uma amostra operacional?
-- **Estado:** Recomendação técnica proposta; validação com exemplos reais e aprovação funcional pendentes. **Prioridade:** P0.
-- **Definições recomendadas:**
-  - **ItemDeclarado:** linha de produto/material informada na solicitação, com quantidade declarada.
-  - **ItemRecebimento:** registro da apresentação e conferência da linha declarada; registra quantidade efetivamente apresentada.
-  - **Unidade física:** objeto individual que pode ser identificado separadamente (por exemplo, uma seringa, agulha ou equipo).
-  - **ObjetoCustodia:** unidade física ou agrupamento homogêneo que constitui uma unidade de guarda/rastreabilidade no processo.
-  - **AmostraOperacional:** registro LIMS criado após aceite para controlar o trabalho laboratorial e seus resultados; não deve ser tratado automaticamente como sinônimo de cada unidade física.
-  - **Corpo de prova:** unidade/porção preparada ou selecionada para um ensaio específico, subordinada à amostra ou ao plano de ensaio conforme método.
-- **Regra recomendada para criação de amostra:** criar uma AmostraOperacional por objeto aceito que precise de rastreabilidade, decisão ou resultado independente no LIMS. Se várias unidades físicas forem tecnicamente homogêneas e avaliadas como um único conjunto, permitir um agrupamento explícito com quantidade e identificação preservadas; não criar uma amostra por unidade apenas por conveniência de modelagem. Se cada unidade tiver identidade, resultado ou destino independente, cada uma deve ter registro próprio.
-- **Corpos de prova:** uma amostra pode originar vários corpos de prova e vários ensaios. A quantidade de corpos de prova decorre do método/plano de ensaio, não da quantidade de itens declarados.
-- **Exemplos de aplicação a validar:**
-  1. Dez agulhas do mesmo fabricante, lote e especificação, avaliadas como conjunto: um ObjetoCustodia agrupado e uma amostra operacional do conjunto, se a regra laboratorial permitir; discriminar unidades quando houver necessidade de rastreio individual.
-  2. Três seringas com números de série distintos e resultados individuais: três objetos de rastreabilidade e, em princípio, três amostras operacionais.
-  3. Um equipo submetido a vários ensaios: uma amostra operacional pode originar vários corpos de prova/execuções, sem multiplicar a amostra por ensaio.
-  4. Dez unidades recebidas, mas apenas cinco apresentadas: quantidade declarada 10, apresentada 5; as cinco ausentes permanecem NAO_APRESENTADO e não geram custódia nem amostra.
-  5. Embalagem coletiva sem identificação individual das unidades internas: registrar o agrupamento/embalagem como objeto de custódia, detalhando quantidade e lote, até que procedimento técnico determine a individualização.
-- **Restrições:** não usar apenas fabricante+lote como chave universal de unidade; não assumir serial obrigatório; não equiparar corpo de prova a amostra operacional; não criar amostra para material não apresentado, pendente ou recusado.
-- **Evidência necessária:** validar os exemplos com registros reais anonimizados e representantes de categorias distintas do SEFI.
+- **Estado:** **Aprovada pelo usuário como diretriz de desenho do projeto em 2026-11-09**; formalização institucional e validação dos procedimentos técnicos aplicáveis permanecem pendentes. **Prioridade:** P0.
+- **Definições adotadas:**
+  - **ItemDeclarado:** linha de material informada na solicitação, com descrição e quantidade declarada.
+  - **ItemRecebimento:** registro da apresentação e conferência daquela linha, incluindo quantidade efetivamente apresentada.
+  - **Unidade física:** peça individual existente no mundo físico; só exige cadastro individual quando a rastreabilidade ou o procedimento exigir.
+  - **ObjetoCustodia:** unidade lógica de guarda/rastreabilidade, representando uma peça individual ou um agrupamento homogêneo autorizado.
+  - **AmostraOperacional:** registro LIMS criado após aceite para controlar o trabalho laboratorial e seus resultados.
+  - **Corpo de prova:** unidade/porção selecionada ou preparada para ensaio específico, conforme método/plano de ensaio.
+- **Cardinalidades adotadas:**
+  1. Um ItemDeclarado corresponde a exatamente um ItemRecebimento no recebimento principal.
+  2. Um ItemRecebimento pode originar zero ou vários ObjetosCustodia; zero quando o item não foi apresentado.
+  3. Um ObjetoCustodia pode originar no máximo uma AmostraOperacional.
+  4. No fluxo ordinário de material aceito que será ensaiado, cada ObjetoCustodia aceito origina exatamente uma AmostraOperacional.
+  5. Uma AmostraOperacional pode possuir vários ensaios e vários corpos de prova.
+  6. Não haverá associação N:M entre ObjetoCustodia e DeviceSample no desenho-base.
+- **Regra de agrupamento:** unidades homogêneas podem constituir um único ObjetoCustodia quando forem avaliadas como conjunto e a decisão/resultado laboratorial for coletiva. O agrupamento deve preservar quantidade, unidade de medida, lote, identificadores disponíveis, critério técnico e autoria.
+- **Regra de individualização:** quando houver resultado, decisão, identidade ou destinação independente por unidade, as unidades devem ser representadas por ObjetosCustodia distintos antes da criação das amostras. A existência de número de série deve ser preservada, mas não implica automaticamente relatório individual se o procedimento aprovar avaliação coletiva.
+- **UnidadeFisica:** não será criada como tabela obrigatória na primeira versão. Poderá ser introduzida de forma aditiva se surgir requisito recorrente e demonstrado de rastreabilidade individual de unidades internas de agrupamentos.
+- **Fracionamento:** se um objeto precisar ser dividido após a chegada, a operação deverá ser formal, auditável e quantitativamente reconciliada, preservando o objeto de origem e registrando objetos-filhos. Não se admite alteração silenciosa de quantidade ou identidade.
+- **Exemplos orientadores:**
+  1. Dez agulhas do mesmo lote avaliadas como conjunto: um ObjetoCustodia agrupado e uma amostra operacional, se o procedimento permitir.
+  2. Dez agulhas com resultados/decisões individuais: dez ObjetosCustodia e, após aceite, dez amostras.
+  3. Três seringas serializadas com decisões independentes: três ObjetosCustodia e três amostras; se a avaliação for coletiva, preservar as identidades dentro de um agrupamento autorizado.
+  4. Um equipo submetido a vários ensaios: uma amostra, com vários ensaios e corpos de prova.
+  5. Cateter avaliado por segmentos: uma amostra para o dispositivo; segmentos são corpos de prova, salvo se houver decisão/destino independente.
+  6. Dez unidades declaradas e cinco apresentadas: registrar quantidade declarada 10, apresentada 5; somente o material apresentado pode gerar objetos de custódia e amostras.
+  7. Embalagem coletiva: um objeto agrupado enquanto a embalagem constituir unidade de guarda, com individualização posterior auditável se necessária.
+- **Restrições:** não usar fabricante+lote como chave universal de unidade; não exigir número de série para todos os materiais; não equiparar corpo de prova a amostra operacional; não criar amostra para material não apresentado, pendente ou recusado.
 - **Responsáveis:** responsável técnico/laboratorial e responsável funcional.
-- **Próximo passo:** selecionar casos reais representativos e confirmar a regra de agrupamento antes de congelar cardinalidades.
-
-### DEC05 — Dispositivo, unidade física, amostra operacional e corpo de prova
-
-- **Questão:** quais são os níveis materiais distintos e como se relacionam?
-- **Estado:** Parcialmente definido; exemplos operacionais pendentes. **Prioridade:** P0.
-- **Definições de trabalho:** item declarado é o objeto informado na solicitação; unidade física é o material efetivamente apresentado; amostra operacional é o registro LIMS criado após aceite; corpo de prova é a porção/unidade utilizada em ensaio específico.
-- **Risco:** tratar todos esses conceitos como sinônimos pode gerar contagem incorreta, duplicidade, perda de rastreabilidade e associação inadequada dos resultados.
-- **Próximo passo:** validar exemplos por categoria de dispositivo e por tipo de ensaio; definir quando uma amostra gera vários corpos de prova ou quando várias unidades físicas geram amostras distintas.
-- **Responsável:** responsável técnico/laboratorial e responsável funcional.
+- **Próximo passo:** aplicar estas regras ao desenho relacional e validar sua compatibilidade com procedimentos de ensaio e emissão de laudos. A aprovação desta diretriz não autoriza migrações ou implementação.
 
 ### DEC06 — Protocolo local do SEFI
 
@@ -160,17 +163,6 @@ Prioridade: **P0** bloqueadora; **P1** alta; **P2** média.
 - **Rollback:** backup restaurável e ensaio de recuperação em ambiente isolado; não presumir que downgrade Alembic seja suficiente.
 - **Responsáveis:** arquitetura técnica, TI responsável pelo banco e responsável funcional/qualidade.
 - **Próximo passo:** diagnóstico somente leitura do banco-alvo e inventário dos consumidores, após autorização e disponibilidade de ambiente seguro.
-
-### DEC08 — Migração de amostras legadas
-
-- **Questão:** como tratar amostras antigas sem solicitação/recebimento vinculados no novo modelo?
-- **Estado:** Pendente. **Prioridade:** P0.
-- **Princípios:** preservar registros, identificadores, QR, datas, autoria e custódia existentes; não inventar solicitações, itens ou relações sem evidência; manter referências legadas opcionais quando não houver correspondência confiável.
-- **Alternativas:** manter legado sem entidade de solicitação; criar registro de migração técnica claramente identificado; vincular apenas quando houver evidência documental confiável.
-- **Recomendação:** migração aditiva, sem associação fictícia e sem reescrever a história da amostra.
-- **Impactos:** restrições, consultas, relatórios, integridade e compatibilidade.
-- **Responsável:** arquitetura técnica e responsável funcional.
-- **Próximo passo:** inventariar campos, dados e consumidores; elaborar plano de migração e reconciliação.
 
 ### DEC09 — Atos que exigem assinatura eletrônica
 
@@ -235,7 +227,7 @@ As regras abaixo foram expressamente acordadas no desenho funcional e devem ser 
 
 | ID | Aprovador competente | Evidência/ata/processo | Data | Estado formal |
 |---|---|---|---|---|
-| DEC01–DEC12 | A definir conforme governança institucional | A registrar | — | Pendente de aprovação formal |
+| DEC04–DEC05 | Usuário responsável pelo direcionamento do projeto (aprovação da diretriz de desenho) | Aprovação registrada nesta conversa; recomendações REC-LIMS-DEC-001 | 2026-11-09 | Aprovadas para orientar o desenho; formalização institucional pendente |\n| DEC01–DEC03, DEC06–DEC12 | A definir conforme governança institucional | A registrar | — | Pendente de aprovação formal |
 
 A ausência de registro de aprovação formal não invalida a documentação de uma orientação funcional, mas impede tratá-la como aprovação institucional definitiva.
 
@@ -255,4 +247,4 @@ A ausência de registro de aprovação formal não invalida a documentação de 
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-09 | Primeira consolidação das decisões DEC01–DEC12 e regras funcionais previamente acordadas. |
-| 1.1 | 2026-11-09 | Inclusão de recomendações técnicas para DEC04, DEC05, DEC07 e DEC08; aprovação institucional permanece pendente. |
+| 1.1 | 2026-11-09 | Inclusão de recomendações técnicas para DEC04, DEC05, DEC07 e DEC08; aprovação institucional permanece pendente. |\n| 1.2 | 2026-11-09 | Registro da aprovação do usuário para orientar o desenho em DEC04/DEC05; definição de CustodyObject–DeviceSample como 1:0..1; remoção de seções duplicadas; formalização institucional e autorização de implementação permanecem pendentes. |
