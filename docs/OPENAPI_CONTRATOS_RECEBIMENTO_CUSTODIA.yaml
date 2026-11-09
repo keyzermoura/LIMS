@@ -84,14 +84,11 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '422':
           $ref: '#/components/responses/Unprocessable'
-  /receipts/{receipt_id}:
-    parameters:
-      - $ref: '#/components/parameters/ReceiptId'
     get:
       tags: [Recebimento]
-      operationId: getReceipt
-      summary: Consultar recebimento e seus itens.
-      description: Novo contrato proposto. Deve distinguir declaração, apresentação, conferência, decisão e objetos de custódia.
+      operationId: getReceiptBySolicitation
+      summary: Consultar o recebimento principal de uma solicitação.
+      description: Não cria recebimento por efeito colateral. Retorna 404 se ainda não existir.
       x-specification-status: proposed-not-approved
       responses:
         '200':
@@ -106,14 +103,15 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-  /solicitations/{solicitation_id}/receipt:
+
+  /receipts/{receipt_id}:
     parameters:
-      - $ref: '#/components/parameters/SolicitationId'
+      - $ref: '#/components/parameters/ReceiptId'
     get:
       tags: [Recebimento]
-      operationId: getReceiptBySolicitation
-      summary: Consultar o recebimento principal de uma solicitação.
-      description: Não cria recebimento por efeito colateral. Retorna 404 se ainda não existir.
+      operationId: getReceipt
+      summary: Consultar recebimento e seus itens.
+      description: Novo contrato proposto. Deve distinguir declaração, apresentação, conferência, decisão e objetos de custódia.
       x-specification-status: proposed-not-approved
       responses:
         '200':
