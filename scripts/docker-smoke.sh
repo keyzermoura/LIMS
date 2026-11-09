@@ -19,10 +19,13 @@ check_json() {
   python3 -c "import json, sys; data = json.load(sys.stdin); assert $1, data; print('   ok')"
 }
 
+# A rota /auth/login segue o password grant do OAuth2: corpo
+# application/x-www-form-urlencoded, não JSON (igual ao front-end).
 login() {
   curl -fsS -X POST "$API_URL/api/v1/auth/login" \
-    -H 'Content-Type: application/json' \
-    -d "{\"username\":\"$1\",\"password\":\"$2\"}" \
+    -H 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode "username=$1" \
+    --data-urlencode "password=$2" \
     | python3 -c 'import json, sys; print(json.load(sys.stdin)["access_token"])'
 }
 
@@ -45,13 +48,13 @@ info "API publicada pelo Nginx (mesma origem, sem CORS)"
 curl -fsS "$WEB_URL/api/v1/meta" | check_json "'project' in data"
 
 info "Login e leitura autenticada (perfil fiscal)"
-TOKEN=$(login fiscal 'Fiscal@Lims2026')
+TOKEN=$(login fiscal 'Fiscal@Lims2026') || die "login do fiscal falhou"
 [ -n "$TOKEN" ] || die "login não retornou access_token"
 curl -fsS "$API_URL/api/v1/samples?size=5" \
   -H "Authorization: Bearer $TOKEN" | check_json "data['total'] >= 1"
 
 info "Trilha de auditoria e verificação da cadeia (perfil auditor)"
-AUDITOR=$(login auditor 'Auditor@Lims2026')
+AUDITOR=$(login auditor 'Auditor@Lims2026') || die "login do auditor falhou"
 curl -fsS "$API_URL/api/v1/audit?size=5" \
   -H "Authorization: Bearer $AUDITOR" | check_json "data['total'] >= 1"
 curl -fsS -X POST "$API_URL/api/v1/audit/verify" \
