@@ -1,7 +1,7 @@
 # Análise de Compatibilidade da Cadeia de Custódia — DEC04
 
 **Identificador:** ANL-LIMS-CUST-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Situação:** Análise técnica documental; recomendação para revisão arquitetural. Não aprovada para implementação.  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -291,9 +291,9 @@ A maior mudança não é apenas relacional. O fluxo de criação direta de amost
 ## 10. Próxima atividade recomendada
 
 1. Revisar esta recomendação de extensão de ChainOfCustody e confirmar se o desenho de alvo exclusivo atende à governança de custódia.
-2. Atualizar o modelo relacional para explicitar o mapeamento físico lógico de CustodyEvent sobre a tabela existente chain_of_custody, sem nova tabela paralela.
-3. Detalhar o contrato de histórico unificado e a transação de aceite.
-4. Resolver COMP02–COMP07 e DEC07/DEC08 nos pontos que afetam persistência, assinatura e compatibilidade.
+2. Detalhar o contrato de histórico unificado, a consulta de eventos pré-amostra e a transação de aceite.
+3. Resolver COMP02–COMP07 e DEC07/DEC08 nos pontos que afetam persistência, assinatura e compatibilidade.
+4. Submeter o mapeamento lógico à revisão arquitetural e funcional.
 5. Somente após revisão e autorização específica, elaborar a proposta de migração aditiva e os testes. Não executar migrações nesta etapa.
 
 ## 11. Histórico de alterações
@@ -301,3 +301,4 @@ A maior mudança não é apenas relacional. O fluxo de criação direta de amost
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-09 | Análise estática dos modelos, serviços, rotas, migrações, triggers, schemas, testes e frontend; recomendação de extensão de ChainOfCustody com alvo exclusivo para legado e novo fluxo. |
+| 0.2 | 2026-11-09 | Complemento do mapeamento: identificação de event_type e recorded_by_id como campos não existentes no schema atual e necessidade de avaliá-los como extensões aditivas. |
