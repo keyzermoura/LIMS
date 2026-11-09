@@ -31,7 +31,7 @@ Prioridade: **P0** bloqueadora; **P1** alta; **P2** média.
 
 | ID | Tema | Estado atual | Prioridade |
 |---|---|---|---|
-| DEC01 | Cardinalidade e semântica dos itens da solicitação | Pendente | P0 |
+| DEC01 | Cardinalidade e semântica dos itens da solicitação | Recomendação técnica adotada no desenho; aprovação institucional pendente | P0 |
 | DEC02 | Persistência de todos os itens no recebimento | Proposta | P0 |
 | DEC03 | Entrega posterior de item não apresentado | Definida no desenho; exceção formal pendente | P1 |
 | DEC04 | Relação entre item recebido, custódia e amostra operacional | Pendente | P0 |
@@ -49,14 +49,15 @@ Prioridade: **P0** bloqueadora; **P1** alta; **P2** média.
 ### DEC01 — Cardinalidade e semântica dos itens da solicitação
 
 - **Questão:** uma solicitação pode conter um ou vários dispositivos/itens?
-- **Estado:** Pendente. **Prioridade:** P0.
-- **Contexto:** o diagnóstico anterior descreve uma relação de solicitação com um dispositivo na rotina analisada; o desenho funcional posterior contempla vários itens declarados na mesma solicitação, com decisões independentes. O glossário distingue item declarado de unidade física, amostra operacional e corpo de prova, mas a semântica precisa ser confirmada com exemplos reais.
-- **Alternativas:** (1) uma solicitação corresponde obrigatoriamente a um dispositivo; (2) uma solicitação pode conter várias linhas/itens declarados, cada qual com uma ou mais unidades físicas; (3) modelo configurável por tipo de demanda.
-- **Recomendação para discussão:** alternativa 2, se compatível com o processo institucional. Manter explícitos os níveis item declarado, unidade física e amostra operacional.
-- **Impactos:** cardinalidades do modelo, telas, numeração, conferência, custódia, aceite, criação de amostras, relatórios e migração.
-- **Evidência necessária:** exemplos representativos de solicitações reais do SEFI e confirmação do responsável funcional.
+- **Estado:** Recomendação técnica adotada para o desenho conceitual; aprovação institucional pendente. **Prioridade:** P0.
+- **Diretriz adotada:** uma solicitação pode conter vários itens declarados, registrados em linhas independentes. Cada linha representa o objeto/tipo de material declarado e deve preservar sua descrição, identificação e quantidade informada. O recebimento apresenta todas as linhas, mesmo quando algum material não é apresentado.
+- **Distinção obrigatória:** item declarado não é sinônimo de unidade física, amostra operacional ou corpo de prova. A quantidade declarada e a quantidade efetivamente apresentada devem ser registradas separadamente. A regra de correspondência entre unidades físicas aceitas e registros de amostra será detalhada em DEC05, sem presumir equivalência antes da validação dos exemplos operacionais.
+- **Alternativas rejeitadas para o desenho-base:** limitar toda solicitação a um único dispositivo; ou introduzir configuração variável por tipo de demanda sem requisito institucional que a justifique.
+- **Justificativa:** o modelo de múltiplos itens representa solicitações compostas sem obrigar a fragmentação artificial em vários protocolos, permite conferência e decisão independentes e preserva a rastreabilidade de itens apresentados e não apresentados.
+- **Impactos:** cardinalidades do modelo, telas, numeração, conferência, custódia, aceite, criação de amostras, relatórios e migração. O diagnóstico legado deverá ser tratado como fluxo atual a compatibilizar, não como limitação obrigatória do modelo futuro.
+- **Evidência ainda necessária:** validar exemplos representativos de solicitações reais do SEFI e obter aprovação do responsável funcional/institucional.
 - **Responsável:** responsável funcional SEFI, com aprovação institucional quando aplicável.
-- **Próximo passo:** confirmar a semântica de “item” e “unidade” e registrar exemplos. Não implementar antes da decisão.
+- **Próximo passo:** utilizar esta diretriz como premissa do modelo conceitual e validar DEC05 com exemplos reais. Não implementar antes da aprovação do portão G0.
 
 ### DEC02 — Entidade persistente para todos os itens do recebimento
 
@@ -203,7 +204,7 @@ A ausência de registro de aprovação formal não invalida a documentação de 
 ## 7. Próximos passos para fechamento da Fase 0
 
 1. Revisar este registro e confirmar se as decisões já definidas refletem corretamente o processo.
-2. Resolver DEC01 com exemplos reais de solicitações.
+2. Validar institucionalmente a diretriz DEC01 (solicitação com múltiplos itens declarados) usando exemplos reais e concluir DEC05 sobre a relação entre item declarado, unidade física e amostra.
 3. Fechar DEC04 e DEC05 por meio do modelo conceitual e de um diagrama de sequência.
 4. Definir DEC07 após análise de accession_number e QR Code.
 5. Elaborar estratégia de migração para DEC08.
