@@ -7,6 +7,9 @@ requires-python = ">=3.11"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# Faz `pytest` (script) enxergar o pacote `app` sem precisar de
+# `python -m pytest`, que é o que o CI e a maioria dos editores usam.
+pythonpath = ["."]
 filterwarnings = ["ignore::DeprecationWarning"]
 
 [tool.ruff]
