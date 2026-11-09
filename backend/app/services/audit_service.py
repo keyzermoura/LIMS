@@ -77,7 +77,7 @@ def filtered_query(
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     search: str | None = None,
-) -> Select[AuditLog]:
+) -> Select[Any]:
     """Consulta base compartilhada entre a tela e a exportação da trilha.
 
     Manter os filtros em um único lugar garante que o arquivo exportado

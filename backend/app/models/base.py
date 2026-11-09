@@ -6,10 +6,14 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, MetaData, String, func
+from sqlalchemy import JSON, DateTime, MetaData, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+# JSONB no PostgreSQL e JSON no SQLite (suíte de testes). Sem o variant, o
+# schema não compila no SQLite e os testes rápidos não rodam.
+PortableJSON = JSON().with_variant(JSONB(), "postgresql")
 
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
@@ -27,8 +31,8 @@ def utcnow() -> datetime:
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
     type_annotation_map = {
-        dict[str, Any]: JSONB,
-        list[Any]: JSONB,
+        dict[str, Any]: PortableJSON,
+        list[Any]: PortableJSON,
     }
 
 
@@ -63,7 +67,7 @@ class OptimisticLockMixin:
 class JsonMetadataMixin:
     # `metadata` é reservado no DeclarativeBase; a coluna mantém o nome.
     attributes: Mapped[dict[str, Any]] = mapped_column(
-        "metadata", JSONB, nullable=False, default=dict, server_default="{}"
+        "metadata", PortableJSON, nullable=False, default=dict, server_default="{}"
     )
 
 
