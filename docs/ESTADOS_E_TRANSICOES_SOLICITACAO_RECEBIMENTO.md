@@ -1,7 +1,7 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Situação:** Proposta para revisão funcional; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -261,8 +261,39 @@ O desenho de estados e transições estará pronto para detalhamento técnico qu
 
 Realizar revisão funcional orientada pelas questões EST01–EST10. Após as respostas, consolidar a máquina de estados e produzir os critérios de aceite verificáveis para a Etapa 1. A implementação permanece bloqueada até conclusão da Fase 0, aprovação do portão G0 e autorização específica.
 
-## 11. Histórico de alterações
+## 12. Recomendações adicionais para custódia e granularidade
+
+Esta seção complementa os estados sem alterar sua natureza de proposta.
+
+### 12.1 Custódia antes da amostra
+
+Recomenda-se que o estado de custódia seja aplicado a um **ObjetoCustodia** vinculado ao ItemRecebimento. O objeto pode representar unidade individual ou agrupamento homogêneo autorizado. A custódia começa no instante real da chegada física e não depende de aceite.
+
+A criação posterior da AmostraOperacional não reinicia a custódia nem altera o timestamp original. Deve gerar vínculo auditável com o ObjetoCustodia e evento explícito de transferência/continuidade para a guarda laboratorial.
+
+### 12.2 Material recusado
+
+A decisão RECUSADA não equivale a custódia ENCERRADA. O material permanece SOB_GUARDA até que devolução ou outra destinação autorizada seja efetivamente concluída e registrada, com responsável, data/hora, destino e comprovante quando aplicável.
+
+### 12.3 Material agrupado
+
+Quando várias unidades forem recebidas e tratadas como conjunto homogêneo, a custódia poderá ser registrada em um ObjetoCustodia agrupado, desde que quantidade, lote, identificação e critério de agrupamento sejam explícitos. Se houver necessidade de decisão, resultado ou destino individual, as unidades devem ser discriminadas.
+
+A regra não autoriza agrupar materiais apenas para reduzir cadastros. O responsável técnico deve confirmar que o agrupamento é compatível com o procedimento de amostragem e ensaio.
+
+### 12.4 Encerramento agregado do recebimento
+
+Recomenda-se permitir conclusão administrativa do recebimento quando todos os itens tiverem desfecho de apresentação e decisão compatível com a regra institucional, mesmo que um item esteja NAO_APRESENTADO, desde que:
+- sua ausência esteja formalmente registrada;
+- não exista material correspondente sob custódia;
+- não haja pendência obrigatória aberta;
+- a solicitação/recebimento preserve o registro do item ausente;
+- o encerramento não seja interpretado como aceite técnico daquele item.
+
+Esta regra precisa ser confirmada com a gestão funcional. A conclusão do recebimento não deve apagar a condição NAO_APRESENTADO nem permitir inclusão retroativa na chegada original.
+
+## 13. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 0.1 | 2026-11-09 | Primeira proposta de estados, transições, permissões e eventos de auditoria. |
+| 0.1 | 2026-11-09 | Primeira proposta de estados, transições, permissões e eventos de auditoria. |\n| 0.2 | 2026-11-09 | Inclusão de recomendações para custódia pré-amostra, material recusado, agrupamento e encerramento com itens não apresentados. |
