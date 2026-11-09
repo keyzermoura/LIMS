@@ -234,4 +234,5 @@ Os exemplos não são decisões finais sobre critérios de amostragem. Devem ser
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 0.1 | 2026-11-09 | Primeira proposta conceitual de entidades, relações, estados e sequência de eventos. |\n| 0.2 | 2026-11-09 | Inclusão das recomendações de ObjetoCustodia, granularidade e cenários para DEC04/DEC05. |
+| 0.1 | 2026-11-09 | Primeira proposta conceitual de entidades, relações, estados e sequência de eventos. |
+| 0.2 | 2026-11-09 | Inclusão das recomendações de ObjetoCustodia, granularidade e cenários para DEC04/DEC05. |
