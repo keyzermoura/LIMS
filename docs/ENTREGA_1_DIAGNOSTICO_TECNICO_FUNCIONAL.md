@@ -739,3 +739,96 @@ Esses parâmetros devem ser configuráveis e formalizados, sem enfraquecer os bl
 - [ ] Confirmar parâmetros institucionais remanescentes.
 - [ ] Submeter o desenho técnico de banco de dados e API para aprovação.
 - [ ] Após aprovação específica, implementar em branch dedicada, sem alteração direta da `main`.
+
+---
+
+## 16. Revisão crítica contra o código real — bloqueadores e correções arquiteturais
+
+Esta seção complementa e, nos pontos de conflito, prevalece sobre as recomendações anteriores deste diagnóstico. A revisão foi confrontada com os modelos, serviços, rotas, RBAC, tipos de dados e mecanismos de persistência existentes no repositório. Os caminhos indicados permitem rastrear os pontos que deverão ser revalidados na branch de implementação.
+
+### 16.1 Bloqueador 1 — acesso externo sem isolamento por propriedade
+
+**Constatação:** as rotas atuais de amostras, ensaios, CAPA e custódia utilizam autenticação/perfil, mas não implementam de forma abrangente isolamento por solicitante/propriedade do registro. Também existe consulta de usuários com exposição incompatível com a habilitação indiscriminada de contas externas. A matriz RBAC concede permissões de leitura de usuários a perfis internos como FISCAL e TECNICO; isso não constitui um mecanismo de isolamento por titularidade.
+
+Pontos de código identificados na revisão:
+- `backend/app/api/v1/routes/samples.py`;
+- `backend/app/api/v1/routes/tests.py`;
+- `backend/app/api/v1/routes/capas.py`;
+- `backend/app/api/v1/routes/custody.py`;
+- rota de usuários e `backend/app/core/rbac.py`.
+
+**Decisão arquitetural para a primeira entrega:** não habilitar contas de solicitantes externos na API atual. O cadastro será assistido por servidor autorizado do SEFI, que registrará separadamente o usuário operador e os dados do solicitante/representante. O acesso externo futuro dependerá de implementação e testes de autorização por propriedade em todas as consultas de lista, detalhe, pesquisa, exportação, CAPA, custódia, anexos e demais recursos relacionados. Respostas para registros fora do escopo deverão evitar confirmar sua existência.
+
+### 16.2 Bloqueador 2 — DeviceSample representa material já recebido
+
+**Constatação:** `DeviceSample` possui campos obrigatórios de recebimento, incluindo `received_at` e `received_by_id`. O serviço `sample_service.create_sample` não cria apenas uma intenção de cadastro: gera `accession_number`, define estado inicial de recebido, registra responsável/data, cria evento inicial de custódia, exige assinatura de criação e grava auditoria.
+
+Portanto, não é consistente criar `DeviceSample` no momento da solicitação prévia e, simultaneamente, tratá-lo como registro de material ainda não entregue.
+
+**Decisão arquitetural para a primeira entrega:** a solicitação guarda os dados declarados do dispositivo antes da chegada. O recebimento físico e a conferência são registrados em entidade própria. Somente após decisão final favorável — incluindo validação da coordenação quando exigida — o sistema cria o `DeviceSample` operacional, transfere para ele os dados conferidos e inicia o fluxo de custódia/ensaios existente. Os dados declarados e os dados conferidos devem permanecer distinguíveis; a conferência não deve sobrescrever silenciosamente a declaração original.
+
+Cardinalidades:
+- `Solicitation` 1:1 `Receipt`, quando a entrega ocorrer; a solicitação pode existir sem recebimento.
+- `Solicitation` 0:1 `DeviceSample`; a amostra operacional só existe após aceite.
+- `DeviceSample` 1:N `LabTest`.
+- `LabTest` 1:N `TestExecution`.
+
+A entrega física continua sendo única por solicitação, conforme a premissa operacional aprovada. Recusa não cria `DeviceSample` e deve preservar solicitação, recebimento, checklist, evidências e decisão.
+
+### 16.3 Bloqueador 3 — protocolo SEFI, accession_number e QR Code
+
+**Constatação:** o `accession_number` é gerado no serviço de criação de amostra, é único e participa da identificação operacional/QR. O QR atual deriva desse identificador. Alterar seu significado para representar um protocolo emitido somente após aceite pode quebrar compatibilidade com registros, etiquetas, consultas e histórico existentes.
+
+**Decisão arquitetural:** manter três conceitos distintos:
+1. **Número da solicitação:** identifica a demanda desde o cadastro, inclusive antes da entrega.
+2. **Número de protocolo SEFI:** identifica o ingresso formalmente aceito, gerado somente depois das condições de aceite e validações aplicáveis.
+3. **accession_number:** identificador interno da amostra operacional, gerado quando o `DeviceSample` for criado após o aceite; preserva o vínculo com a custódia, os ensaios e o QR atual.
+
+Os três identificadores devem ser únicos em seus respectivos domínios, não reutilizáveis e exibidos com rótulos inequívocos. O QR existente deve continuar resolvendo o identificador interno da amostra, sem ser reinterpretado como número de solicitação ou protocolo SEFI. A regra final de numeração e a necessidade de exibir mais de um identificador dependem de confirmação institucional.
+
+### 16.4 Arquitetura revisada e fluxo prevalente
+
+O fluxo recomendado passa a ser:
+
+1. Servidor SEFI cadastra a solicitação em nome do solicitante/representante, incluindo os dados declarados do dispositivo.
+2. A solicitação recebe identificador próprio e permanece sem `DeviceSample`.
+3. É registrada a única entrega física, criando `Receipt` e preservando data/hora, recebedor, checklist versionado, respostas e evidências.
+4. O conferente formaliza aceite, aceite com ressalvas ou recusa, com justificativa e autoria.
+5. Exceções que exigem coordenação permanecem pendentes até decisão formal. Bloqueios impeditivos não podem ser superados por justificativa simples.
+6. Após decisão favorável e validações obrigatórias, a transação cria o `DeviceSample`, gera o `accession_number`, inicia a custódia e gera o protocolo SEFI conforme a regra institucional aprovada.
+7. O planejamento dos ensaios e o fluxo laboratorial seguem vinculados ao `DeviceSample`.
+
+O número da solicitação pode existir antes do recebimento; o protocolo SEFI e o `accession_number` não devem ser antecipados para simular uma amostra já recebida.
+
+### 16.5 Riscos técnicos adicionais que condicionam a implementação
+
+| Tema | Constatação/risco | Condição para implementação |
+|---|---|---|
+| Enums PostgreSQL | O projeto utiliza enums nativos. Inclusões/renomeações de valores podem ter limitações de reversão e efeitos diferentes entre PostgreSQL e SQLite. | Inventariar valores e dependências; preferir estratégia compatível e testar upgrade/downgrade em PostgreSQL descartável. |
+| Triggers de imutabilidade | Há definições em `backend/app/db/sql/001_immutability.sql` e snapshot de migração em `0002_guards.py`. | Atualizar de forma coordenada os mecanismos de desenvolvimento/teste e a migração implantável; testar todas as novas tabelas append-only. |
+| Sequências | A allowlist em `backend/app/db/dialect.py` contempla `sample_accession_seq` e `capa_code_seq`. | Qualquer nova sequência deve ser incluída na estratégia PostgreSQL/SQLite, migração, allowlist e testes. |
+| Assinaturas | `SignatureAction` possui conjunto limitado de ações; novas decisões podem exigir novas ações/significados. A emissão do token deve validar a autorização para o ato solicitado, não apenas sua utilização posterior. | Mapear ações e entidades, revisar autorização na emissão e consumo do token, e planejar alterações de enum/migração. |
+| Concorrência | O projeto usa coluna `version` e bloqueios/checagens explícitos nos serviços; não se deve presumir versionamento automático do ORM. | Exigir versão esperada nas operações de alteração/decisão e testar concorrência e reenvio. |
+| Idempotência | Não há garantia geral de idempotência para todas as criações/reenvios. | Definir chave/estratégia de idempotência e tratamento de UUID de cliente antes de expor operações críticas. |
+| Migração de legado | `device_samples` já contém dados e relações operacionais; tornar vínculo com solicitação obrigatório sem plano de preenchimento pode bloquear a migração. | Fazer migração aditiva, permitir fase transitória, relacionar apenas quando houver correspondência confiável e só então avaliar NOT NULL. |
+| Estados | Estado de amostra/ensaio e resultado técnico não devem representar recusa de recebimento. | Modelar estados próprios de solicitação, recebimento, decisão, amostra, execução, revisão e laudo. |
+| LGPD e auditoria | A trilha pode registrar snapshots extensos de dados, inclusive dados pessoais, e possui recursos de exportação. | Definir minimização, finalidade/base legal, acesso, retenção, mascaramento e descarte/anonimização compatíveis com obrigações de integridade e guarda. |
+| Testes de reversão | O pipeline verificado não comprova cobertura de downgrade; há migração cujo downgrade é no-op. | Acrescentar testes explícitos de reversão/recuperação em banco descartável e documentar migrações intencionalmente irreversíveis. |
+
+### 16.6 Entidades de decisão e lacunas funcionais
+
+A modelagem deve contemplar registros próprios, imutáveis ou versionados conforme o ato, para:
+- decisão de recebimento do conferente;
+- análise/validação da coordenação, incluindo devolução, aprovação e rejeição;
+- revisão técnica de resultados, com devolução para correção e histórico;
+- aprovação do conjunto de resultados;
+- laudo consolidado e suas versões;
+- anexos/evidências com metadados, hash, controle de acesso e política de retenção.
+
+Também devem ser previstos, em etapas próprias, equipamentos e situação metrológica, versão do método efetivamente aplicada, condições ambientais quando pertinentes e notificações. A ausência dessas estruturas não deve ser encoberta por campos genéricos ou simples comentários.
+
+### 16.7 Limite e precedência documental
+
+Esta revisão corrige a recomendação anterior de criar `DeviceSample` antes do recebimento e de habilitar solicitantes externos por simples reaproveitamento do RBAC. Em caso de conflito entre esta seção e trechos anteriores, prevalecem as decisões e condições desta seção 16.
+
+As conclusões são condicionantes de arquitetura e segurança, não autorização para implementação. A implementação permanece dependente de aprovação expressa do desenho revisado e das decisões institucionais pendentes.
