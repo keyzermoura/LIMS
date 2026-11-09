@@ -165,7 +165,7 @@ A estrutura conceitual proposta é:
 ```mermaid
 erDiagram
     SOLICITACAO ||--|| DEVICE_SAMPLE : identifica
-    SOLICITACAO ||--o{ RECEBIMENTO : registra
+    SOLICITACAO ||--|| RECEBIMENTO : registra
     DEVICE_SAMPLE ||--o{ LAB_TEST : possui
     LAB_TEST ||--o{ TEST_EXECUTION : executado_em
     TEST_EXECUTION ||--o{ TEST_RESULT : produz
@@ -185,7 +185,7 @@ erDiagram
 |---|---|---|
 | `solicitations` | Nova | Registrar demanda, solicitante, origem, datas, prioridade e situação. |
 | `device_samples` | Evoluir | Identificar o dispositivo vinculado à solicitação. |
-| `receipts` | Nova | Registrar recebimento físico, conferência, aceite, ressalvas ou recusa. |
+| `receipts` | Nova | Registrar a única entrega física da solicitação, conferência, aceite, ressalvas ou recusa. |
 | `lab_tests` | Reaproveitar/evoluir | Representar cada ensaio planejado para o dispositivo. |
 | `test_executions` | Nova | Registrar cada execução independente do ensaio. |
 | `test_results` | Evoluir | Registrar resultados, unidades, dados brutos, cálculos e conclusões. |
@@ -300,7 +300,286 @@ A recomendação é evoluir incrementalmente o sistema, começando por **solicit
 - [x] Modelo conceitual recomendado.
 - [x] Registro do estado da CI consultada.
 - [x] Plano de evolução proposto.
-- [ ] Aprovação do desenho detalhado de solicitação e recebimento.
+- [x] Aprovação das regras operacionais do desenho detalhado de solicitação e recebimento, conforme consolidação da Entrega 1 — adendo de 09/11/2026.
 - [ ] Implementação das próximas etapas.
 
 **Observação:** esta entrega é documental. Não inclui alteração de código, banco de dados, migrações ou configuração da aplicação.
+
+
+---
+
+## 14. Desenho detalhado consolidado — Etapa 1: solicitação e recebimento
+
+**Adendo de consolidação:** 09/11/2026. Este capítulo registra as decisões operacionais fornecidas pelo SEFI e prevalece sobre qualquer formulação anterior deste documento que seja incompatível com elas. A aprovação aqui registrada é do desenho funcional; não autoriza, por si só, iniciar alterações no código ou no banco de dados.
+
+### 14.1 Decisões operacionais confirmadas
+
+| Tema | Decisão consolidada | Consequência para o sistema |
+|---|---|---|
+| Quem cadastra | Solicitante externo ou servidor do SEFI | O fluxo deve aceitar solicitações originadas por usuários externos e por usuários internos autorizados. |
+| Entrega física | Uma única entrega por solicitação | Cada solicitação terá no máximo um recebimento físico. Não haverá recebimentos parciais/complementares associados à mesma solicitação. |
+| Responsável pela decisão | O servidor que realiza a conferência | O conferente registra e formaliza a decisão. A coordenação valida quando a regra institucional ou a situação exigir. |
+| Geração do protocolo SEFI | Após decisão favorável de recebimento | Não gerar protocolo SEFI no simples cadastro nem na chegada física. Gerar somente após decisão favorável e, quando exigida, validação da coordenação. |
+
+### 14.2 Escopo funcional e fronteiras
+
+A Etapa 1 compreende:
+1. cadastro e submissão da solicitação;
+2. identificação do único dispositivo vinculado;
+3. registro da chegada física em uma única entrega;
+4. conferência documental e física;
+5. decisão de recebimento pelo servidor conferente;
+6. validação da coordenação nos casos configurados como sujeitos a validação;
+7. geração do protocolo SEFI após a decisão favorável;
+8. disponibilização da solicitação aceita para a etapa seguinte de planejamento dos ensaios.
+
+Não fazem parte desta etapa o planejamento detalhado dos ensaios, sua execução, revisão técnica dos resultados ou emissão do laudo. A Etapa 1 apenas deverá deixar a solicitação em estado compatível com o encaminhamento futuro.
+
+### 14.3 Atores, autenticação e permissões
+
+**Solicitante externo**
+- Pode iniciar e cadastrar uma solicitação pelo canal disponibilizado pelo LIMS.
+- Informa seus dados de identificação e contato, a instituição de origem e os dados do dispositivo.
+- Pode consultar as solicitações às quais está vinculado, conforme as permissões definidas.
+- Não pode registrar recebimento, executar conferência, decidir aceite/recusa nem gerar protocolo SEFI.
+- A consulta externa deve impedir acesso a solicitações de terceiros.
+
+**Servidor do SEFI**
+- Pode cadastrar solicitação em nome de uma unidade ou solicitante, identificando a origem e o responsável pela demanda.
+- Pode registrar a chegada física e executar a conferência, desde que possua a permissão correspondente.
+- O servidor que realiza a conferência formaliza a decisão de recebimento.
+- Não deve conseguir validar em nome da coordenação quando a validação for exigida e a sua permissão não contemplar essa atribuição.
+
+**Coordenação**
+- Pode consultar solicitações e registros de recebimento.
+- Realiza validação adicional quando exigida pelas regras institucionais ou encaminhada pelo conferente.
+- A validação deve ser uma ação identificada, com usuário, data/hora, decisão e observação.
+- Não deve apagar ou substituir a decisão originalmente registrada pelo conferente.
+
+**Administrador**
+- Configura perfis, permissões e parâmetros controlados.
+- Não deve alterar silenciosamente decisões operacionais já formalizadas.
+
+A autenticação do solicitante externo, o mecanismo de recuperação de acesso e a política de verificação de identidade deverão ser definidos no desenho técnico de segurança. O cadastro externo não deve ser tratado como usuário interno nem receber permissões por herança.
+
+### 14.4 Dados da solicitação
+
+A entidade de solicitação deverá contemplar, no mínimo:
+
+| Campo conceitual | Obrigatoriedade | Regra |
+|---|---|---|
+| Identificador interno | Obrigatório | UUID ou padrão interno equivalente, imutável. |
+| Número da solicitação | Obrigatório | Número legível, único e gerado pelo sistema. |
+| Data/hora de criação | Obrigatório | Gerada pelo servidor, armazenada com fuso/UTC de forma consistente. |
+| Origem do cadastro | Obrigatório | Externo ou servidor SEFI. |
+| Solicitante responsável | Obrigatório | Usuário autenticado ou identificação institucional validada. |
+| Instituição de origem | Obrigatório | Nome e, quando aplicável, identificador institucional. |
+| Unidade/setor | Condicional | Quando informado ou aplicável. |
+| Contato | Obrigatório | E-mail ou outro canal institucional válido para retorno. |
+| Finalidade | Obrigatório | Motivo do encaminhamento ao laboratório. |
+| Tipo de solicitação | Obrigatório | Valor de catálogo configurável. |
+| Prioridade | Obrigatório | Valor de catálogo e justificativa quando prioritária, conforme regra institucional. |
+| Observações | Opcional | Texto complementar. |
+| Estado da solicitação | Obrigatório | Controlado por transições de estado, não por texto livre. |
+
+O cadastro deve distinguir quem efetivamente preencheu/submeteu a solicitação de quem é o solicitante responsável, especialmente quando um servidor do SEFI registrar a demanda em nome de outra pessoa ou unidade.
+
+### 14.5 Dados do dispositivo
+
+Cada solicitação terá exatamente um dispositivo associado. Os campos existentes em `DeviceSample` devem ser reaproveitados sempre que compatíveis.
+
+| Campo conceitual | Regra |
+|---|---|
+| Categoria/tipo de dispositivo | Obrigatório, preferencialmente catálogo controlado. |
+| Fabricante | Obrigatório, conforme informação declarada/disponível. |
+| Nome comercial | Recomendado. |
+| Marca | Opcional, quando distinta do fabricante. |
+| Modelo/referência | Informar quando existente. |
+| Lote | Obrigatório quando aplicável ao tipo de dispositivo. |
+| Número de série | Opcional quando o produto não possuir série individual. |
+| Registro/notificação ANVISA | Informar quando aplicável/disponível. |
+| Quantidade declarada/encaminhada | Obrigatória, maior que zero. |
+| Unidade de medida | Obrigatória, de catálogo controlado. |
+| Identificação complementar | Opcional, para características necessárias à rastreabilidade. |
+
+A quantidade declarada na solicitação deve ser preservada separadamente da quantidade efetivamente recebida. A regra de identificação não pode impedir solicitações distintas do mesmo fabricante, produto ou lote. O protocolo da solicitação, e não a combinação comercial fabricante/lote/série, é o identificador único do processo.
+
+### 14.6 Registro único de recebimento físico
+
+A cardinalidade aprovada é **uma solicitação para um dispositivo e, no máximo, um recebimento físico**. A chegada do dispositivo deve ser registrada uma única vez para aquela solicitação.
+
+O registro de recebimento deve conter:
+- identificador interno;
+- solicitação vinculada, com restrição de unicidade que impeça segundo recebimento;
+- data e hora efetivas da chegada;
+- servidor que recebeu;
+- servidor responsável pela conferência, que pode ser o mesmo recebedor;
+- quantidade efetivamente recebida;
+- forma de entrega, quando pertinente;
+- condição da embalagem e do dispositivo;
+- observações e divergências;
+- referências às evidências/documentos, quando disponíveis.
+
+Se a quantidade recebida divergir da declarada, o sistema deve registrar a divergência e exigir sua avaliação na conferência. Não deve criar um segundo recebimento para corrigir a quantidade. Correções de dados devem ser auditadas e não podem apagar o valor originalmente informado.
+
+### 14.7 Conferência
+
+A conferência será registrada por itens individualizados, com resultado:
+- Conforme;
+- Não conforme;
+- Não aplicável.
+
+Checklist inicial proposto:
+1. identificação do dispositivo compatível com a solicitação;
+2. fabricante identificado;
+3. modelo/referência identificado, quando existente;
+4. lote identificado, quando aplicável;
+5. número de série conferido, quando existente;
+6. quantidade recebida conferida;
+7. embalagem em condição adequada;
+8. documentação correspondente à solicitação;
+9. ausência de dano aparente que inviabilize ou comprometa a avaliação;
+10. observações e evidências de divergências.
+
+O checklist deverá ser configurável e versionado, para que alterações futuras não modifiquem retrospectivamente o conteúdo de conferências já concluídas. Itens marcados como não conformes exigem observação. Itens não aplicáveis exigem justificativa quando assim definido pela configuração.
+
+### 14.8 Decisão de recebimento e validação da coordenação
+
+A decisão é formalizada pelo servidor que realizou a conferência. São permitidos três resultados:
+
+- **Aceito:** requisitos de entrada atendidos.
+- **Aceito com ressalvas:** entrada permitida, com ressalvas registradas e sem pendência impeditiva para a entrada no fluxo.
+- **Recusado:** entrada não aprovada, com justificativa obrigatória.
+
+A decisão deve registrar conferente, data/hora, resultado, justificativa/observações e referência à versão do checklist utilizada.
+
+A validação da coordenação é condicional, não universal. O sistema deverá permitir identificar os casos em que ela é obrigatória por regra institucional ou por encaminhamento fundamentado do conferente. Quando exigida:
+- a decisão do conferente fica registrada como pendente de validação;
+- a coordenação registra aprovar ou devolver/rejeitar a decisão, com responsável, data/hora e justificativa;
+- a decisão favorável somente produz os efeitos de aceite final após a validação;
+- a coordenação não substitui nem apaga o registro original do conferente.
+
+A matriz objetiva de situações que exigem validação da coordenação ainda deverá ser definida pelo SEFI antes da implementação. Até essa definição, não se deve codificar critérios arbitrários. A configuração inicial deve permitir encaminhamento explícito à coordenação, sem presumir que todo aceite exija validação.
+
+### 14.9 Geração do protocolo SEFI
+
+O número da solicitação é criado no cadastro. O protocolo SEFI é outro identificador e só poderá ser gerado quando:
+1. o recebimento único estiver registrado;
+2. a conferência estiver concluída;
+3. a decisão for Aceito ou Aceito com ressalvas;
+4. não houver pendência impeditiva;
+5. a validação da coordenação estiver concluída favoravelmente, se exigida.
+
+O protocolo deve ser único, imutável e não reutilizável. A geração deve ocorrer em operação transacional, evitando duplicidade em tentativas simultâneas ou repetição de requisições. A etiqueta/QR Code deverá usar o protocolo SEFI gerado, preservando o mecanismo de QR Code já existente quando tecnicamente compatível.
+
+Solicitações recusadas, ainda não recebidas ou aguardando validação não recebem protocolo SEFI. Se houver correção posterior ou reversão excepcional de decisão, o sistema deverá registrar novo evento auditável; não deve apagar nem reutilizar identificadores.
+
+### 14.10 Estados e transições da Etapa 1
+
+Recomenda-se manter estados distintos para solicitação, recebimento e decisão.
+
+**Solicitação**
+- Em elaboração;
+- Aguardando recebimento;
+- Em conferência;
+- Aguardando validação da coordenação;
+- Recebida — apta ao planejamento;
+- Recusada;
+- Cancelada.
+
+**Recebimento**
+- Não registrado;
+- Registrado;
+- Em conferência;
+- Conferência concluída.
+
+**Decisão**
+- Não formalizada;
+- Aceito;
+- Aceito com ressalvas;
+- Recusado;
+- Aguardando validação;
+- Validado pela coordenação;
+- Devolvido/rejeitado pela coordenação.
+
+Transições principais:
+1. criação da solicitação → Em elaboração;
+2. submissão → Aguardando recebimento;
+3. registro da chegada → Em conferência;
+4. conclusão do checklist e decisão do conferente → decisão registrada;
+5. se validação for exigida → Aguardando validação da coordenação;
+6. validação favorável, ou decisão do conferente sem necessidade de validação → aceite final;
+7. aceite final → geração do protocolo SEFI e estado Recebida — apta ao planejamento;
+8. recusa → estado Recusada, sem protocolo SEFI;
+9. cancelamento → permitido somente com justificativa e conforme permissões/regras institucionais.
+
+A recusa de recebimento não deve ser confundida com reprovação de ensaio. A solicitação recusada permanece consultável e auditável.
+
+### 14.11 Entidades e restrições de dados revisadas
+
+| Entidade | Cardinalidade/regra consolidada |
+|---|---|
+| `solicitations` | Uma solicitação representa uma demanda e tem um único dispositivo. |
+| `device_samples` | Relação 1:1 com solicitação; dados de identificação do dispositivo. |
+| `receipts` | Relação 1:0..1 com solicitação; no máximo um recebimento físico. |
+| `receipt_checklist_items` ou equivalente | Vários itens por recebimento, vinculados à versão do checklist. |
+| `receipt_decisions` ou histórico equivalente | Histórico de decisões do conferente e validações da coordenação, sem sobrescrita. |
+| `attachments` | Arquivos/documentos associados à solicitação, recebimento ou conferência, com controle de acesso e integridade. |
+| `audit_logs` | Eventos de cadastro, submissão, recebimento, conferência, decisão, validação e geração do protocolo. |
+
+A relação conceitual atualizada para o recebimento é:
+
+```mermaid
+erDiagram
+    SOLICITATION ||--|| DEVICE_SAMPLE : identifica
+    SOLICITATION ||--o| RECEIPT : recebe_unica_entrega
+    RECEIPT ||--o{ RECEIPT_CHECKLIST_ITEM : contem
+    RECEIPT ||--o{ RECEIPT_DECISION : possui_historico
+    SOLICITATION ||--o{ ATTACHMENT : documenta
+    RECEIPT ||--o{ ATTACHMENT : evidencia
+    SOLICITATION ||--o{ AUDIT_LOG : audita
+```
+
+A cardinalidade 1:0..1 significa que a solicitação pode ainda não ter chegado; depois do registro, não poderá haver segundo recebimento. A existência de vários registros históricos de decisão não representa várias entregas.
+
+### 14.12 Critérios de aceite específicos da Etapa 1
+
+A implementação será considerada funcionalmente aceita quando:
+1. usuário externo autorizado e servidor do SEFI conseguirem cadastrar solicitação conforme suas permissões;
+2. cadastro por servidor permitir identificar o solicitante/origem da demanda;
+3. cada solicitação tiver exatamente um dispositivo associado;
+4. cada solicitação aceitar no máximo um recebimento físico;
+5. quantidade declarada e recebida forem registradas separadamente;
+6. checklist registrar resultado por item, observação e versão;
+7. somente o servidor responsável pela conferência (ou perfil autorizado em regra explícita) formalizar a decisão;
+8. a validação da coordenação ocorrer somente nos casos configurados como obrigatórios;
+9. aceite com ressalvas exigir descrição e não permitir pendência impeditiva para o avanço;
+10. recusa exigir justificativa e não gerar protocolo SEFI;
+11. protocolo SEFI ser gerado apenas após decisão favorável e validação da coordenação, quando exigida;
+12. geração do protocolo ser única, transacional e idempotente;
+13. alterações e decisões permanecerem auditáveis;
+14. solicitante externo não acessar solicitações de terceiros nem executar funções internas;
+15. testes automatizados cobrirem cadastro interno/externo, entrega única, duplicidade de recebimento, divergência de quantidade, aceite, ressalva, recusa, validação condicional, geração de protocolo e permissões.
+
+### 14.13 Pendências de definição institucional antes do desenvolvimento
+
+As decisões principais desta etapa estão consolidadas. Permanecem apenas definições de parametrização que não devem ser inventadas pela implementação:
+- quais situações específicas tornam obrigatória a validação da coordenação;
+- quais tipos de solicitação e prioridades serão disponibilizados;
+- quais campos/documentos serão obrigatórios para cada tipo de dispositivo ou solicitação;
+- quais critérios do checklist são impeditivos para aceite e quais admitem ressalva;
+- política de autenticação e validação cadastral dos solicitantes externos;
+- padrão de numeração e apresentação do protocolo SEFI.
+
+Essas definições podem ser registradas em catálogo/configuração institucional, sem alterar a arquitetura central.
+
+### 14.14 Situação da Etapa 1
+
+- [x] Decisão sobre quem pode cadastrar: solicitante externo e servidor do SEFI.
+- [x] Decisão sobre entrega: uma única entrega por solicitação.
+- [x] Decisão sobre responsabilidade: conferente formaliza; coordenação valida quando necessário.
+- [x] Decisão sobre protocolo: gerado após decisão favorável.
+- [x] Consolidação do fluxo, dados, permissões, entidades, estados e critérios de aceite.
+- [ ] Definição dos parâmetros institucionais pendentes.
+- [ ] Aprovação final dos parâmetros e do desenho técnico.
+- [ ] Implementação em branch de trabalho dedicada, sem alteração direta da branch principal.
