@@ -1,8 +1,8 @@
 # Modelo Relacional Preliminar do LIMS
 
 **Identificador:** MOD-REL-001  
-**Versão:** 0.1  
-**Situação:** Proposta técnica preliminar para revisão funcional e arquitetural; não aprovada para implementação  
+**Versão:** 0.2  
+**Situação:** Proposta técnica preliminar atualizada conforme diretrizes DEC04/DEC05 aprovadas pelo usuário para orientar o desenho; revisão arquitetural/institucional e autorização de implementação pendentes  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -15,7 +15,7 @@ Traduzir o modelo conceitual de solicitação, recebimento, conferência, custó
 
 Este documento é **proposta documental**. Não autoriza nem executa alterações em código, modelos SQLAlchemy, banco de dados, migrações Alembic, API, frontend ou infraestrutura. Os nomes físicos sugeridos são lógicos e poderão ser ajustados à convenção já adotada no projeto.
 
-A modelagem não deve ser congelada enquanto DEC04, DEC05, DEC07, DEC08 e as questões EST01–EST10 não estiverem resolvidas nos pontos que afetam integridade, autorização e fluxo.
+As diretrizes de domínio e as cardinalidades DEC04/DEC05 foram aprovadas pelo usuário para orientar o desenho. O modelo relacional permanece preliminar porque DEC07, DEC08, EST01–EST10, a inspeção do schema legado e a revisão arquitetural/institucional ainda precisam ser concluídas. Esta aprovação não autoriza implementação.
 
 ## 2. Fontes e premissas
 
@@ -23,7 +23,7 @@ A proposta foi elaborada a partir da revisão dos documentos versionados na bran
 
 - \`INVENTARIO_TECNICO_FASE_0_1.md\`, versão 1.1;
 - \`MODELO_CONCEITUAL_DOMINIO_SOLICITACAO_RECEBIMENTO.md\`, versão 0.2;
-- \`MATRIZ_DECISOES_LIMS.md\`, versão 1.1;
+- \`MATRIZ_DECISOES_LIMS.md\`, versão 1.2;
 - \`ESTRATEGIA_MIGRACAO_DADOS_LEGADOS.md\`, versão 0.2;
 - \`ESPECIFICACAO_INTERFACE_ETAPA_1_RECEBIMENTO.md\`, versão 0.1;
 - \`ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md\`, versão 0.2.
@@ -204,7 +204,7 @@ Regras:
 - não presumir que cada unidade física exige cadastro individual;
 - se houver decisão, resultado ou destino independente, o material deve ser discriminado no nível apropriado.
 
-**DEC04/DEC05:** a entidade é recomendação de desenho, ainda pendente de aprovação. A cardinalidade definitiva e a possibilidade de dividir/reagrupar objetos devem ser validadas com cenários reais.
+**DEC04/DEC05:** a entidade e as cardinalidades abaixo foram aprovadas pelo usuário como diretriz de desenho do projeto em 2026-11-09. A formalização institucional e a validação dos procedimentos técnicos aplicáveis permanecem pendentes. O fracionamento deve ser uma operação explícita, auditável e quantitativamente reconciliada.
 
 ### 5.7 CustodyEvent
 
@@ -386,27 +386,25 @@ Regra: deve existir exatamente um alvo de associação entre solicitação, item
 
 ### 5.16 Relação com DeviceSample
 
-**Finalidade:** preservar o modelo operacional existente e vinculá-lo ao fluxo de recebimento somente após aceite final.
+**Finalidade:** preservar o modelo operacional existente e vinculá-lo ao fluxo de recebimento somente após aceite final, sem permitir que uma amostra nova reúna vários objetos de custódia.
 
-Proposta de vínculo explícito por tabela associativa:
+**Regra aprovada para o desenho-base — relação 1:0..1:**
+- cada `CustodyObject` pode estar associado a zero ou uma `DeviceSample`;
+- cada `DeviceSample` pode estar associada a zero ou um `CustodyObject` no schema de compatibilidade, pois amostras legadas permanecem sem vínculo;
+- para novas amostras criadas pelo fluxo de aceite, o vínculo com exatamente um `CustodyObject` de origem é obrigatório;
+- a unicidade de `DeviceSample.custody_object_id` impede que o mesmo objeto origine duas amostras;
+- associação N:M e tabela associativa `DeviceSampleCustodyObject` não fazem parte do desenho-base.
 
-**DeviceSampleCustodyObject**
-- id (PK);
-- device_sample_id (FK → DeviceSample, NOT NULL);
-- custody_object_id (FK → CustodyObject, NOT NULL);
-- created_at, created_by_id;
-- UNIQUE (device_sample_id, custody_object_id).
-
-A tabela associativa admite, no nível estrutural, que uma amostra reúna mais de um objeto ou que um objeto esteja relacionado a mais de uma amostra. Isso **não significa** que qualquer combinação seja permitida operacionalmente: DEC05 deverá definir a cardinalidade efetiva e as regras de agrupamento/divisão. Se a decisão final for estritamente 1:0..1, poderá ser simplificada para FK nullable em DeviceSample ou CustodyObject.
+**Mapeamento lógico preferencial:** adicionar em `DeviceSample` uma FK nullable `custody_object_id → CustodyObject.id`, com constraint UNIQUE para valores não nulos. A nulabilidade preserva registros legados; a obrigatoriedade para novas amostras deve ser imposta pelo serviço/transação de criação e, se tecnicamente viável, por regra de integridade que distinga o fluxo novo do legado. O nome físico e a localização final da FK dependem da inspeção do schema SQLAlchemy/Alembic.
 
 Compatibilização:
-- manter \`DeviceSample\` e sua PK atual;
-- manter \`accession_number\` até decisão DEC07;
-- avaliar se \`accession_number\` já cumpre a função de identificador institucional, incluindo sequence, unicidade, QR Code, etiquetas, relatórios e integrações;
+- manter `DeviceSample` e sua PK atual;
+- manter `accession_number` até decisão DEC07;
+- avaliar se `accession_number` já cumpre a função de identificador institucional, incluindo sequence, unicidade, QR Code, etiquetas, relatórios e integrações;
 - não criar campo equivalente sem justificativa;
 - não alterar o significado do QR Code sem análise de compatibilidade;
 - preservar referências legadas nullable, sem associação retroativa inventada;
-- para novas amostras, estabelecer o vínculo com ReceiptItem/CustodyObject no mesmo fluxo transacional do aceite final.
+- para novas amostras, estabelecer o vínculo com o `CustodyObject` no mesmo fluxo transacional do aceite final.
 
 ### 5.17 Identificador institucional
 
@@ -416,7 +414,7 @@ A criação deve ser transacional e idempotente. Reenvio da mesma operação, re
 
 ## 6. Diagrama relacional preliminar
 
-O diagrama apresenta relações centrais, sem reproduzir todas as tabelas de vínculo de evidências e sem fixar a cardinalidade final entre objetos e amostras.
+O diagrama apresenta relações centrais e reflete a cardinalidade aprovada para DEC04/DEC05. Não reproduz todas as tabelas de vínculo de evidências nem fixa nomes físicos definitivos.
 
 \`\`\`mermaid
 erDiagram
@@ -436,8 +434,7 @@ erDiagram
   RECEIPT_ITEM ||--o{ PENDING_ISSUE : may_have
   RECEIPT_ITEM ||--o{ RECEIPT_DECISION : decided_by
   RECEIPT_DECISION ||--o{ COORDINATION_VALIDATION : reviewed_by
-  DEVICE_SAMPLE ||--o{ SAMPLE_CUSTODY_OBJECT : linked
-  CUSTODY_OBJECT ||--o{ SAMPLE_CUSTODY_OBJECT : linked
+  CUSTODY_OBJECT o|--o| DEVICE_SAMPLE : originates
   DEVICE_SAMPLE ||--o{ LAB_TEST : tested_in
   SOLICITATION ||--o{ EXTERNAL_REFERENCE : references
   SOLICITATION_ITEM ||--o{ EXTERNAL_REFERENCE : references
@@ -446,7 +443,7 @@ erDiagram
 
 **Observações do diagrama:**
 - A relação SolicitationItem–ReceiptItem foi desenhada como opcional no lado do recebimento porque o recebimento ainda não existe enquanto a solicitação está em preparação. Quando Receipt existir, deve haver exatamente um ReceiptItem para cada SolicitationItem, inclusive para os não apresentados.
-- A tabela associativa SAMPLE_CUSTODY_OBJECT representa uma alternativa flexível; sua cardinalidade operacional depende de DEC05.
+- A relação CUSTODY_OBJECT–DEVICE_SAMPLE é 1:0..1 no desenho-base. A opcionalidade preserva amostras legadas sem vínculo e objetos ainda não aceitos; novas amostras do fluxo de aceite devem ter exatamente um objeto de origem.
 - A relação legada DeviceSample–LabTest é ilustrativa da associação existente identificada no inventário; os nomes físicos e a cardinalidade exata devem ser confirmados no schema.
 - As referências externas devem ter exatamente um alvo por registro, apesar de o diagrama mostrar os três possíveis alvos.
 
@@ -465,7 +462,7 @@ erDiagram
 | ReceiptItem → PendingIssue | 1:N | Histórico de pendências e regularizações. |
 | ReceiptItem → ReceiptDecision | 1:N | Histórico de decisões, sem sobrescrita. |
 | ReceiptDecision → CoordinationValidation | 1:0..N | Apenas quando exigida; histórico preservado. |
-| CustodyObject ↔ DeviceSample | N:M estrutural proposta | Cardinalidade de negócio a decidir em DEC05. |
+| CustodyObject → DeviceSample | 1:0..1 | FK nullable e UNIQUE em DeviceSample.custody_object_id; obrigatória para novas amostras do fluxo de aceite. |
 | DeviceSample → LabTest | 1:N (a confirmar) | Preservar relação existente. |
 | ExternalReference → alvo | exatamente 1 | Solicitação OU item OU amostra, nunca múltiplos simultâneos. |
 
@@ -480,7 +477,7 @@ erDiagram
 5. UNIQUE em \`SolicitationItem(solicitation_id, item_number)\`.
 6. UNIQUE em \`ChecklistVersion(checklist_template_id, version_number)\`.
 7. UNIQUE em \`ChecklistCriterion(checklist_version_id, criterion_code)\`.
-8. UNIQUE em \`DeviceSampleCustodyObject(device_sample_id, custody_object_id)\`.
+8. UNIQUE em \`DeviceSample.custody_object_id\` para valores não nulos; não criar tabela associativa N:M.
 9. UNIQUE no identificador institucional efetivamente adotado.
 10. CHECKs para quantidades positivas, respostas/estados válidos e alvo único de ExternalReference.
 11. Integridade que impeça CustodyObject e DeviceSample para item não apresentado.
@@ -510,7 +507,7 @@ A operação de aceite final deve, em uma única transação:
 4. criar DeviceSample com os dados aprovados;
 5. atribuir identificador institucional único no backend;
 6. preservar o instante de chegada original e o usuário que recebeu fisicamente o material, sem confundir received_at/received_by com created_at/created_by;
-7. criar o vínculo DeviceSampleCustodyObject;
+7. criar DeviceSample já com a FK única para o CustodyObject de origem;
 8. registrar a continuidade/transferência de custódia como evento apropriado, sem duplicar o evento de chegada;
 9. registrar auditoria e, quando exigido, assinatura;
 10. commit.
@@ -577,8 +574,8 @@ Toda migração futura exige backup testado, plano de reversão, testes com cóp
 
 | Referência | Tema | Impacto relacional | Situação |
 |---|---|---|---|
-| DEC04 | Nível da custódia e continuidade até a amostra | FK de CustodyEvent/ChainOfCustody e relação com CustodyObject | Proposta: CustodyObject como alvo; aprovação pendente. |
-| DEC05 | Granularidade item/unidade/agrupamento/amostra/corpo de prova | Cardinalidade ReceiptItem–CustodyObject–DeviceSample | Pendente; exige cenários reais e decisão técnica do laboratório. |
+| DEC04 | Nível da custódia e continuidade até a amostra | FK de CustodyEvent/ChainOfCustody e relação com CustodyObject | Diretriz aprovada para o desenho; compatibilização física de ChainOfCustody pendente. |
+| DEC05 | Granularidade item/unidade/agrupamento/amostra/corpo de prova | Cardinalidade ReceiptItem–CustodyObject–DeviceSample | Diretriz aprovada para o desenho; validação dos procedimentos técnicos e formalização institucional pendentes. |
 | DEC07 | Papel de accession_number e identificador institucional | Reutilizar campo atual ou criar novo; unicidade e compatibilidade QR | Pendente de análise dos usos e aprovação. |
 | DEC08 | Migração e referências legadas | FKs nullable, compatibilidade, ausência de backfill inferido | Diretriz aditiva proposta; detalhes de implantação pendentes. |
 | EST01 | Perfis que cadastram, recebem e conferem | FKs de autoria e autorização por ação | Pendente. |
@@ -622,19 +619,20 @@ O modelo estará pronto para detalhamento físico quando:
 
 ## 14. Próxima etapa recomendada
 
-Realizar uma **revisão dirigida das cardinalidades e decisões DEC04/DEC05**, usando casos reais anonimizados do laboratório. Em seguida:
+Realizar uma **revisão arquitetural do modelo atualizado**, com foco em compatibilização com o schema existente e validação técnica dos cenários operacionais. Em seguida:
 
-1. confirmar se cada ItemDeclarado corresponde sempre a um único ReceiptItem;
-2. definir quando um ReceiptItem origina um ou vários CustodyObjects;
-3. decidir quando um CustodyObject pode ser agrupado ou dividido;
-4. definir se cada CustodyObject aceito origina exatamente uma DeviceSample ou se existem cenários de associação múltipla;
-5. fechar a estratégia de extensão/convivência com ChainOfCustody;
-6. somente então atualizar o DER e preparar o mapeamento físico para SQLAlchemy/Alembic.
+1. inspecionar modelos SQLAlchemy, migrações, FKs, consultas, triggers, relatórios e testes de \`ChainOfCustody\`;
+2. confirmar o ponto físico mais seguro para a FK nullable e UNIQUE entre \`DeviceSample\` e \`CustodyObject\`, preservando amostras legadas;
+3. revisar a operação de fracionamento/individualização e a reconciliação de quantidades;
+4. fechar DEC07 e DEC08 e resolver EST01–EST10 nos pontos que afetam persistência e autorização;
+5. preparar mapeamento físico e plano de migração aditiva, sem executá-los;
+6. submeter o modelo ao portão de aprovação institucional e obter autorização específica antes de qualquer implementação.
 
-Não iniciar implementação antes da aprovação do modelo, das decisões bloqueadoras e do portão institucional correspondente.
+As diretrizes DEC04/DEC05 aprovadas para o desenho não autorizam alterações em código, banco, API, frontend, migrações ou infraestrutura.
 
 ## 15. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-09 | Primeira proposta relacional, com entidades, PK/FK, cardinalidades, integridade, convivência com legado e estratégia de migração aditiva. |
+| 0.2 | 2026-11-09 | Atualização conforme aprovação do usuário para DEC04/DEC05: CustodyObject–DeviceSample 1:0..1, remoção da associação N:M, atualização do DER, constraints e transação de aceite. Revisão arquitetural/institucional e autorização de implementação permanecem pendentes. |
