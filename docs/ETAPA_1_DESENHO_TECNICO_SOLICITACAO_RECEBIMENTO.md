@@ -31,7 +31,7 @@ A proposta considera a arquitetura atualmente observada no repositório: FastAPI
 |---|---|
 | `DeviceSample` / `device_samples` | Continuar como cadastro operacional do dispositivo recebido, ampliando sua relação com a solicitação. |
 | `LabTest` / `lab_tests` | Continuar representando os ensaios planejados para o dispositivo. Não transformar cada execução em um novo `LabTest`. |
-| `User` / `users` | Identificar solicitante interno, recebedor, conferente e coordenador, observando os papéis existentes. |
+| `User` / `users` | Identificar operador interno, recebedor, conferente e coordenador. Solicitante/representante é dado cadastral na primeira entrega, sem conta externa. |
 | Serviço de auditoria | Registrar eventos de solicitação, recebimento, conferência, decisão e validação. |
 | Cadeia de custódia | Reutilizar para movimentações físicas posteriores, sem confundir movimentação com recebimento inicial. |
 | Assinatura eletrônica | Reavaliar sua aplicação a decisões formais segundo política institucional; não presumir que todo registro operacional exige assinatura eletrônica. |
@@ -42,9 +42,9 @@ O modelo atual de `DeviceSample` contém campos de identificação e recebimento
 
 - número de série deve admitir ausência quando o dispositivo não possuir série individual;
 - a identidade comercial não deve impedir solicitações diferentes do mesmo fabricante, lote ou produto;
-- o protocolo SEFI deve ser a chave operacional do processo, sem depender da combinação fabricante/lote/série;
-- dados da solicitação devem existir antes do recebimento físico;
-- dados do recebimento, conferência e decisão devem ser entidades próprias;
+- o número da solicitação identifica a demanda antes da entrega; o protocolo SEFI identifica o ingresso formalmente aceito e `accession_number` permanece como identificador interno da amostra/QR;
+- dados declarados da solicitação devem existir antes do recebimento físico, fora de `device_samples`;
+- dados do recebimento, custódia prévia, conferência e decisão devem ser entidades próprias;
 - não se deve apagar nem substituir o histórico de decisões.
 
 A alteração da restrição de unicidade e da obrigatoriedade dos campos existentes exige análise de dados legados e migração reversível sempre que tecnicamente possível.
@@ -534,6 +534,7 @@ Modelo prevalente:
 erDiagram
     SOLICITATION ||--o| RECEIPT : recebe
     SOLICITATION ||--o| DEVICE_SAMPLE : origina_apos_aceite
+    RECEIPT ||--o{ RECEIPT_CUSTODY_EVENT : custodia_antes_do_aceite
     DEVICE_SAMPLE ||--o{ LAB_TEST : possui
     LAB_TEST ||--o{ TEST_EXECUTION : tem
     TEST_EXECUTION ||--o{ TEST_RESULT : produz
@@ -586,7 +587,7 @@ Todos devem ser únicos, não reutilizáveis e claramente rotulados. O QR atual 
 
 1. **Cadastro assistido:** usuário interno autorizado registra solicitante/representante e dados declarados de um dispositivo.
 2. **Identificação da solicitação:** o backend gera o número próprio da solicitação. Ainda não existe `DeviceSample`, protocolo SEFI ou QR de amostra.
-3. **Entrega única:** no comparecimento físico, o servidor registra o recebimento, data/hora, responsável e condições observadas. A restrição de uma entrega por solicitação deve ser garantida no banco e no serviço, inclusive sob concorrência.
+3. **Chegada física e custódia:** no comparecimento, registrar `Receipt.arrived_at` como instante real da chegada, `received_by_id` como recebedor físico, quantidade e condições. Criar imediatamente o evento inicial de custódia vinculado ao `Receipt`; não aguardar a criação de `DeviceSample`. A restrição de uma entrega por solicitação deve ser garantida no banco e no serviço, inclusive sob concorrência.
 4. **Checklist:** o conferente preenche checklist versionado, respostas, justificativas e evidências. A versão aplicada fica congelada no recebimento.
 5. **Decisão do conferente:** aceite, aceite com ressalvas ou recusa, com usuário, data/hora, justificativa e assinatura/autenticação conforme política aprovada.
 6. **Validação da coordenação:** obrigatória para as situações definidas na matriz de critérios. A decisão deve registrar aprovar, devolver, rejeitar ou solicitar complementação, sem apagar a decisão anterior.
@@ -595,7 +596,7 @@ Todos devem ser únicos, não reutilizáveis e claramente rotulados. O QR atual 
 9. **Protocolo SEFI:** gerar conforme regra institucional, uma única vez, associado à solicitação, recebimento, decisão e amostra.
 10. **Fluxo laboratorial:** planejamento, execução, revisão técnica, aprovação da coordenação e laudo consolidado seguem em entidades próprias e etapas posteriores.
 
-A operação que cria a amostra e gera os identificadores deve ser protegida contra duplo clique, concorrência e reenvio de requisição. Se não for possível concluir tudo na mesma transação, deve existir estado intermediário recuperável, sem duplicar amostra, custódia ou protocolo.
+A operação que cria a amostra, gera `accession_number` e protocolo, vincula a custódia, registra assinatura e auditoria deve ser uma operação de domínio transacional e idempotente, protegida por constraints e controle de concorrência. Se não for possível concluir tudo em uma única transação, deve existir estado intermediário recuperável e reconciliação determinística, sem duplicar amostra, identificadores, custódia, assinatura ou protocolo.
 
 ### 16.3 Modelo lógico e nulabilidade
 
@@ -613,7 +614,7 @@ Modelo conceitual mínimo:
 | `LabTest` | N por amostra | Ensaio planejado. |
 | `TestExecution` | N por ensaio | Cada execução independente, executor, datas, método/equipamento e ocorrências. |
 
-A implementação deverá decidir se a relação entre `Solicitation` e `DeviceSample` será FK nullable na amostra ou FK nullable na solicitação. A escolha deve garantir no máximo uma amostra por solicitação, permitir registros legados sem solicitação e não exigir preenchimento artificial. Recomenda-se manter a relação transitória nullable durante a migração e aplicar unicidade apenas para vínculos não nulos. Não tornar `solicitation_id` obrigatório em massa sem backfill demonstrável.
+Adotar relação opcional entre `Solicitation` e `DeviceSample`, preferencialmente FK nullable na amostra, com unicidade para valores não nulos. Isso garante no máximo uma amostra por solicitação e permite registros legados sem solicitação. A escolha física deve respeitar as convenções ORM e a migração; não tornar `solicitation_id` obrigatório em massa nem preencher vínculos por inferência.
 
 Campos de lote e número de série devem ser opcionais quando a natureza do dispositivo permitir. A atual unicidade por fabricante/lote/série não deve impedir solicitações distintas legítimas. A identidade da solicitação e do ingresso deve ser garantida por seus identificadores próprios; eventual alerta de possível duplicidade de material não deve substituir regra de negócio validada.
 
@@ -673,6 +674,8 @@ A reprovação automática que hoje abre CAPA deve ser preservada para o context
 
 Antes de aprovar a implementação, o desenho deverá demonstrar por testes e restrições:
 - não existe `DeviceSample` antes do aceite;
+- a custódia física começa na chegada, antes da criação da amostra;
+- `DeviceSample.received_at` preserva `Receipt.arrived_at`, e `received_by_id` identifica o recebedor físico original; `created_at` registra separadamente a criação da amostra;
 - solicitação recusada preserva todos os registros e não gera amostra;
 - não é possível registrar duas entregas para a mesma solicitação, inclusive sob concorrência;
 - não é possível criar duas amostras ou dois protocolos para a mesma solicitação;
