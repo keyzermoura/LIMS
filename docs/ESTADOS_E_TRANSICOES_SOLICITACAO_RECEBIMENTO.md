@@ -1,7 +1,7 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 1.5  
+**Versão:** 1.6
 **Situação:** Proposta consolidada após auditoria EST01–EST10 e revisão multidisciplinar; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -1396,3 +1396,14 @@ CA25–CA37 são propostas de complementação funcional derivadas da revisão m
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.5 | 2026-11-10 | Complementos multidisciplinares sobre quantidades, timestamps, taxonomia de custódia, protocolo/accession/QR, isolamento de solicitante, concorrência, idempotência, histórico, evidências e dados legados; critérios propostos CA25–CA37. |
+
+
+## 10. Adendo — decisões pré-validadas D01–D20
+
+As decisões D01–D20 foram consolidadas em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md` (versão 1.0). Incorporar ao desenho das transições e regras: registro de chegada e seus metadados (D01–D02); quantidades e granularidade de objetos (D03–D04); pendências e recusa (D05–D06); eventos distintos de transferência e localização (D07–D08); retificação (D09); validação independente (D10); checklists versionados e governados (D11–D12); anexos e auditoria (D13–D14); acesso individual e assinatura (D15–D16); continuidade (D17); identificadores (D18); chegada posterior (D19); barreira formal de admissão e criação de amostra (D20).
+
+Este adendo registra pré-validação funcional do usuário, ainda sujeita à validação institucional do SEFI. Não altera o status do Gate G0 nem autoriza implementação.
+
+### Histórico de versões
+
+| 1.6 | 2026-11-10 | Adendo de rastreabilidade às decisões pré-validadas D01–D20. |
