@@ -168,3 +168,18 @@ As diretrizes gerais foram validadas em revisão do projeto, não institucionalm
 | Versão | Data | Alteração |
 |---|---|---|
 | 2.2 | 2026-11-10 | Registro das diretrizes GOV01–GOV05 validadas em revisão e referência à consolidação documental do Pacote 1; fechamento técnico/institucional e implementação permanecem pendentes. |
+
+
+## 12. Revisão técnica e proposta consolidada do Pacote 1
+
+Em 2026-11-10, foi registrada a inspeção estática REV-LIMS-GOV-001 (`docs/REVISAO_TECNICA_PACOTE_1_GOVERNANCA.md`), que identificou autenticação JWT, RBAC básico, assinatura eletrônica de duas etapas e auditoria encadeada, mas não demonstrou autorização completa por capacidade/escopo, concessão/revogação formal, segregação integral, fluxo de exceções ou cobertura completa de auditoria. A inspeção não executou testes/build/CI nem verificou banco/runtime/produção.
+
+Foi elaborada a proposta PROP-LIMS-GOV-002 (`docs/PROPOSTA_FECHAMENTO_PACOTE_1_GOVERNANCA.md`), consolidando recomendações para autorização por capacidade + escopo + contexto, concessão por autoridade institucional e execução técnica separada, matriz de segregação, assinatura por natureza do ato, autoria/timestamps, auditoria, gestão de chaves e exceções.
+
+**Estado:** proposta v0.1 para revisão; recomendações GOV-P01–GOV-P11 ainda não validadas em conjunto. GOV01–GOV05 e Operações 1–7 da API10 permanecem preservadas como diretrizes já validadas pelo responsável pelo projeto em revisão. Aprovação institucional e autorização de implementação continuam pendentes.
+
+**Controle:** atualização exclusivamente documental em `main`; sem alterações em código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
+
+| Versão | Data | Alteração |
+|---|---|---|
+| 2.3 | 2026-11-10 | Referência à inspeção técnica REV-LIMS-GOV-001 e à proposta consolidada PROP-LIMS-GOV-002; Pacote 1 permanece aberto e implementação bloqueada. |
