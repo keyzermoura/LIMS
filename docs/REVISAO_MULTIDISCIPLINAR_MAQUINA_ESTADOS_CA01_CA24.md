@@ -1,11 +1,11 @@
 # Revisão Multidisciplinar — Máquina de Estados e Critérios de Aceitação do LIMS
 
 **Identificador:** REV-MD-LIMS-002  
-**Versão:** 1.1
+**Versão:** 1.2
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
-**Base documental:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; AUD-LIMS-001 v1.1; avaliação multidisciplinar compartilhada em 2026-11-09/10.  
-**Situação:** revisão documental concluída nesta rodada; complementos propostos registrados; Gate G0 não aprovado; implementação não autorizada.
+**Base documental:** EST-REC-001 v1.7; MOD-DOM-001 v0.7; AUD-LIMS-001 v1.3; avaliação multidisciplinar compartilhada em 2026-11-09/10.  
+**Situação:** revisão documental concluída; decisões D01–D20 ratificadas institucionalmente; validação operacional e dependências para Gate G0 pendentes; implementação não autorizada.
 
 ---
 
