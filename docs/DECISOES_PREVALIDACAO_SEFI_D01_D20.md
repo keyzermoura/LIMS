@@ -104,10 +104,32 @@ A aprovação deste bloco ratifica os modelos, requisitos e diretrizes acima, ma
 **Situação do Gate G0:** permanece **NÃO APROVADO** até a conclusão das demais pendências e evidências de validação requeridas.  
 **Implementação:** permanece **NÃO AUTORIZADA**.
 
-## 8. Histórico
+
+## 9. Decisões institucionais do Gate G0 — bloco G0-P06 a G0-P10
+
+Em 2026-11-10, o responsável pela Validação Institucional do LIMS – SEFI aprovou integralmente, sem ressalvas, as cinco propostas do segundo bloco de pendências do Gate G0:
+
+| ID | Tema | Decisão | Limites e detalhamentos pendentes |
+|---|---|---|---|
+| G0-P06 | Backup, restauração e continuidade | **Aprovada integralmente** | Aprovado o modelo de governança abrangendo banco de dados, documentos e evidências, cópias segregadas e protegidas, monitoramento, testes de restauração e procedimento de recuperação. Frequência, retenção, RPO, RTO e infraestrutura permanecem para definição institucional e técnica. |
+| G0-P07 | Identificadores e protocolo SEFI | **Aprovada integralmente** | Aprovados os princípios de identificadores independentes, únicos, permanentes e não reutilizáveis, com vínculos preservados e possibilidade de QR Code/código de barras. Formato, máscara, prefixos e padrão visual permanecem pendentes. |
+| G0-P08 | Localizações e movimentação física | **Aprovada integralmente** | Aprovado o modelo de cadastro controlado de locais e registro de movimentações, com origem, destino, objeto, responsável, horários e justificativa, distinguindo localização de transferência de custódia. Inventário físico, códigos e permissões dos locais permanecem para detalhamento. |
+| G0-P09 | Documentos, anexos e evidências digitais | **Aprovada integralmente** | Aprovados os requisitos funcionais de vínculo, identificação, preservação de originais, versionamento, hash, controle de acesso, auditoria e tratamento de falhas, duplicidade e concorrência. Formatos permitidos, limites, algoritmo de hash, armazenamento e retenção permanecem para especificação técnica. |
+| G0-P10 | Retificações e impacto sobre amostras, ensaios e laudos | **Aprovada integralmente** | Aprovado o modelo de solicitação justificada, preservação dos valores original e corrigido, evidências, autorização prévia, avaliação de impacto, rastreabilidade e vedação de retroatividade. Alçadas, formulários e regras específicas por tipo de alteração permanecem para detalhamento institucional. |
+
+Não foram apresentadas observações ou ressalvas pelo responsável pela Validação Institucional.
+
+A aprovação deste bloco ratifica os modelos e requisitos acima, mas não declara concluídas as dependências e definições explicitamente indicadas na última coluna.
+
+**Resultado do bloco:** 5 de 5 propostas aprovadas integralmente, sem ressalvas.  
+**Situação do Gate G0:** permanece **NÃO APROVADO** até a conclusão das demais pendências e evidências de validação requeridas.  
+**Implementação:** permanece **NÃO AUTORIZADA**.
+
+## 10. Histórico
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-10 | Consolidação inicial das decisões D01–D20 pré-validadas. |
 | 1.1 | 2026-11-10 | Atualização do status após ratificação institucional integral de D01–D20 pelo responsável designado; mantidos Gate G0 não aprovado e implementação não autorizada. |
 | 1.2 | 2026-11-10 | Registro da aprovação integral das propostas G0-P01 a G0-P05, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
+| 1.3 | 2026-11-10 | Registro da aprovação integral das propostas G0-P06 a G0-P10, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
