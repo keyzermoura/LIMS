@@ -1,7 +1,7 @@
 # Proposta de Resolução da Decisão API10 — Autorização e Segregação de Funções
 
 **Identificador:** PROP-LIMS-API10-001  
-**Versão:** 0.6  
+**Versão:** 0.7  
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -158,6 +158,19 @@ O responsável pelo projeto concordou, em revisão, com a seguinte diretriz para
 
 A validação acima é uma diretriz do projeto em revisão, não uma aprovação institucional dos critérios de obrigatoriedade nem autorização para implementação. Permanecem pendentes a definição institucional dos casos, critérios e autoridade de coordenação, além da compatibilização com os estados e contratos das APIs relacionadas.
 
+### 5.6 Regra validada em revisão — transferência de custódia
+
+O responsável pelo projeto concordou, em revisão, com a seguinte diretriz para a transferência de custódia:
+
+- A transferência deverá ser realizada por usuário com permissão específica de custodiante e escopo compatível com o objeto e a operação.
+- O registro deverá identificar expressamente o custodiante responsável pela entrega e o custodiante responsável pelo recebimento. A identidade de ambos não poderá ser presumida apenas a partir do usuário que registrou a operação.
+- A transferência deverá gerar registro rastreável, vinculado ao objeto sob custódia, preservando a autoria do registro e o instante efetivo da transferência.
+- Como conteúdo mínimo proposto para o evento, deverão ser registrados o objeto transferido, custodiante de origem/entrega, custodiante de destino/recebimento, data e hora efetivas e local de origem e destino. Motivo/justificativa deverá ser registrado quando aplicável conforme procedimento.
+- A permissão para transferir custódia não concede automaticamente permissão para decidir aceite/recusa, validar recebimento ou alterar dados da conferência.
+- A operação deverá preservar a sequência histórica dos eventos, sem sobrescrever transferências anteriores.
+
+A validação acima é uma diretriz do projeto em revisão, não aprovação institucional da política de custódia, dos perfis ou da modalidade de confirmação dos participantes, nem autorização para implementação. Permanecem pendentes a definição institucional dos papéis, escopos, forma de confirmação da entrega/recebimento, exceções operacionais e compatibilização técnica com API04, API05, API06, API07 e o modelo de custódia.
+
 ## 6. Segregação de funções e autoaprovação
 
 ### 6.1 Regra de desenho
@@ -306,11 +319,11 @@ A proposta somente poderá ser considerada fechada após:
 
 ## 15. Encaminhamento e controle de execução
 
-**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; (ii) da conferência por servidor autorizado, sem competência automática para decidir aceite/recusa; e (iii) do registro da regularização pelo executor, com validação independente por outro servidor autorizado quando exigida; e (iv) da decisão de aceite/recusa como atribuição específica, independente das permissões de conferência e regularização, sem dispensa de critérios impeditivos; e (v) da validação da coordenação como etapa condicional, exigida somente nos casos definidos institucionalmente e sem substituir o decisor ou dispensar critérios impeditivos.
+**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; (ii) da conferência por servidor autorizado, sem competência automática para decidir aceite/recusa; e (iii) do registro da regularização pelo executor, com validação independente por outro servidor autorizado quando exigida; e (iv) da decisão de aceite/recusa como atribuição específica, independente das permissões de conferência e regularização, sem dispensa de critérios impeditivos; e (v) da validação da coordenação como etapa condicional, exigida somente nos casos definidos institucionalmente e sem substituir o decisor ou dispensar critérios impeditivos; e (vi) da transferência de custódia por usuário com permissão específica, identificando expressamente quem entrega e quem recebe e mantendo registro rastreável.
 
 **Não realizado:** alterações em código, banco de dados, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
-**Estado:** regras gerais das Operações 1 (formalização da chegada física), 2 (conferência dos materiais), 3 (regularização de pendências), 4 (decisão de aceite/recusa) e 5 (validação condicional pela coordenação) validadas pelo responsável pelo projeto em revisão. Definição institucional dos casos e critérios de validação obrigatória, demais operações, perfis e autoridades institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
+**Estado:** regras gerais das Operações 1 (formalização da chegada física), 2 (conferência dos materiais), 3 (regularização de pendências), 4 (decisão de aceite/recusa), 5 (validação condicional pela coordenação) e 6 (transferência de custódia com identificação dos responsáveis pela entrega e pelo recebimento) validadas pelo responsável pelo projeto em revisão. Definição institucional dos casos e critérios de validação obrigatória, demais operações, perfis e autoridades institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
 
 ## 16. Histórico de alterações
 
@@ -322,3 +335,4 @@ A proposta somente poderá ser considerada fechada após:
 | 0.4 | 2026-11-10 | Registro da validação em revisão do registro de regularização pelo executor e da validação independente por outro servidor autorizado quando exigida. |
 | 0.5 | 2026-11-10 | Registro da validação em revisão da decisão de aceite/recusa como atribuição específica, independente da conferência e regularização, sem dispensa de critérios impeditivos. |
 | 0.6 | 2026-11-10 | Registro da validação em revisão da validação condicional pela coordenação, exigida somente nos casos definidos institucionalmente e sem substituir o decisor ou dispensar critérios impeditivos. |
+| 0.7 | 2026-11-10 | Registro da validação em revisão da transferência de custódia com permissão específica, identificação expressa dos responsáveis pela entrega e pelo recebimento e histórico rastreável. |
