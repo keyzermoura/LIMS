@@ -1115,3 +1115,168 @@ Os achados AUD01–AUD12, suas ações corretivas e evidências de fechamento es
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.4 | 2026-11-10 | Consolidação documental após auditoria EST01–EST10: atualização da matriz de permissões, granularidade decisória, estados de pendência, regras de custódia, independência/assinatura, transições e critérios de bloqueio. |
+
+
+## 26. Máquina de estados consolidada por entidade
+
+**Escopo:** detalhamento funcional das transições, responsáveis, pré-condições e bloqueios. Os estados agregados são derivados; os eventos históricos são preservados. Esta seção não define estrutura física de banco nem autoriza implementação.
+
+### 26.1 Solicitação
+
+| Origem | Destino | Responsável | Pré-condições | Bloqueios/controles |
+|---|---|---|---|---|
+| inexistente | RASCUNHO | Usuário interno autorizado | Identificação do solicitante e dados iniciais disponíveis. | Identidade individual; identificador único. |
+| RASCUNHO | SUBMETIDA | Usuário autorizado a submeter | Campos obrigatórios válidos e ao menos um ItemDeclarado. | Validar integridade dos itens; registrar ator/data-hora. |
+| SUBMETIDA | RECEBIMENTO_REGISTRADO | Sistema, após criação do Recebimento | Chegada física efetivamente registrada; não existe recebimento principal. | Restrição de unicidade por Solicitação; operação transacional/idempotente. |
+| RECEBIMENTO_REGISTRADO | EM_TRATAMENTO | Sistema | Conferência, pendência ou validação iniciada para algum item/objeto. | Não alterar timestamp real da chegada. |
+| EM_TRATAMENTO | CONCLUIDA | Sistema | Recebimento CONCLUIDO e critérios EST05 atendidos; todos os itens têm desfecho administrativo válido. | Não concluir com pendência/validação obrigatória aberta ou objeto sob custódia sem destino. |
+| RASCUNHO ou SUBMETIDA | CANCELADA | Usuário com permissão específica | Justificativa registrada e cancelamento permitido pelo procedimento. | Se houver chegada/custódia, não apagar recebimento nem encerrar custódia automaticamente. |
+
+A conclusão da Solicitação é administrativa e decorre da conclusão do Recebimento; não significa aceite técnico universal dos itens.
+
+### 26.2 Recebimento
+
+| Origem | Destino | Responsável | Pré-condições | Bloqueios/controles |
+|---|---|---|---|---|
+| inexistente | REGISTRADO | RECEPÇÃO | Solicitação SUBMETIDA; chegada efetiva e recebedor identificados. | Um recebimento principal por solicitação. |
+| REGISTRADO | EM_CONFERENCIA | CONFERENTE | Ao menos um ItemRecebimento APRESENTADO; checklist aplicável disponível. | Conferente deve ter permissão explícita; checklist versionado. |
+| EM_CONFERENCIA | AGUARDANDO_REGULARIZACAO | Sistema | Pendência aberta que impede decisão final. | PRAZO_VENCIDO não encerra o recebimento nem a pendência. |
+| EM_CONFERENCIA | AGUARDANDO_COORDENACAO | Sistema | Decisão/exceção sujeita a validação encaminhada. | Autor da decisão não pode validar a própria decisão. |
+| EM_CONFERENCIA | PARCIALMENTE_DECIDIDO | Sistema | Pelo menos um item/objeto possui desfecho e outros permanecem em tratamento. | Preservar desfechos individuais. |
+| AGUARDANDO_REGULARIZACAO | EM_CONFERENCIA | Sistema/conferente | Pendência regularizada e reavaliada ou novo encaminhamento formal registrado. | Evidência recebida sem reavaliação não libera a transição. |
+| AGUARDANDO_COORDENACAO | EM_CONFERENCIA | Sistema | Validação aprovada, devolvida ou rejeitada e ação subsequente registrada. | Validação pendente mantém bloqueio. |
+| PARCIALMENTE_DECIDIDO ou EM_CONFERENCIA | CONCLUIDO | Sistema | Todos os itens apresentados com desfecho formal; itens não apresentados registrados; sem pendências/validações obrigatórias abertas; sem ObjetoCustodia sem destino. | CONCLUIDO não implica aceite de itens ausentes ou de todos os objetos. |
+
+### 26.3 ItemRecebimento e apresentação
+
+| Origem | Destino | Responsável | Pré-condições | Bloqueios/controles |
+|---|---|---|---|---|
+| criação do recebimento | AGUARDANDO_CHEGADA | Sistema | Um ItemRecebimento por ItemDeclarado. | Não duplicar representação do item declarado. |
+| AGUARDANDO_CHEGADA | APRESENTADO | RECEPÇÃO | Material fisicamente presente; quantidade/identificação observadas registradas. | Data/hora efetivas; não inferir quantidade apresentada. |
+| AGUARDANDO_CHEGADA | NAO_APRESENTADO | RECEPÇÃO | Ausência constatada no ato da chegada. | Ator e data/hora reais; sem criação de objeto/amostra. |
+| APRESENTADO | EM_CONFERENCIA | CONFERENTE | ObjetoCustodia criado e sob guarda; checklist vigente disponível. | Permissão explícita; custódia iniciada. |
+| EM_CONFERENCIA | CONFERENCIA_CONCLUIDA | CONFERENTE | Critérios obrigatórios respondidos; justificativas e evidências presentes. | Preservar versão do checklist e respostas originais. |
+
+NAO_APRESENTADO não é decisão RECUSADA. Correção de erro comprovado segue EST08; entrega posterior segue nova solicitação ou exceção institucional, sem retroatividade.
+
+### 26.4 Conferência e respostas do checklist
+
+| Origem | Destino | Responsável | Pré-condições | Bloqueios/controles |
+|---|---|---|---|---|
+| NAO_INICIADA | EM_ANDAMENTO | CONFERENTE | Item apresentado; ObjetoCustodia sob guarda; checklist aplicável e vigente. | Fixar versão do checklist no início. |
+| EM_ANDAMENTO | CONCLUIDA | CONFERENTE | Todos os critérios obrigatórios respondidos; NAO_APLICAVEL justificado quando exigido. | Não concluir com critério obrigatório sem resposta ou evidência requerida ausente. |
+| EM_ANDAMENTO | EM_ANDAMENTO | CONFERENTE | Resposta/avaliação adicional ou correção ainda não formalizada. | Preservar alterações e autoria; não apagar respostas formalizadas. |
+
+Cada resposta registra critério, versão, resultado (CONFORME, NAO_CONFORME ou NAO_APLICAVEL), classificação E/S/I, avaliador, data/hora, justificativa e evidência aplicável. Alteração posterior de checklist não modifica a versão vinculada à conferência em curso.
+
+### 26.5 Pendência
+
+| Origem | Destino/condição | Responsável | Pré-condições | Bloqueios/controles |
+|---|---|---|---|---|
+| inexistente | PENDENTE | CONFERENTE autorizado | Não conformidade saneável ou informação necessária identificada. | Descrição, providência, responsável, prazo e comunicação formal. |
+| PENDENTE | EM_REGULARIZACAO | Responsável pela regularização/sistema | Providência iniciada ou resposta formal recebida. | Preservar comunicação e início da contagem. |
+| PENDENTE ou EM_REGULARIZACAO | PRAZO_VENCIDO | Sistema | Prazo expirado sem regularização validada. | Indicador/escalonamento; permanece aberta. |
+| PRAZO_VENCIDO | EM_REGULARIZACAO | Responsável/sistema | Prorrogação autorizada ou providência retomada dentro da regra aplicável. | Preservar prazo original e histórico de prorrogação. |
+| PENDENTE ou EM_REGULARIZACAO ou PRAZO_VENCIDO | AGUARDANDO_REAVALIACAO | Sistema/conferente | Evidência/resposta recebida e encaminhada à avaliação. | Recebimento da evidência não encerra a pendência. |
+| AGUARDANDO_REAVALIACAO | REGULARIZADA | CONFERENTE competente | Reavaliação favorável documentada. | Registrar avaliador, resultado, data/hora e evidência. |
+| PENDENTE ou EM_REGULARIZACAO ou PRAZO_VENCIDO ou AGUARDANDO_REAVALIACAO | NAO_REGULARIZAVEL | Autoridade competente | Decisão formal fundamentada e autorizada. | Não gera recusa automática; decisão de material permanece separada. |
+| qualquer estado aberto | CANCELADA | Autoridade competente | Erro ou perda justificada do objeto, com autorização. | Motivo, ator, data/hora e histórico preservados. |
+
+PRAZO_VENCIDO é uma condição de controle que pode coexistir com a pendência aberta. Não se deve perder o estado operacional subjacente (por exemplo, EM_REGULARIZACAO) ao registrar o vencimento. A modelagem técnica deverá preservar ambos, seja por estado combinado, indicador ou evento, sem alterar o significado aprovado na EST09.
+
+### 26.6 Decisão de aceite, pendência ou recusa
+
+| Origem | Destino | Responsável | Pré-condições | Bloqueios/controles |
+|---|---|---|---|---|
+| NAO_DECIDIDA | PENDENTE | CONFERENTE | Há requisito saneável ou revisão necessária. | Criar Pendência quando houver providência; não tratar como desfecho final. |
+| NAO_DECIDIDA ou PENDENTE | ACEITA | Responsável tecnicamente competente | Checklist concluído; critérios E conformes; pendências impeditivas regularizadas; validações obrigatórias concluídas. | Assinatura formal EST07; independência quando exigida EST03/EST10. |
+| NAO_DECIDIDA ou PENDENTE | RECUSADA | Responsável competente | Fundamento e evidências; validação prévia da coordenação conforme EST03. | Assinatura formal; custódia continua até destinação efetiva. |
+| ACEITA, PENDENTE ou RECUSADA | novo ato retificador | Autoridade competente | Procedimento excepcional EST08, justificativa, evidência e validação prévia da coordenação quando aplicável. | Nunca sobrescrever; preservar decisão original e avaliar impacto se houver amostra. |
+
+A decisão é persistida no ObjetoCustodia quando houver desfecho independente. A situação do ItemRecebimento é consolidada e não substitui o histórico decisório dos objetos.
+
+### 26.7 Validação da coordenação
+
+| Origem | Destino | Responsável | Pré-condições | Bloqueios/controles |
+|---|---|---|---|---|
+| NAO_EXIGIDA | AGUARDANDO | Sistema/conferente | Exceção, recusa, tentativa de regularização de impeditivo ou caso especial exige validação. | Referenciar decisão, objeto/item e evidências. |
+| AGUARDANDO | APROVADA | COORDENAÇÃO independente | Competência e revisão concluídas. | Validador diferente do autor/executor; assinatura formal EST07. |
+| AGUARDANDO | DEVOLVIDA | COORDENAÇÃO independente | Complementação/correção necessária. | Motivo e ação requerida; decisão final bloqueada. |
+| AGUARDANDO | REJEITADA | COORDENAÇÃO independente | Proposta não validada. | Motivo formal; não converter automaticamente em recusa. |
+| DEVOLVIDA | AGUARDANDO | CONFERENTE/sistema | Complementação concluída e novo encaminhamento registrado. | Nova manifestação vinculada ao ciclo anterior. |
+
+A coordenação não pode dispensar critério impeditivo nem validar decisão própria quando a independência for obrigatória.
+
+### 26.8 ObjetoCustodia e transferência
+
+| Origem | Destino | Responsável | Pré-condições | Bloqueios/controles |
+|---|---|---|---|---|
+| inexistente | SOB_GUARDA | RECEPÇÃO/designado | Material apresentado; identificação/descrição, quantidade, local e responsável inicial registrados. | Não criar para item não apresentado. |
+| SOB_GUARDA | TRANSFERENCIA_PENDENTE | Custodiante atual | Origem, destino e recebedor pretendido identificados. | Responsabilidade permanece na origem. |
+| TRANSFERENCIA_PENDENTE | SOB_NOVA_RESPONSABILIDADE | Recebedor de destino | Recebimento físico confirmado. | Registrar atores, data/hora reais e localização nova. |
+| TRANSFERENCIA_PENDENTE | SOB_GUARDA | Custodiante de origem/sistema | Transferência cancelada antes da entrega. | Justificativa e permanência da guarda confirmadas. |
+| SOB_NOVA_RESPONSABILIDADE | TRANSFERENCIA_PENDENTE | Custodiante atual | Nova transferência formal solicitada. | Repetir controles de origem/destino. |
+| SOB_GUARDA ou SOB_NOVA_RESPONSABILIDADE | ENCERRADA | Responsável autorizado pela entrega/destinação | Devolução/entrega/destinação efetiva e documentada. | Assinatura formal EST07; destinatário, responsável, data/hora e comprovante quando aplicável. |
+
+O estado atual é derivado do último evento confirmado. Evento de solicitação de transferência não altera o custodiante vigente. Não há transição automática de RECUSADA para ENCERRADA.
+
+### 26.9 AmostraOperacional — somente criação no escopo desta fase
+
+| Situação | Resultado | Condições |
+|---|---|---|
+| NÃO_CRIADA | Estado inicial | Objeto ainda não aceito ou ainda não apto. |
+| APTA_PARA_CRIACAO | Condição calculada, não necessariamente persistida | Decisão ACEITA; checklist concluído; pendências impeditivas resolvidas; validações obrigatórias concluídas. |
+| CRIADA | Amostra persistida | Criação atômica/idempotente; identificador único; vínculo ao ObjetoCustodia e recebimento de origem. |
+| BLOQUEADA | Condição calculada | Qualquer pré-condição ausente, decisão não final, recusa ou validação pendente. |
+
+A cardinalidade ObjetoCustodia → AmostraOperacional é 1:0..1. Reenvio concorrente não pode criar amostra/identificador duplicado. A criação não reinicia custódia; transferência para guarda laboratorial gera evento próprio. O ciclo posterior de ensaios e laudos permanece fora do escopo desta máquina de estados de recebimento.
+
+### 26.10 Regras transversais de auditoria e concorrência
+
+Toda transição formal deve registrar, conforme aplicável: identificador do agregado e da entidade afetada; evento; estado anterior e novo; ator; perfil/permissão efetiva; data/hora com fuso; justificativa; versão do checklist/regra; evidências e seus hashes/referências; correlação da operação; evento anterior relacionado.
+
+Operações críticas devem ser atômicas e idempotentes. Tentativas bloqueadas por permissão, autoaprovação, duplicidade, critério impeditivo ou pré-condição ausente devem ser registradas quando tecnicamente disponíveis. Nenhum estado atual deve substituir o histórico de eventos.
+
+## 27. Critérios funcionais de aceitação derivados da máquina de estados
+
+Os cenários abaixo deverão ser convertidos em testes automatizados e testes de aceitação durante a etapa técnica. Nesta fase são critérios funcionais normativos, não evidência de que o software já os implementa.
+
+| ID | Cenário | Resultado esperado |
+|---|---|---|
+| CA01 | Usuário sem permissão tenta registrar chegada. | Operação bloqueada; tentativa registrada quando tecnicamente disponível. |
+| CA02 | Usuário RECEPÇÃO + CONFERENTE registra chegada e realiza conferência. | Permitido se ambas as permissões estiverem atribuídas; eventos distintos com ator e data/hora. |
+| CA03 | Conferente tenta validar a própria decisão sujeita à coordenação. | Bloqueio por independência; decisão permanece pendente. |
+| CA04 | Critério E marcado NAO_CONFORME. | Aceite bloqueado; coordenação não pode dispensar o critério. |
+| CA05 | Critério S marcado NAO_CONFORME. | Pendência criada; aceite bloqueado até regularização e reavaliação favorável. |
+| CA06 | Critério I sem informação. | Não bloqueia isoladamente, salvo regra obrigatória associada formalizada. |
+| CA07 | Item declarado não foi apresentado. | ItemRecebimento NAO_APRESENTADO; sem ObjetoCustodia, custódia ou amostra. |
+| CA08 | Recebimento contém item apresentado e item não apresentado, todos os desfechos válidos. | Pode ser CONCLUIDO administrativamente; ausência permanece visível e não representa aceite. |
+| CA09 | Material recusado ainda não foi retirado. | ObjetoCustodia permanece SOB_GUARDA; não ENCERRADA. |
+| CA10 | Transferência solicitada sem confirmação do destinatário. | TRANSFERENCIA_PENDENTE; responsabilidade permanece com origem. |
+| CA11 | Destinatário confirma transferência. | Novo responsável/localização passam a vigorar; evento anterior permanece. |
+| CA12 | Pendência vence sem regularização. | PRAZO_VENCIDO e escalonamento; pendência continua aberta, sem recusa automática. |
+| CA13 | Evidência de regularização é recebida, mas não reavaliada. | Pendência permanece AGUARDANDO_REAVALIACAO; não REGULARIZADA. |
+| CA14 | Coordenação aprova recusa proposta por conferente. | Validação independente e assinatura formal registradas; decisão final pode ser formalizada. |
+| CA15 | Coordenação tenta dispensar critério E não conforme. | Operação bloqueada, salvo fundamento normativo/institucional válido e previamente formalizado aplicável. |
+| CA16 | Reenvio concorrente da criação de amostra para o mesmo ObjetoCustodia. | Uma única AmostraOperacional e um único identificador institucional. |
+| CA17 | Objeto é aceito, mas validação obrigatória está pendente. | Criação da amostra bloqueada. |
+| CA18 | Item possui dois ObjetosCustodia, um aceito e outro recusado. | Decisões independentes; item não aparece como integralmente aceito; recusado permanece sob custódia. |
+| CA19 | Retificação de decisão formalizada sem justificativa/evidência/autorização. | Bloqueada; registro original permanece íntegro. |
+| CA20 | Retificação após criação de amostra e início de ensaios. | Avaliação de impacto obrigatória; nenhuma amostra, ensaio ou laudo excluído automaticamente. |
+| CA21 | Administrador tenta elevar a própria permissão. | Bloqueado; evento de tentativa registrado quando tecnicamente disponível. |
+| CA22 | Usuário tenta alterar/excluir evento de auditoria formalizado. | Bloqueado; original preservado. |
+| CA23 | Material chega após o recebimento ter sido concluído como NAO_APRESENTADO. | Não há retroação; nova solicitação ou exceção formal com data/hora efetiva. |
+| CA24 | Checklist muda após início de uma conferência. | Conferência permanece vinculada à versão original; migração somente por procedimento formal auditável. |
+
+### 27.1 Condição de encerramento desta especificação funcional
+
+A máquina de estados e os critérios acima estão consolidados funcionalmente para revisão. Antes do Gate G0, ainda será necessário:
+- validar os cenários com casos reais anonimizados do SEFI;
+- aprovar institucionalmente a matriz de competências e substituições;
+- aprovar checklists concretos por categoria;
+- definir parâmetros de prazo e comunicação;
+- definir nível jurídico e tecnologia da assinatura;
+- revisar arquitetura, segurança, auditoria, backup e recuperação;
+- converter os critérios CA01–CA24 em testes rastreáveis.
+
+A conclusão desta especificação não autoriza implementação.
