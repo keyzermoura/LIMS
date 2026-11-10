@@ -242,10 +242,11 @@ API04 somente poderá ser marcada como aprovada quando:
 
 **Não realizado:** alteração da especificação de API existente, OpenAPI, modelo relacional, matriz DEC, código, modelos ORM, banco, migrações, endpoints, frontend, testes, build ou CI.
 
-**Estado:** API04 permanece pendente de validação técnica/funcional e aprovação institucional. Esta proposta não altera o status de DEC04, não resolve API12/EST07/EST08 e não autoriza implementação.
+**Estado:** o responsável pelo projeto validou em revisão (2026-11-10) o catálogo proposto de sete tipos de eventos (`RECEIPT`, `TRANSFER`, `LOCATION_CHANGE`, `RETURN`, `DISPOSITION`, `CLOSURE` e `CORRECTION`) e a distinção conceitual entre `occurred_at`, `recorded_at` e `recorded_by`. Permanecem pendentes a confirmação do custodiante inicial, a validação dos procedimentos e autoridades para devolução/destinação/encerramento, a solução técnica de compatibilidade dos campos e consumidores, a representação de custodiantes organizacionais, as políticas API12 de lançamento tardio/fuso, API05 de assinatura e EST08 de retificação. A validação registrada é de revisão do projeto, não aprovação institucional, não resolve integralmente API04 e não autoriza implementação.
 
 ## 14. Histórico de alterações
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-09 | Criação da proposta de catálogo de eventos, autoria, instante efetivo, instante de registro e compatibilidade com a cadeia legada. |
+| 0.2 | 2026-11-10 | Registro da validação do catálogo de sete eventos e da distinção entre ocorrência, registro e autoria pelo responsável pelo projeto em revisão; detalhes operacionais, compatibilidade técnica e aprovação institucional permanecem pendentes. |
