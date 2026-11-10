@@ -190,3 +190,16 @@ A proposta complementar `PROPOSTA_FECHAMENTO_GOV_P07_P08_AUTORIA_AUDITORIA.md` (
 | 2.6 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; formalização institucional, fechamento técnico e autorização de implementação permanecem pendentes. |
 | 2.7 | 2026-11-10 | Registro da validação em revisão de AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07; políticas institucionais, fechamento técnico e autorização de implementação permanecem pendentes. |
 | 2.8 | 2026-11-10 | Referência à proposta GOV-P09/GOV-P11 PROP-LIMS-GOV-SEC-001 v0.1; recomendações AUD-P09/AUD-P11 em revisão, ainda não validadas; Pacote 1 permanece aberto. |
+
+
+## 13. Registro de validação em revisão — GOV-P09 e GOV-P11
+
+Em 2026-11-10, o responsável pelo projeto validou em revisão as recomendações AUD-P09-01 a AUD-P09-09 (integridade operacional, imutabilidade, gestão de chaves, monitoramento, backup, contingência e verificação independente) e AUD-P11-01 a AUD-P11-09 (segregação de capacidades, escopo/finalidade, minimização, rastreabilidade de consultas/exportações, retenção e acesso emergencial), conforme PROP-LIMS-GOV-SEC-001 v0.2.
+
+A validação é diretriz de desenho no âmbito da revisão do projeto. Não representa aprovação institucional, não comprova controles operacionais e não autoriza implementação. GOV-P09/GOV-P11 permanecem abertas até definição das políticas e autoridades institucionais, comprovação dos controles no ambiente autorizado, fechamento técnico e autorização específica de implementação. GOV-P02, GOV-P03 e GOV-P10 permanecem pendentes.
+
+**Controle:** atualização exclusivamente documental na branch `main`; nenhum código, banco, migração, endpoint, frontend, OpenAPI, teste, build ou CI foi alterado/executado.
+
+| Versão | Data | Alteração |
+|---|---|---|
+| 2.9 | 2026-11-10 | Registro da validação em revisão de AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09; fechamento institucional/técnico e implementação permanecem pendentes. |
