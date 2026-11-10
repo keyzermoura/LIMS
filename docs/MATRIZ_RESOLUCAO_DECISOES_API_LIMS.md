@@ -176,7 +176,7 @@ Em 2026-11-10, foi registrada a inspeção estática REV-LIMS-GOV-001 (`docs/REV
 
 Foi elaborada a proposta PROP-LIMS-GOV-002 (`docs/PROPOSTA_FECHAMENTO_PACOTE_1_GOVERNANCA.md`), consolidando recomendações para autorização por capacidade + escopo + contexto, concessão por autoridade institucional e execução técnica separada, matriz de segregação, assinatura por natureza do ato, autoria/timestamps, auditoria, gestão de chaves e exceções.
 
-**Estado:** proposta v0.2 para revisão; GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites registrados na proposta. GOV-P02, GOV-P03 e GOV-P05–GOV-P11 permanecem pendentes. GOV01–GOV05 e Operações 1–7 da API10 permanecem preservadas. Aprovação institucional e autorização de implementação continuam pendentes.
+**Estado:** proposta v0.3 para revisão; GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites registrados na proposta. GOV-P02, GOV-P03 e GOV-P05–GOV-P11 permanecem pendentes; GOV-P05/GOV-P06 possuem proposta complementar em docs/PROPOSTA_FECHAMENTO_GOV_P05_P06_ASSINATURA.md. GOV01–GOV05 e Operações 1–7 da API10 permanecem preservadas. Aprovação institucional e autorização de implementação continuam pendentes.
 
 **Controle:** atualização exclusivamente documental em `main`; sem alterações em código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
@@ -184,3 +184,4 @@ Foi elaborada a proposta PROP-LIMS-GOV-002 (`docs/PROPOSTA_FECHAMENTO_PACOTE_1_G
 |---|---|---|
 | 2.3 | 2026-11-10 | Referência à inspeção técnica REV-LIMS-GOV-001 e à proposta consolidada PROP-LIMS-GOV-002; Pacote 1 permanece aberto e implementação bloqueada. |
 | 2.4 | 2026-11-10 | Registro da validação em revisão de GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação); definições institucionais e demais decisões pendentes, implementação bloqueada. |
+| 2.5 | 2026-11-10 | Referência à proposta complementar PROP-LIMS-GOV-SIG-001 para GOV-P05/GOV-P06; matriz de assinatura e política institucional permanecem pendentes, implementação bloqueada. |
