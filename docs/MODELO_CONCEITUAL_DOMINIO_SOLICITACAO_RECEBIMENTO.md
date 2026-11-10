@@ -2,7 +2,7 @@
 
 **Identificador:** MOD-DOM-001  
 **Versão:** 0.5  
-**Situação:** Modelo conceitual M0.2 aprovado funcionalmente, com consolidação 0.4 após auditoria EST01–EST10; não aprovado para implementação  
+**Situação:** Modelo conceitual M0.2 aprovado funcionalmente, complementado na versão 0.5 após revisão multidisciplinar; não aprovado para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
