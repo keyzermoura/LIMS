@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.4  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 aprovada; não aprovada para implementação  
+**Versão:** 0.5  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 e EST03 aprovadas; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -235,7 +235,7 @@ Eventos sugeridos:
 |---|---|---|
 | EST01 | Quais perfis institucionais podem cadastrar solicitação, receber material e conferir? | P0 |
 | EST02 | Conferente pode ser o mesmo usuário que registrou a chegada? | P0 |
-| EST03 | Coordenação é obrigatória para quais tipos de exceção e decisões? | P0 |
+| EST03 | Coordenação é obrigatória para quais tipos de exceção e decisões? | P0 — resolvida funcionalmente |
 | EST04 | Qual destino e fluxo de custódia se aplicam a item recusado? | P0 |
 | EST05 | Quando um recebimento é considerado concluído se alguns itens não foram apresentados? | P0 |
 | EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 |
@@ -369,7 +369,7 @@ A decisão RECUSADA não é evento de encerramento da custódia. A custódia só
 As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas, a próxima revisão deve decidir especialmente:
 
 - **EST01/EST02/EST10 — perfis e segregação:** quem registra chegada, quem confere, se o mesmo usuário pode executar ambas as funções e se pode aprovar a própria decisão;
-- **EST03 — coordenação:** quais situações exigem validação obrigatória e se a regra é por categoria, critério, tipo de exceção ou decisão;
+- **EST03 — coordenação:** regra aprovada e registrada na seção 16; eventuais detalhamentos operacionais devem respeitar seus limites;
 - **EST04 — recusados:** quais destinos institucionais são permitidos (devolução ao solicitante, retirada por representante, descarte/destinação autorizada) e quais comprovantes são exigidos;
 - **EST05 — ausentes:** se o recebimento pode ser concluído administrativamente com item não apresentado, sem concluir tecnicamente o item;
 - **EST06 — critérios:** quem aprova a classificação impeditivo/saneável/informativo e como versionar checklists;
@@ -408,3 +408,37 @@ EST02 fica **resolvida funcionalmente**. A matriz de permissões deverá permiti
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.4 | 2026-11-10 | Registro da decisão EST02: mesmo servidor pode registrar a chegada e realizar a conferência, com eventos e permissões distintos. |
+
+
+## 16. Registro de decisão funcional — EST03
+
+**Decisão:** APROVADA — validação obrigatória da coordenação para exceções e decisões institucionais específicas, sem poder de dispensar critérios impeditivos.  
+**Data:** 2026-11-10  
+**Escopo:** definição dos casos que exigem revisão da coordenação no fluxo de conferência e recebimento.
+
+### Regra aprovada
+
+A validação da coordenação será obrigatória nas seguintes situações:
+
+1. **Exceções fora do checklist ou que exijam interpretação institucional:** qualquer situação não prevista expressamente no checklist ou cuja solução dependa de interpretação de regra institucional deverá ser encaminhada à coordenação antes da decisão final.
+2. **Tentativa de regularização de critério impeditivo não conforme:** se houver tentativa de tratar como regularizável um critério classificado como impeditivo e registrado como não conforme, o caso deverá ser encaminhado à coordenação para revisão. Essa revisão não autoriza a dispensa do requisito nem a conversão do resultado não conforme em conforme.
+3. **Decisões de recusa:** toda decisão de recusa deverá ser submetida à validação da coordenação antes de sua formalização final.
+4. **Casos especiais previstos em regra institucional:** situações para as quais norma, procedimento ou regra institucional determine revisão da coordenação deverão seguir essa exigência.
+
+### Limites da atuação da coordenação
+
+1. A coordenação poderá aprovar, devolver para complementação ou rejeitar a proposta de encaminhamento, sempre com justificativa registrada.
+2. A coordenação não poderá dispensar critérios impeditivos, afastar requisito obrigatório nem transformar resultado não conforme em conforme sem fundamento normativo/institucional válido e previamente formalizado.
+3. A validação deverá referenciar o item ou ObjetoCustodia e a decisão específica submetida à revisão.
+4. O encaminhamento, a manifestação e o resultado da coordenação deverão gerar eventos de auditoria próprios, com ator, papel/permissão, data/hora, justificativa e evidências aplicáveis.
+5. Enquanto a validação obrigatória estiver pendente, a decisão final e a criação de AmostraOperacional permanecerão bloqueadas, quando aplicável.
+
+### Efeito sobre EST03
+
+EST03 fica **resolvida funcionalmente**. As transições e a matriz de permissões deverão exigir a validação da coordenação nos quatro casos acima. A classificação dos critérios como impeditivos, saneáveis ou informativos continua sujeita à decisão própria de EST06; esta decisão não define nem altera essa classificação.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.5 | 2026-11-10 | Registro da decisão EST03: validação obrigatória para exceções fora do checklist, tentativa de regularização de impeditivo não conforme, recusas e casos especiais previstos institucionalmente. |
