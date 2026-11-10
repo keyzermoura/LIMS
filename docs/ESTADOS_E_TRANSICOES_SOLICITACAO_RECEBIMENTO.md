@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.2  
-**Situação:** Proposta para revisão funcional; não aprovada para implementação  
+**Versão:** 0.3  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -298,3 +298,87 @@ Esta regra precisa ser confirmada com a gestão funcional. A conclusão do receb
 |---|---|---|
 | 0.1 | 2026-11-09 | Primeira proposta de estados, transições, permissões e eventos de auditoria. |
 | 0.2 | 2026-11-09 | Inclusão de recomendações para custódia pré-amostra, material recusado, agrupamento e encerramento com itens não apresentados. |
+
+
+## 14. Alinhamento obrigatório ao modelo de domínio M0.2 aprovado
+
+Em 2026-11-10, o modelo MOD-DOM-001 foi aprovado funcionalmente na versão 0.3. Esta revisão do documento de estados passa a adotar suas entidades e cardinalidades. A presente especificação continua **em proposta**, sem autorização para implementação.
+
+### 14.1 Escopo de aplicação dos estados
+
+| Dimensão | Agregado/entidade | Regra de aplicação |
+|---|---|---|
+| Solicitação | Solicitação | Estado global do ciclo administrativo da demanda. |
+| Recebimento | Recebimento | Estado agregado, derivado dos itens e ações pendentes. |
+| Apresentação | ItemRecebimento | Cada item declarado deve ser apresentado ou marcado como não apresentado no recebimento. |
+| Conferência | ItemRecebimento | Acompanha o checklist do item, com critérios versionados. |
+| Regularização | Pendência vinculada ao item ou objeto | Cada pendência possui ciclo próprio e histórico. |
+| Decisão | ObjetoCustodia, quando houver objetos; ItemRecebimento quando não houver discriminação adicional | A decisão deve existir no menor nível em que aceite, recusa, rastreabilidade ou destino possam divergir. |
+| Validação da coordenação | Decisão submetida à revisão | A validação referencia a decisão específica, não apenas o recebimento global. |
+| Custódia | ObjetoCustodia | Custódia começa na chegada física e existe antes da AmostraOperacional. |
+| Amostra | AmostraOperacional | Só é criada após aceite final e validações obrigatórias. |
+
+### 14.2 Regras de consolidação quando houver vários objetos
+
+1. Um ItemRecebimento pode originar zero, um ou vários ObjetosCustodia.
+2. Cada ObjetoCustodia apresentado deve possuir estado de custódia e desfecho próprios.
+3. Se todos os objetos tiverem a mesma decisão, o ItemRecebimento pode exibir essa decisão como situação consolidada.
+4. Se houver decisões divergentes, o item deve exibir situação agregada **PARCIALMENTE_DECIDIDO** ou equivalente, sem ocultar as decisões por objeto.
+5. O item só pode ser considerado integralmente aceito quando todos os objetos que compõem o material apresentado tiverem aceite final e validações concluídas.
+6. A recusa de um objeto não implica automaticamente a recusa dos demais objetos do mesmo item declarado.
+7. Não pode haver conclusão do recebimento enquanto existir objeto sob custódia sem destino definido, pendência obrigatória aberta ou objeto apresentado sem decisão.
+
+### 14.3 Máquina de estados da custódia por ObjetoCustodia
+
+| Estado | Evento de entrada | Próximo estado permitido | Condição |
+|---|---|---|---|
+| NAO_INICIADA | Chegada física confirmada | SOB_GUARDA | Identificação/descrição, quantidade, local e responsável inicial registrados. |
+| SOB_GUARDA | Solicitação de transferência | TRANSFERENCIA_PENDENTE | Origem, destino e responsável destinatário identificados. |
+| TRANSFERENCIA_PENDENTE | Recebedor de destino confirma recebimento | SOB_NOVA_RESPONSABILIDADE | Confirmação com ator e data/hora reais. |
+| TRANSFERENCIA_PENDENTE | Transferência cancelada antes da entrega | SOB_GUARDA | Motivo e responsável que manteve a guarda registrados. |
+| SOB_NOVA_RESPONSABILIDADE | Nova transferência | TRANSFERENCIA_PENDENTE | Nova origem/destino e responsáveis registrados. |
+| SOB_GUARDA ou SOB_NOVA_RESPONSABILIDADE | Devolução/destinação efetivada | ENCERRADA | Destinatário, data/hora, responsável e comprovante quando aplicável. |
+
+A decisão RECUSADA não é evento de encerramento da custódia. A custódia só termina quando a entrega externa ou destinação formal for efetivamente concluída.
+
+### 14.4 Criação e vínculo da AmostraOperacional
+
+1. A criação exige decisão ACEITA no objeto correspondente, checklist concluído, ausência de pendências impeditivas e validações obrigatórias concluídas.
+2. A operação deve ser atômica e idempotente: repetição da requisição não pode criar outra amostra nem novo identificador.
+3. A amostra deve manter referência ao ObjetoCustodia de origem e ao recebimento original.
+4. A criação da amostra não altera a data/hora de chegada nem reinicia a custódia.
+5. A passagem para guarda laboratorial deve ser registrada como transferência/evento de custódia, sem apagar os eventos anteriores.
+6. Objeto recusado, pendente ou não apresentado não pode gerar AmostraOperacional.
+
+### 14.5 Cenários de aceitação para validar as transições
+
+| Cenário | Resultado obrigatório |
+|---|---|
+| Item declarado não chegou | ItemRecebimento = NAO_APRESENTADO; nenhum ObjetoCustodia ou amostra. |
+| Item chegou e aguarda conferência | ObjetoCustodia = SOB_GUARDA; conferência ainda não concluída. |
+| Item chegou, mas tem pendência saneável | Pendência aberta; decisão não final; custódia permanece ativa. |
+| Um objeto é aceito e outro do mesmo item é recusado | Decisões independentes; apenas o objeto aceito pode gerar amostra; recusado permanece sob custódia até destinação. |
+| Item recusado integralmente | Nenhuma amostra; custódia permanece até devolução/destinação efetiva. |
+| Item aceito com coordenação obrigatória | Amostra bloqueada até validação aprovada. |
+| Recebimento tem itens apresentados e não apresentados | Ausentes permanecem registrados; conclusão administrativa só após todos os desfechos e ausência de pendências/custódias sem destino. |
+| Transferência de custódia não confirmada | Estado TRANSFERENCIA_PENDENTE; responsabilidade não é considerada transferida. |
+| Reenvio concorrente da criação de amostra | Uma única amostra e um único identificador institucional. |
+
+### 14.6 Pontos que permanecem para decisão funcional
+
+As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas, a próxima revisão deve decidir especialmente:
+
+- **EST01/EST02/EST10 — perfis e segregação:** quem registra chegada, quem confere, se o mesmo usuário pode executar ambas as funções e se pode aprovar a própria decisão;
+- **EST03 — coordenação:** quais situações exigem validação obrigatória e se a regra é por categoria, critério, tipo de exceção ou decisão;
+- **EST04 — recusados:** quais destinos institucionais são permitidos (devolução ao solicitante, retirada por representante, descarte/destinação autorizada) e quais comprovantes são exigidos;
+- **EST05 — ausentes:** se o recebimento pode ser concluído administrativamente com item não apresentado, sem concluir tecnicamente o item;
+- **EST06 — critérios:** quem aprova a classificação impeditivo/saneável/informativo e como versionar checklists;
+- **EST07 — assinatura:** quais eventos exigem assinatura eletrônica formal e quais podem ser cobertos por autenticação e trilha de auditoria;
+- **EST08 — correções:** fluxo de retificação com justificativa, vínculo ao evento original e preservação dos valores anteriores;
+- **EST09 — prazos:** prazos de regularização, alertas, escalonamento e encerramento por decurso de prazo.
+
+### 14.7 Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.3 | 2026-11-10 | Alinhamento das regras de estados e transições ao modelo de domínio M0.2 aprovado; detalhamento da custódia por ObjetoCustodia, consolidação por item e vínculo com AmostraOperacional. |
