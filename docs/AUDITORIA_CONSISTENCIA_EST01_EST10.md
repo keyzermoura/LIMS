@@ -1,11 +1,11 @@
 # Auditoria de Consistência das Decisões EST01–EST10
 
 **Identificador:** AUD-LIMS-001  
-**Versão:** 1.0  
+**Versão:** 1.1  
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Escopo:** consistência entre EST01–EST10, máquina de estados EST-REC-001 e modelo de domínio MOD-DOM-001.  
-**Resultado:** achados documentais e funcionais tratados na consolidação EST-REC-001 v1.4 e MOD-DOM-001 v0.4.  
+**Resultado:** achados AUD01–AUD22 tratados documentalmente nas versões EST-REC-001 v1.5 e MOD-DOM-001 v0.5, sujeitos à validação funcional e institucional.  
 **Situação de implementação:** não autorizada; Gate G0 permanece obrigatório.
 
 ---
