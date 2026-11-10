@@ -1,7 +1,7 @@
 # Proposta de Resolução da Decisão API10 — Autorização e Segregação de Funções
 
 **Identificador:** PROP-LIMS-API10-001  
-**Versão:** 0.3  
+**Versão:** 0.4  
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -120,6 +120,18 @@ O responsável pelo projeto validou, em revisão, a seguinte diretriz para a ope
 - O registro da conferência deve preservar autoria, instante e histórico das informações, sem apagar ou sobrescrever silenciosamente registros anteriores.
 
 A validação acima é uma diretriz do projeto em revisão, não uma aprovação institucional da competência de cargos ou servidores nem autorização para implementação. Permanecem pendentes a definição dos perfis institucionais reais, eventuais regras de segregação/validação da conferência, os requisitos específicos por classe de material e a compatibilização com os contratos das APIs relacionadas.
+
+### 5.3 Regra validada em revisão — registro e validação da regularização
+
+O responsável pelo projeto concordou, em revisão, com a seguinte diretriz para a regularização de pendências:
+
+- Servidor com permissão específica poderá registrar a regularização da pendência que executou.
+- O registro deverá conter a providência adotada, as evidências correspondentes, a identificação de quem executou a regularização e a data/hora do registro, mantendo referência inequívoca à pendência original.
+- A regularização não apaga, substitui ou sobrescreve a pendência nem os registros anteriores; o histórico deve permanecer rastreável.
+- Quando o fluxo exigir validação da regularização, esta deverá ser realizada por outro servidor autorizado, distinto do executor.
+- A permissão para registrar a regularização não concede automaticamente permissão para validá-la nem para decidir o aceite/recusa do material.
+
+A validação acima é uma diretriz do projeto em revisão, não uma aprovação institucional de competências funcionais nem autorização para implementação. Permanecem pendentes a definição dos casos em que a validação será obrigatória, dos critérios de validação, dos perfis institucionais e da compatibilização com os contratos e estados das APIs relacionadas.
 
 ## 6. Segregação de funções e autoaprovação
 
@@ -269,11 +281,11 @@ A proposta somente poderá ser considerada fechada após:
 
 ## 15. Encaminhamento e controle de execução
 
-**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; e (ii) da conferência por servidor com permissão específica para registrar materiais, quantidades, condições, divergências, evidências e pendências, sem competência automática para decidir aceite/recusa.
+**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; (ii) da conferência por servidor autorizado, sem competência automática para decidir aceite/recusa; e (iii) do registro da regularização pelo executor, com validação independente por outro servidor autorizado quando exigida.
 
 **Não realizado:** alterações em código, banco de dados, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
-**Estado:** regras gerais das Operações 1 (formalização da chegada física) e 2 (conferência dos materiais) validadas pelo responsável pelo projeto em revisão. Demais operações, perfis institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
+**Estado:** regras gerais das Operações 1 (formalização da chegada física), 2 (conferência dos materiais) e 3 (regularização de pendências) validadas pelo responsável pelo projeto em revisão. Demais operações, definição dos casos de validação obrigatória, perfis institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
 
 ## 16. Histórico de alterações
 
@@ -282,3 +294,4 @@ A proposta somente poderá ser considerada fechada após:
 | 0.1 | 2026-11-10 | Criação da proposta técnica API10 para autorização, escopo, segregação, autoria, auditoria e integração com API05–API09. |
 | 0.2 | 2026-11-10 | Registro da validação em revisão da regra de formalização da chegada por servidor autorizado distinto do recebedor físico, preservando `recorded_by` e `received_by`. |
 | 0.3 | 2026-11-10 | Registro da validação em revisão da conferência por servidor especificamente autorizado, sem competência automática para decidir aceite/recusa. |
+| 0.4 | 2026-11-10 | Registro da validação em revisão do registro de regularização pelo executor e da validação independente por outro servidor autorizado quando exigida. |
