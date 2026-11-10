@@ -1,7 +1,7 @@
 # Modelo Conceitual do Domínio — Solicitação e Recebimento
 
 **Identificador:** MOD-DOM-001  
-**Versão:** 0.5  
+**Versão:** 0.6
 **Situação:** Modelo conceitual M0.2 aprovado funcionalmente, complementado na versão 0.5 após revisão multidisciplinar; não aprovado para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -407,3 +407,16 @@ Esta seção complementa a consolidação da seção 15 e não altera as cardina
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.5 | 2026-11-10 | Complementação conceitual após revisão multidisciplinar: quantidades, eventos/tempos, identificadores, escopo de acesso, integridade operacional, evidências e legado. |
+
+
+## Adendo — impacto das decisões pré-validadas D01–D20
+
+A matriz completa está em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. Para o modelo conceitual, ficam explicitados: quantidades em dimensões distintas (D03); possibilidade de múltiplos ObjetosCustodia por ItemRecebimento (D04); Pendência com ciclo próprio (D05); eventos de custódia separados de mudança de localização (D07–D08); anexos versionados e metadados de integridade (D13); trilha de auditoria (D14); identificadores independentes por entidade (D18); novo evento para chegada posterior (D19); AmostraOperacional somente após pré-condições formais de admissão (D20).
+
+Não criar automaticamente novas entidades físicas além das já aprovadas em M0.2 sem revisão explícita do modelo. Tecnologia de assinatura, backup, armazenamento de anexos e autenticação permanecem decisões de arquitetura/instituição, não cardinalidades aprovadas.
+
+**Situação:** pré-validação funcional do usuário; validação institucional pendente; Gate G0 não aprovado.
+
+### Histórico de versões
+
+| 0.6 | 2026-11-10 | Adendo de rastreabilidade às decisões pré-validadas D01–D20. |
