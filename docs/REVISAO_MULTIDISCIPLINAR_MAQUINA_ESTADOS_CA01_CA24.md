@@ -193,12 +193,13 @@ A avaliação multidisciplinar externa descreve pontos fortes e riscos do códig
 
 ## 11. Atualização — pré-validação das decisões D01–D20
 
-Em 2026-11-10, o usuário pré-validou sequencialmente as vinte decisões consolidadas em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. O conjunto cobre recebimento, quantidades, objetos de custódia, pendências, recusa, movimentações, retificação, independência, checklists, evidências, auditoria, controle de acesso, assinatura, backup, identificadores, chegada posterior e admissão de amostras.
+Em 2026-11-10, o responsável pela Validação Institucional do LIMS – SEFI ratificou integralmente as vinte decisões consolidadas em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. O conjunto cobre recebimento, quantidades, objetos de custódia, pendências, recusa, movimentações, retificação, independência, checklists, evidências, auditoria, controle de acesso, assinatura, backup, identificadores, chegada posterior e admissão de amostras.
 
-**Parecer atualizado:** o conjunto documental pode avançar para validação institucional estruturada com o SEFI. A rodada não substitui a reunião/ratificação institucional nem resolve as dependências técnicas e institucionais listadas no registro D01–D20.
+**Parecer atualizado:** a ratificação institucional das regras D01–D20 está concluída. Permanece necessária a validação operacional dos cenários com usuários do SEFI, bem como a resolução ou alocação formal das dependências técnicas e institucionais listadas no registro D01–D20. A ratificação não equivale à homologação operacional nem aprova o Gate G0.
 
 **Gate G0: NÃO APROVADO. Implementação: NÃO AUTORIZADA.** Nenhum código, banco, API, frontend, CI ou infraestrutura foi alterado nesta consolidação.
 
 ### Histórico de versões
 
 | 1.1 | 2026-11-10 | Registro da pré-validação das decisões D01–D20 e atualização do encaminhamento ao Gate G0. |
+| 1.2 | 2026-11-10 | Atualização após ratificação institucional integral de D01–D20; validação operacional e dependências para Gate G0 permanecem pendentes. |
