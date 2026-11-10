@@ -164,7 +164,7 @@ A validação com o SEFI deverá executar pelo menos os seguintes cenários:
 ## 8. Plano de continuidade recomendado
 
 1. Validar documentalmente EST-REC-001 v1.5, MOD-DOM-001 v0.5 e os achados AUD13–AUD22.
-2. Executar os 12 cenários com operadores/representantes do SEFI, registrando evidências e ajustes.
+2. Validar com operadores/representantes do SEFI os 12 cenários simulados em `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md`, registrando evidências e ajustes.
 3. Elaborar contratos técnicos de idempotência, concorrência, anexos, legado e autorização.
 4. Realizar revisão arquitetural e de segurança com evidências do repositório e ambiente.
 5. Consolidar matriz institucional de pendências e responsáveis.
@@ -186,5 +186,6 @@ A avaliação multidisciplinar externa descreve pontos fortes e riscos do códig
 - `docs/ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md` — versão 1.5.
 - `docs/MODELO_CONCEITUAL_DOMINIO_SOLICITACAO_RECEBIMENTO.md` — versão 0.5.
 - `docs/AUDITORIA_CONSISTENCIA_EST01_EST10.md` — versão 1.1.
+- `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md` — simulação documental SIM01–SIM12.
 - Avaliação multidisciplinar anterior: `Markdown colado(2).md`.
 
