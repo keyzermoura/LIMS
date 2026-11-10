@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 1.6
-**Situação:** Proposta consolidada após auditoria EST01–EST10 e revisão multidisciplinar; não aprovada para implementação  
+**Versão:** 1.7
+**Situação:** Proposta documental consolidada; decisões D01–D20 ratificadas institucionalmente pelo responsável designado; validação operacional pendente; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-10
