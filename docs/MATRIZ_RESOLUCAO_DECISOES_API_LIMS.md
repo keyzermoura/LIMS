@@ -1,7 +1,7 @@
 # Matriz de Resolução das Decisões da API — Recebimento e Custódia
 
 **Identificador:** MAT-LIMS-API-001  
-**Versão:** 2.7  
+**Versão:** 2.8  
 **Situação:** Instrumento de análise e encaminhamento; propostas técnicas não aprovadas para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -176,11 +176,11 @@ Em 2026-11-10, foi registrada a inspeção estática REV-LIMS-GOV-001 (`docs/REV
 
 Foi elaborada a proposta PROP-LIMS-GOV-002 (`docs/PROPOSTA_FECHAMENTO_PACOTE_1_GOVERNANCA.md`), consolidando recomendações para autorização por capacidade + escopo + contexto, concessão por autoridade institucional e execução técnica separada, matriz de segregação, assinatura por natureza do ato, autoria/timestamps, auditoria, gestão de chaves e exceções.
 
-**Estado:** proposta v0.3 para revisão; GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites registrados na proposta. GOV-P05/GOV-P06 (SIG-P01–SIG-P06) foram validadas em revisão pelo responsável pelo projeto em 2026-11-10; GOV-P02, GOV-P03 e GOV-P09–GOV-P11 permanecem pendentes. GOV-P07/GOV-P08 foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites de PROP-LIMS-GOV-AUD-001 v0.2. O fechamento institucional e técnico de GOV-P05/GOV-P06 continua pendente. GOV01–GOV05 e Operações 1–7 da API10 permanecem preservadas. Aprovação institucional e autorização de implementação continuam pendentes.
+**Estado:** proposta consolidada PROP-LIMS-GOV-002 v0.6 para revisão; GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites registrados na proposta. GOV-P05/GOV-P06 (SIG-P01–SIG-P06) foram validadas em revisão pelo responsável pelo projeto em 2026-11-10; GOV-P02, GOV-P03 e GOV-P09–GOV-P11 permanecem pendentes. GOV-P07/GOV-P08 foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites de PROP-LIMS-GOV-AUD-001 v0.2. O fechamento institucional e técnico de GOV-P05/GOV-P06 continua pendente. GOV01–GOV05 e Operações 1–7 da API10 permanecem preservadas. Aprovação institucional e autorização de implementação continuam pendentes.
 
 **Controle:** atualização exclusivamente documental em `main`; sem alterações em código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
-A proposta complementar `PROPOSTA_FECHAMENTO_GOV_P07_P08_AUTORIA_AUDITORIA.md` (PROP-LIMS-GOV-AUD-001 v0.2) registra a validação em revisão de AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07. A validação não representa aprovação institucional nem comprovação de controles operacionais.
+A proposta complementar `PROPOSTA_FECHAMENTO_GOV_P07_P08_AUTORIA_AUDITORIA.md` (PROP-LIMS-GOV-AUD-001 v0.2) registra a validação em revisão de AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07. A proposta `PROPOSTA_FECHAMENTO_GOV_P09_P11_INTEGRIDADE_ACESSO_AUDITORIA.md` (PROP-LIMS-GOV-SEC-001 v0.1) apresenta recomendações AUD-P09/AUD-P11 ainda não validadas. Nenhuma dessas validações representa aprovação institucional nem comprovação de controles operacionais.
 
 | Versão | Data | Alteração |
 |---|---|---|
@@ -188,4 +188,4 @@ A proposta complementar `PROPOSTA_FECHAMENTO_GOV_P07_P08_AUTORIA_AUDITORIA.md` (
 | 2.4 | 2026-11-10 | Registro da validação em revisão de GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação); definições institucionais e demais decisões pendentes, implementação bloqueada. |
 | 2.5 | 2026-11-10 | Referência à proposta complementar PROP-LIMS-GOV-SIG-001 para GOV-P05/GOV-P06; matriz de assinatura e política institucional permanecem pendentes, implementação bloqueada. |
 | 2.6 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; formalização institucional, fechamento técnico e autorização de implementação permanecem pendentes. |
-| 2.7 | 2026-11-10 | Registro da validação em revisão de AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07; políticas institucionais, fechamento técnico e autorização de implementação permanecem pendentes. |
+| 2.7 | 2026-11-10 | Registro da validação em revisão de AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07; políticas institucionais, fechamento técnico e autorização de implementação permanecem pendentes. |\n| 2.8 | 2026-11-10 | Referência à proposta GOV-P09/GOV-P11 PROP-LIMS-GOV-SEC-001 v0.1; recomendações AUD-P09/AUD-P11 em revisão, ainda não validadas; Pacote 1 permanece aberto. |
