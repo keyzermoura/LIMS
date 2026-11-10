@@ -1,7 +1,7 @@
 # Proposta consolidada de fechamento do Pacote 1 — Governança, autorização e responsabilidade
 
 **Identificador:** PROP-LIMS-GOV-002  
-**Versão:** 0.3  
+**Versão:** 0.4  
 **Data:** 2026-11-10  
 **Branch:** main  
 **Estado:** proposta para revisão do responsável pelo projeto; não validada integralmente; aprovação institucional pendente; implementação bloqueada.
@@ -334,7 +334,7 @@ O Pacote 1 só poderá ser marcado como fechado quando:
 
 ## 13. Controle e limitações
 
-Esta proposta é exclusivamente documental. Não altera código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não foi executada validação de runtime, banco ou produção. As recomendações GOV-P01 e GOV-P04 foram validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites descritos na seção 10. As demais recomendações GOV-P02, GOV-P03 e GOV-P05–GOV-P11 permanecem sem validação pelo responsável do projeto. Nenhuma dessas validações equivale a aprovação institucional.
+Esta proposta é exclusivamente documental. Não altera código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não foi executada validação de runtime, banco ou produção. As recomendações GOV-P01 e GOV-P04 foram validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites descritos na seção 10. As recomendações GOV-P05 e GOV-P06 (SIG-P01–SIG-P06) foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites do documento complementar PROP-LIMS-GOV-SIG-001. GOV-P02, GOV-P03 e GOV-P07–GOV-P11 permanecem sem validação pelo responsável do projeto. Nenhuma dessas validações equivale a aprovação institucional.
 
 **Situação:** Pacote 1 aberto. **Implementação bloqueada.**
 
@@ -352,3 +352,4 @@ A proposta específica não valida GOV-P05 ou GOV-P06. Ambas permanecem pendente
 | 0.1 | 2026-11-10 | Proposta consolidada de fechamento com modelo de autorização, concessões, segregação, assinatura, autoria, auditoria e exceções, derivada da inspeção REV-LIMS-GOV-001. |
 | 0.2 | 2026-11-10 | Registro da validação em revisão de GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação); definições institucionais específicas e demais decisões permanecem pendentes. |
 | 0.3 | 2026-11-10 | Referência à proposta complementar PROP-LIMS-GOV-SIG-001 para GOV-P05/GOV-P06; decisões de assinatura permanecem pendentes de validação e aprovação institucional. |
+| 0.4 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; GOV-P05/GOV-P06 seguem pendentes de formalização institucional, fechamento técnico e autorização de implementação. |
