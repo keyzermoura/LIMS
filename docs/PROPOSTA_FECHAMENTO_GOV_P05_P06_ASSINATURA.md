@@ -1,7 +1,7 @@
 # Proposta consolidada de fechamento GOV-P05 e GOV-P06 — Assinatura eletrônica
 
 **Identificador:** PROP-LIMS-GOV-SIG-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-10  
 **Branch:** `main`  
 **Estado:** proposta para revisão do responsável pelo projeto; não validada; aprovação institucional pendente; implementação bloqueada.
@@ -102,9 +102,9 @@ A inspeção estática REV-LIMS-GOV-001 identificou:
 
 **Conclusão:** existe uma base técnica aproveitável, mas não há evidência suficiente para declarar a política GOV-P05/P06 atendida. É necessária futura inspeção por operação e confirmação de migrações/runtime; esta proposta não autoriza testes ou alterações.
 
-## 7. Decisões para validação do responsável pelo projeto
+## 7. Decisões validadas em revisão pelo responsável pelo projeto
 
-| ID | Recomendação a validar | Limite da validação |
+| ID | Recomendação validada em revisão | Limite da validação |
 |---|---|---|
 | SIG-P01 | Adotar a matriz da seção 3 como regra de desenho: assinatura obrigatória para decisões formais de aceite/recusa, devolução/destinação, retificação formal, exceção e aprovação formal de concessões/revogações; condicional para chegada, conferência, regularização, coordenação e transferência conforme procedimento; não exigir para salvamentos intermediários e consultas. | Não aprova a política institucional nem define signatários por cargo. |
 | SIG-P02 | Exigir competência específica e escopo compatível tanto na emissão quanto no consumo da assinatura. | Não define o catálogo institucional de capacidades ou autoridades. |
@@ -128,9 +128,8 @@ Não podem ser decididas apenas pelo responsável do projeto:
 
 ## 9. Critérios de fechamento
 
-GOV-P05/P06 somente poderão ser considerados fechados quando:
+As recomendações SIG-P01–SIG-P06 foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites da seção 7. GOV-P05/P06 ainda não podem ser considerados institucional ou tecnicamente fechados. O fechamento integral depende de:
 
-- SIG-P01–SIG-P06 tiverem decisão documentada do responsável pelo projeto;
 - autoridades, signatários, modalidade e atos obrigatórios estiverem formalizados institucionalmente;
 - matriz de assinatura estiver alinhada com API04, API06, API07 e API10;
 - alvos e snapshots estiverem definidos para cada operação;
@@ -145,10 +144,11 @@ GOV-P05/P06 somente poderão ser considerados fechados quando:
 
 **Não realizado:** alterações de código, modelos, banco, migrações, serviços, rotas, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não houve validação runtime ou consulta ao banco.
 
-**Estado:** proposta para revisão. Nenhuma das recomendações SIG-P01–SIG-P06 está validada por este documento. GOV-P01 e GOV-P04 permanecem validadas em revisão nos limites anteriormente registrados. Aprovação institucional e autorização de implementação continuam pendentes.
+**Estado:** SIG-P01–SIG-P06 validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites da seção 7. GOV-P05/P06 permanecem pendentes de formalização institucional, fechamento técnico e autorização específica de implementação. GOV-P01 e GOV-P04 permanecem validadas em revisão nos limites anteriormente registrados.
 
 ## 11. Histórico
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-10 | Consolidação das recomendações de assinatura eletrônica para validação de GOV-P05/GOV-P06, com matriz por ato, competência, snapshot, atomicidade, replay e pendências institucionais. |
+| 0.2 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06 pelo responsável pelo projeto; formalização institucional, fechamento técnico e autorização de implementação permanecem pendentes. |
