@@ -125,7 +125,26 @@ A aprovação deste bloco ratifica os modelos e requisitos acima, mas não decla
 **Situação do Gate G0:** permanece **NÃO APROVADO** até a conclusão das demais pendências e evidências de validação requeridas.  
 **Implementação:** permanece **NÃO AUTORIZADA**.
 
-## 10. Histórico
+
+## 11. Decisões institucionais do Gate G0 — bloco G0-P11 a G0-P15
+
+Em 2026-11-10, o responsável pela Validação Institucional do LIMS – SEFI aprovou integralmente, sem ressalvas, as cinco propostas do terceiro bloco de pendências do Gate G0:
+
+| ID | Tema | Decisão | Limites e detalhamentos pendentes |
+|---|---|---|---|
+| G0-P11 | Validação operacional dos cenários SIM01–SIM12 | **Aprovada integralmente** | Aprovada a realização de validação de mesa com representantes dos perfis envolvidos, percorrendo os cenários, registrando concordâncias, divergências, regra aplicável, evidência esperada, responsável e ajustes. A execução com participantes reais e seus registros ainda precisa ocorrer; esta aprovação não declara a validação executada. |
+| G0-P12 | Critérios de aceitação CA01–CA37 e rastreabilidade de testes | **Aprovada integralmente** | Aprovado o princípio de converter os critérios em casos de teste rastreáveis, com pré-condições, passos, resultado esperado, evidências, resultado obtido e tratamento de falhas. A especificação detalhada e a execução dos testes permanecem pendentes. |
+| G0-P13 | Revisão de arquitetura e segurança | **Aprovada integralmente** | Aprovada a realização de avaliação documentada de arquitetura, segurança, controle de acesso, auditoria, proteção de dados/evidências, gestão de privilégios e continuidade, baseada em evidências do repositório e do ambiente. A revisão técnica independente e seus achados permanecem pendentes. |
+| G0-P14 | Persistência, integridade e concorrência em PostgreSQL | **Aprovada integralmente** | Aprovada a exigência de verificar integridade transacional, constraints, idempotência, concorrência e recuperação em PostgreSQL real, incluindo pipeline de CI; SQLite pode permanecer para testes rápidos, sem ser tratado como substituto da validação no banco-alvo. Implementação e execução dos testes permanecem pendentes. |
+| G0-P15 | Testes ponta a ponta do fluxo crítico | **Aprovada integralmente** | Aprovada a cobertura E2E do fluxo crítico, incluindo autenticação, recebimento, conferência, assinatura e auditoria, com evidências e rastreabilidade aos critérios de aceitação. Os casos concretos, ambiente, resultados e correções permanecem pendentes. |
+
+A aprovação deste bloco ratifica a necessidade, o escopo e a abordagem de validação e QA. Não significa que as atividades já tenham sido executadas, que os testes tenham passado ou que a revisão técnica tenha emitido parecer favorável.
+
+**Resultado do bloco:** 5 de 5 propostas aprovadas integralmente, sem ressalvas.  
+**Situação do Gate G0:** permanece **NÃO APROVADO** até a execução das atividades, apresentação das evidências e resolução das pendências impeditivas.  
+**Implementação:** permanece **NÃO AUTORIZADA** por este registro.
+
+## 12. Histórico
 
 | Versão | Data | Descrição |
 |---|---|---|
@@ -133,3 +152,4 @@ A aprovação deste bloco ratifica os modelos e requisitos acima, mas não decla
 | 1.1 | 2026-11-10 | Atualização do status após ratificação institucional integral de D01–D20 pelo responsável designado; mantidos Gate G0 não aprovado e implementação não autorizada. |
 | 1.2 | 2026-11-10 | Registro da aprovação integral das propostas G0-P01 a G0-P05, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
 | 1.3 | 2026-11-10 | Registro da aprovação integral das propostas G0-P06 a G0-P10, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
+| 1.4 | 2026-11-10 | Registro da aprovação integral das propostas G0-P11 a G0-P15, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
