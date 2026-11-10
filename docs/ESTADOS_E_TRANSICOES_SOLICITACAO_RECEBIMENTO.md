@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.3  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; não aprovada para implementação  
+**Versão:** 0.4  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 aprovada; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -382,3 +382,29 @@ As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas,
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.3 | 2026-11-10 | Alinhamento das regras de estados e transições ao modelo de domínio M0.2 aprovado; detalhamento da custódia por ObjetoCustodia, consolidação por item e vínculo com AmostraOperacional. |
+
+
+## 15. Registro de decisão funcional — EST02
+
+**Decisão:** APROVADA — permitir que o mesmo servidor registre a chegada física e realize a conferência técnica do material.  
+**Data:** 2026-11-10  
+**Escopo:** segregação entre as atividades de recebimento físico e conferência técnica.
+
+### Regra aprovada
+
+1. O mesmo servidor poderá executar o registro da chegada física e a conferência do mesmo material.
+2. O sistema deverá registrar cada atividade como evento distinto, com ator, papel/permissão efetiva e data/hora próprios.
+3. A permissão para receber não concede automaticamente permissão para conferir; o usuário deverá possuir as duas permissões funcionais.
+4. A possibilidade de acumular as duas funções não elimina validações independentes da coordenação quando exigidas por regra institucional.
+5. A decisão não autoriza autoaprovação de decisões que estejam sujeitas à validação da coordenação. A política geral de autoaprovação permanece pendente em EST10.
+6. A regra deverá ser aplicada de forma uniforme aos objetos e itens abrangidos pelo recebimento, preservando o histórico individual.
+
+### Efeito sobre EST02
+
+EST02 fica **resolvida funcionalmente**. A matriz de permissões deverá permitir a acumulação dos papéis de recebedor e conferente, condicionada à atribuição explícita das permissões correspondentes. EST01 e EST10 permanecem abertas.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.4 | 2026-11-10 | Registro da decisão EST02: mesmo servidor pode registrar a chegada e realizar a conferência, com eventos e permissões distintos. |
