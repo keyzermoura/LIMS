@@ -1,8 +1,8 @@
 # Proposta de Resolução API08 — Payload mínimo e identidade da DeviceSample por classe de material
 
 **Identificador:** PROP-LIMS-API08-001  
-**Versão:** 0.1  
-**Situação:** Proposta técnica para revisão; validação funcional, técnica e institucional pendente — bloqueadora  
+**Versão:** 0.2  
+**Situação:** Regras gerais validadas pelo responsável pelo projeto em revisão (2026-11-09); fechamento funcional/técnico e aprovação institucional pendentes — implementação bloqueada  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-10
@@ -293,7 +293,20 @@ Como regra geral proposta:
 
 A matriz definitiva de campos e exceções precisa de validação do responsável técnico/laboratorial, cadastro de materiais, arquitetura e autoridade institucional aplicável. Até lá, API08 permanece bloqueadora e não implementável.
 
-## 14. Controle de execução
+## 14. Registro da validação em revisão do projeto
+
+Em 2026-11-09, o usuário validou as regras gerais recomendadas nesta proposta, como diretriz do responsável pelo projeto em revisão. O registro abrange:
+
+1. não exigir número de série individual para todas as classes de materiais;
+2. exigir fabricante e nome comercial confirmados no aceite;
+3. exigir lote conforme sua aplicabilidade ao produto/classe;
+4. utilizar atributos específicos conforme a classe de material;
+5. tratar localização física no domínio da custódia, e não como identidade universal;
+6. não alterar restrições e contratos legados antes de análise e plano de migração aprovados.
+
+Esta validação não equivale à aprovação institucional formal, não fecha a matriz definitiva de aplicabilidade por classe e não autoriza implementação. Permanecem necessárias a validação funcional/técnica dos detalhes, a confirmação pelo responsável técnico/laboratorial e cadastro de materiais, a revisão de compatibilidade com runtime/banco-alvo e a aprovação institucional aplicável.
+
+## 15. Controle de execução
 
 **Realizado:** recuperação da matriz API01–API12, especificação de contratos, modelo relacional preliminar, estratégia de migração e inventário técnico; elaboração desta proposta documental com base nas evidências estáticas disponíveis.
 
@@ -301,8 +314,9 @@ A matriz definitiva de campos e exceções precisa de validação do responsáve
 
 **Situação:** proposta técnica para revisão. Não há autorização de implementação.
 
-## 15. Histórico de alterações
+## 16. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-10 | Primeira proposta de identidade mínima e payload condicional por classe de material, com compatibilidade legada. |
+| 0.2 | 2026-11-09 | Registro da validação das regras gerais pelo responsável pelo projeto em revisão; fechamento funcional/técnico e aprovação institucional permanecem pendentes. |
