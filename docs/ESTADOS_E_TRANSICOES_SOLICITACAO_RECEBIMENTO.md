@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.5  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 e EST03 aprovadas; não aprovada para implementação  
+**Versão:** 0.6  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02, EST03 e EST04 aprovadas; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -236,7 +236,7 @@ Eventos sugeridos:
 | EST01 | Quais perfis institucionais podem cadastrar solicitação, receber material e conferir? | P0 |
 | EST02 | Conferente pode ser o mesmo usuário que registrou a chegada? | P0 |
 | EST03 | Coordenação é obrigatória para quais tipos de exceção e decisões? | P0 — resolvida funcionalmente |
-| EST04 | Qual destino e fluxo de custódia se aplicam a item recusado? | P0 |
+| EST04 | Qual destino e fluxo de custódia se aplicam a item recusado? | P0 — resolvida funcionalmente |
 | EST05 | Quando um recebimento é considerado concluído se alguns itens não foram apresentados? | P0 |
 | EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 |
 | EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 |
@@ -370,7 +370,7 @@ As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas,
 
 - **EST01/EST02/EST10 — perfis e segregação:** quem registra chegada, quem confere, se o mesmo usuário pode executar ambas as funções e se pode aprovar a própria decisão;
 - **EST03 — coordenação:** regra aprovada e registrada na seção 16; eventuais detalhamentos operacionais devem respeitar seus limites;
-- **EST04 — recusados:** quais destinos institucionais são permitidos (devolução ao solicitante, retirada por representante, descarte/destinação autorizada) e quais comprovantes são exigidos;
+- **EST04 — recusados:** destinos e controles aprovados e registrados na seção 17; eventuais procedimentos operacionais devem respeitar essa regra;
 - **EST05 — ausentes:** se o recebimento pode ser concluído administrativamente com item não apresentado, sem concluir tecnicamente o item;
 - **EST06 — critérios:** quem aprova a classificação impeditivo/saneável/informativo e como versionar checklists;
 - **EST07 — assinatura:** quais eventos exigem assinatura eletrônica formal e quais podem ser cobertos por autenticação e trilha de auditoria;
@@ -442,3 +442,50 @@ EST03 fica **resolvida funcionalmente**. As transições e a matriz de permissõ
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.5 | 2026-11-10 | Registro da decisão EST03: validação obrigatória para exceções fora do checklist, tentativa de regularização de impeditivo não conforme, recusas e casos especiais previstos institucionalmente. |
+
+
+## 17. Registro de decisão funcional — EST04
+
+**Decisão:** APROVADA — estabelecer destinos permitidos para materiais recusados e condicionar o encerramento da custódia à destinação efetiva e comprovada.  
+**Data:** 2026-11-10  
+**Escopo:** tratamento e destinação de materiais recusados após a decisão técnica.
+
+### Destinos permitidos
+
+Conforme o caso e as regras institucionais aplicáveis, o material recusado poderá ter um dos seguintes destinos:
+
+1. **Devolução ao solicitante:** entrega ao próprio solicitante ou à pessoa formalmente indicada por ele, quando permitido.
+2. **Retirada por representante autorizado:** entrega a representante cuja autorização e identidade tenham sido verificadas e registradas.
+3. **Outra destinação institucional formalmente autorizada:** somente quando houver fundamento normativo ou procedimento institucional aplicável, com autorização e evidências correspondentes.
+
+### Regras obrigatórias de custódia e encerramento
+
+1. A decisão RECUSADA não encerra automaticamente a custódia. O material permanece SOB_GUARDA até a entrega ou destinação efetiva.
+2. O encerramento exige registro do destino adotado, identificação do responsável pela entrega, identificação do destinatário ou responsável pela destinação, data/hora efetivas e comprovante quando aplicável.
+3. Quando houver representante, devem ser registrados os dados necessários para demonstrar a autorização e a identificação da pessoa que recebeu o material.
+4. A transferência de responsabilidade somente será considerada concluída após confirmação do recebimento pelo destinatário, conforme o fluxo de custódia.
+5. Se a retirada ou destinação não ocorrer, o objeto permanece sob custódia institucional, com situação pendente e responsável atual identificados.
+6. A opção por outra destinação institucional não pode ser usada como autorização genérica para descarte; deve haver fundamento e autorização específicos.
+7. Cada objeto recusado deve ter destino e encerramento próprios, preservando a possibilidade de destinos diferentes para objetos originados do mesmo ItemRecebimento.
+
+### Evidência e auditoria
+
+O evento de encerramento da custódia deverá preservar, no mínimo:
+- ObjetoCustodia e decisão de recusa relacionados;
+- modalidade de destino escolhida;
+- identificação do destinatário/representante ou unidade responsável;
+- identificação do servidor que realizou a entrega ou destinação;
+- data/hora efetivas;
+- fundamento/autorização institucional, quando aplicável;
+- comprovante ou referência da evidência, quando aplicável;
+- ator, papel/permissão e evento de auditoria correspondente.
+
+### Efeito sobre EST04
+
+EST04 fica **resolvida funcionalmente**. O estado ENCERRADA somente poderá ser atribuído após a entrega ou destinação efetiva e o registro dos elementos obrigatórios. A decisão não define prazos de permanência, guarda ou descarte; esses aspectos deverão observar normas e procedimentos institucionais aplicáveis e não ficam autorizados por esta decisão.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.6 | 2026-11-10 | Registro da decisão EST04: destinos permitidos para materiais recusados e encerramento da custódia somente após destinação efetiva e documentada. |
