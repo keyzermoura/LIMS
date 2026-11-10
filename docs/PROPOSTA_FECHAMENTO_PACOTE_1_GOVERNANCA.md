@@ -349,7 +349,11 @@ As recomendações SIG-P01–SIG-P06 da proposta específica foram validadas em 
 
 A proposta complementar PROP-LIMS-GOV-AUD-001 v0.2 (docs/PROPOSTA_FECHAMENTO_GOV_P07_P08_AUTORIA_AUDITORIA.md) teve as recomendações AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07 validadas em revisão pelo responsável pelo projeto em 2026-11-10. A validação preserva os limites do documento: não define fuso institucional, política de lançamento tardio/retificação, retenção, acesso, infraestrutura ou prova de implantação dos controles. GOV-P07/GOV-P08 permanecem pendentes de formalização institucional e fechamento técnico; não há autorização de implementação. A modalidade de assinatura, signatários por ato, retenção e demais definições institucionais não foram presumidas.
 
-## 17. Proposta específica para integridade operacional e acesso à auditoria — GOV-P09/GOV-P11\n\nFoi elaborada a proposta complementar PROP-LIMS-GOV-SEC-001 v0.1 (docs/PROPOSTA_FECHAMENTO_GOV_P09_P11_INTEGRIDADE_ACESSO_AUDITORIA.md), com recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 para revisão. Essas recomendações ainda não foram validadas. A proposta não comprova configuração operacional de banco, chaves, backups ou controles de acesso e não autoriza implementação.\n\n## 14. Histórico
+## 17. Proposta específica para integridade operacional e acesso à auditoria — GOV-P09/GOV-P11
+
+Foi elaborada a proposta complementar PROP-LIMS-GOV-SEC-001 v0.1 (docs/PROPOSTA_FECHAMENTO_GOV_P09_P11_INTEGRIDADE_ACESSO_AUDITORIA.md), com recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 para revisão. Essas recomendações ainda não foram validadas. A proposta não comprova configuração operacional de banco, chaves, backups ou controles de acesso e não autoriza implementação.
+
+## 14. Histórico
 
 | Versão | Data | Alteração |
 |---|---|---|
@@ -357,3 +361,5 @@ A proposta complementar PROP-LIMS-GOV-AUD-001 v0.2 (docs/PROPOSTA_FECHAMENTO_GOV
 | 0.2 | 2026-11-10 | Registro da validação em revisão de GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação); definições institucionais específicas e demais decisões permanecem pendentes. |
 | 0.3 | 2026-11-10 | Referência à proposta complementar PROP-LIMS-GOV-SIG-001 para GOV-P05/GOV-P06; decisões de assinatura permanecem pendentes de validação e aprovação institucional. |
 | 0.4 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; GOV-P05/GOV-P06 seguem pendentes de formalização institucional, fechamento técnico e autorização de implementação. |
+| 0.5 | 2026-11-10 | Registro da validação em revisão de AUD-P07/AUD-P08; políticas institucionais e fechamento técnico permanecem pendentes. |
+| 0.6 | 2026-11-10 | Inclusão da proposta complementar GOV-P09/GOV-P11; recomendações ainda não validadas e Pacote 1 permanece aberto. |
