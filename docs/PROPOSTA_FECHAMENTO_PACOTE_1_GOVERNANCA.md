@@ -1,7 +1,7 @@
 # Proposta consolidada de fechamento do Pacote 1 — Governança, autorização e responsabilidade
 
 **Identificador:** PROP-LIMS-GOV-002  
-**Versão:** 0.9  
+**Versão:** 1.0  
 **Data:** 2026-11-10  
 **Branch:** main  
 **Estado:** proposta parcialmente validada em revisão pelo responsável pelo projeto; decisões institucionais e fechamento técnico pendentes; implementação bloqueada.
@@ -296,7 +296,7 @@ Regras:
 | ID | Decisão proposta | Recomendação | O que depende de manifestação/autoridade institucional |
 |---|---|---|---|
 | GOV-P01 | Modelo de autorização | Capacidade + escopo + contexto/estado; papéis como agrupadores | **Validada em revisão pelo responsável pelo projeto (2026-11-10).** A instituição ainda deve formalizar catálogo, escopos e autoridades reais. |
-| GOV-P02 | Concessão de competência | Autoridade formal aprova; administrador técnico executa; beneficiário não se autoatribui | Identificar autoridade, delegações e procedimento oficial. |
+| GOV-P02 | Concessão de competência | **Modelo de três níveis e recomendações GOV02-01 a GOV02-11 validados em revisão (2026-11-10)**: instituição define matriz/delegações; gestor funcional solicita/justifica e aprova somente se formalmente delegado; administrador técnico executa a autorização | Designar autoridades e delegações reais; aprovar procedimento, evidências, contingência e integração com gestão de pessoas; fechamento técnico pendente. |
 | GOV-P03 | Revisão/revogação | Validade explícita e revisão por mudança funcional/afastamento/desligamento; revogação executada tecnicamente após autorização | Definir prazos, responsáveis e integração com gestão de pessoas. |
 | GOV-P04 | Segregação | Aplicar independência obrigatória executor/validador quando exigida; manter demais acumulações conforme política | **Validada em revisão pelo responsável pelo projeto (2026-11-10)** quanto ao princípio geral, em coerência com GOV01 e GOV03. Incompatibilidades adicionais entre conferente, decisor, coordenação, signatário, custodiante e administrador dependem de definição institucional. |
 | GOV-P05 | Matriz de assinatura | Aceite/recusa, validação independente formal, retificação formal, exceção e concessão/revogação com aprovação exigem assinatura formal; outros atos condicionais conforme procedimento | Aprovar matriz por operação e modalidade/nível de garantia. |
@@ -334,7 +334,7 @@ O Pacote 1 só poderá ser marcado como fechado quando:
 
 ## 13. Controle e limitações
 
-Esta proposta é exclusivamente documental. Não altera código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não foi executada validação de runtime, banco ou produção. As recomendações GOV-P01 e GOV-P04 foram validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites descritos na seção 10. As recomendações GOV-P05 e GOV-P06 (SIG-P01–SIG-P06) tiveram suas recomendações validadas em revisão, nos limites do documento complementar PROP-LIMS-GOV-SIG-001, mas dependem de formalização institucional e fechamento técnico. GOV-P02 e GOV-P03 permanecem sem validação pelo responsável do projeto. GOV-P10 teve as recomendações GOV10-01 a GOV10-11 validadas em revisão, nos limites da proposta complementar PROP-LIMS-GOV-EXC-001 v0.1; definições institucionais e fechamento técnico permanecem pendentes. As recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 foram validadas em revisão em 2026-11-10, nos limites da proposta complementar PROP-LIMS-GOV-SEC-001 v0.2; GOV-P09/GOV-P11 permanecem abertas até formalização institucional, fechamento técnico e comprovação operacional. GOV-P07 e GOV-P08 tiveram as recomendações AUD-P07/AUD-P08 validadas em revisão, nos limites da proposta complementar PROP-LIMS-GOV-AUD-001 v0.2. Nenhuma dessas validações equivale a aprovação institucional.
+Esta proposta é exclusivamente documental. Não altera código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não foi executada validação de runtime, banco ou produção. As recomendações GOV-P01 e GOV-P04 foram validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites descritos na seção 10. As recomendações GOV-P05 e GOV-P06 (SIG-P01–SIG-P06) tiveram suas recomendações validadas em revisão, nos limites do documento complementar PROP-LIMS-GOV-SIG-001, mas dependem de formalização institucional e fechamento técnico. GOV-P02 teve o modelo de três níveis e as recomendações GOV02-01 a GOV02-11 validados em revisão em 2026-11-10, nos limites de PROP-LIMS-GOV-AUTH-001 v0.1; designações/delegações institucionais, procedimento e fechamento técnico permanecem pendentes. GOV-P03 permanece sem validação pelo responsável do projeto. GOV-P10 teve as recomendações GOV10-01 a GOV10-11 validadas em revisão, nos limites da proposta complementar PROP-LIMS-GOV-EXC-001 v0.1; definições institucionais e fechamento técnico permanecem pendentes. As recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 foram validadas em revisão em 2026-11-10, nos limites da proposta complementar PROP-LIMS-GOV-SEC-001 v0.2; GOV-P09/GOV-P11 permanecem abertas até formalização institucional, fechamento técnico e comprovação operacional. GOV-P07 e GOV-P08 tiveram as recomendações AUD-P07/AUD-P08 validadas em revisão, nos limites da proposta complementar PROP-LIMS-GOV-AUD-001 v0.2. Nenhuma dessas validações equivale a aprovação institucional.
 
 **Situação:** Pacote 1 aberto. **Implementação bloqueada.**
 
@@ -357,6 +357,10 @@ Foi elaborada a proposta complementar PROP-LIMS-GOV-SEC-001 v0.2 (docs/PROPOSTA_
 
 A proposta complementar PROP-LIMS-GOV-EXC-001 v0.1 (`docs/PROPOSTA_FECHAMENTO_GOV_P10_EXCECOES.md`) registra as recomendações GOV10-01 a GOV10-11, validadas em revisão pelo responsável pelo projeto em 2026-11-10. A validação cobre as regras gerais de autorização formal, justificativa, escopo mínimo, prazo/condição, critérios impeditivos, acesso emergencial, segregação, auditoria, expiração/revogação, revisão posterior e preservação histórica. Autoridades, hipóteses admissíveis, critérios de emergência, prazos, controles compensatórios e responsáveis dependem de formalização institucional. O fechamento técnico permanece pendente e não há autorização de implementação.
 
+## 19. Proposta específica para autoridade e concessão de permissões — GOV-P02
+
+A proposta complementar PROP-LIMS-GOV-AUTH-001 v0.1 (`docs/PROPOSTA_FECHAMENTO_GOV_P02_CONCESSAO_PERMISSOES.md`) registra a validação em revisão do modelo de três níveis: (1) instituição define matriz de competências e delegações; (2) gestor/responsável funcional solicita ou justifica e aprova somente quando formalmente delegado; (3) administrador técnico executa a concessão autorizada. As recomendações GOV02-01 a GOV02-11 também foram validadas em revisão em 2026-11-10. Autoridades, delegações, procedimentos, evidências e integração institucional permanecem pendentes. Não há aprovação institucional nem autorização de implementação.
+
 ## 14. Histórico
 
 | Versão | Data | Alteração |
@@ -370,3 +374,4 @@ A proposta complementar PROP-LIMS-GOV-EXC-001 v0.1 (`docs/PROPOSTA_FECHAMENTO_GO
 | 0.7 | 2026-11-10 | Consolidação das validações em revisão de GOV-P07/GOV-P08 e atualização dos vínculos com as propostas específicas de autoria, timestamps e auditoria. |
 | 0.8 | 2026-11-10 | Registro da validação em revisão de AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09; políticas institucionais, comprovação operacional e fechamento técnico permanecem pendentes; implementação bloqueada. |
 | 0.9 | 2026-11-10 | Registro da validação em revisão de GOV10-01 a GOV10-11 para GOV-P10, conforme PROP-LIMS-GOV-EXC-001 v0.1; formalização institucional e fechamento técnico permanecem pendentes. |
+| 1.0 | 2026-11-10 | Registro da validação em revisão do modelo de três níveis e das recomendações GOV02-01 a GOV02-11 para GOV-P02, conforme PROP-LIMS-GOV-AUTH-001 v0.1; formalização institucional e fechamento técnico permanecem pendentes. |
