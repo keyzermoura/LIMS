@@ -1,7 +1,7 @@
 # Simulação de Mesa — Cenários Operacionais do Recebimento SEFI no LIMS
 
 **Identificador:** SIM-SEFI-REC-001  
-**Versão:** 1.0  
+**Versão:** 1.1
 **Data:** 2026-11-10  
 **Base:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; CA01–CA37; revisão REV-MD-LIMS-002 v1.0.  
 **Situação:** simulação documental de mesa; não substitui validação com operadores SEFI nem teste de software. Não autoriza implementação.
@@ -272,3 +272,27 @@ Realizar validação de mesa com representantes da recepção, conferência, coo
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-10 | Simulação documental de mesa dos 12 cenários operacionais mínimos do fluxo SEFI. |
+
+
+## 7. Adendo — decisões pré-validadas D01–D20 e cenários
+
+A matriz completa está em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. A validação operacional com o SEFI deverá relacionar cada decisão aos cenários existentes e acrescentar verificações específicas:
+
+- D01–D04: SIM01–SIM04 — autoria da chegada, metadados, quantidades e múltiplos objetos.
+- D05–D06: SIM05–SIM06 — ciclo de pendências, recusa, comunicação e custódia até destinação.
+- D07–D08: SIM07–SIM08 — transferência confirmada e mudança de localização sem troca de custodiante.
+- D09–D10: SIM09 e SIM01/SIM04/SIM06 — retificação com impacto e independência de validação.
+- D11–D12: SIM01–SIM06 — checklist correto, versão congelada e governança de publicação.
+- D13–D16: SIM09–SIM11 — evidências, trilha, autorização, assinatura e segregação de acesso.
+- D17: cenários de falha/recuperação ainda precisam ser acrescentados à validação técnica.
+- D18: SIM01/SIM10/SIM12 — unicidade e vínculo entre protocolo, recebimento, objetos e amostras.
+- D19: SIM12 — chegada posterior sem retroatividade.
+- D20: SIM01–SIM06 e SIM09 — bloqueio de admissão até cumprimento das pré-condições.
+
+Os SIM01–SIM12 permanecem simulação documental, não teste automatizado nem homologação. Acrescentar cenários de restauração de backup, integridade de anexos/hash, autorização e assinatura, acesso indevido a anexos e conflitos de concorrência na etapa de QA.
+
+**Situação:** pré-validação funcional concluída; validação com operadores/representantes SEFI pendente; Gate G0 não aprovado; implementação não autorizada.
+
+### Histórico de versões
+
+| 1.1 | 2026-11-10 | Adendo de rastreabilidade dos cenários às decisões D01–D20. |
