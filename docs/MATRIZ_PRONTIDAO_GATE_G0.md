@@ -1,7 +1,7 @@
 # Matriz Consolidada de Prontidão — Gate G0 do LIMS–SEFI
 
 **Identificador:** MAT-G0-SEFI-001  
-**Versão:** 0.2  
+**Versão:** 0.3  
 **Data:** 2026-11-10  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch:** `main`  
@@ -54,12 +54,12 @@ Nenhum status é elevado a concluído apenas porque uma proposta relacionada foi
 | G0-10 | Gestão de documentos e anexos | Especificação de metadados, formatos, limites, hash, versões, retenção e recuperação; testes | Integridade e vínculo documental verificáveis; acesso autorizado; corrupção/indisponibilidade tratadas | Arquitetura / segurança / QA | G0-P09, G0-P24, D13 | **Pendente — README declara ausência de anexos; não há armazenamento de arquivos evidenciado** |
 | G0-11 | Retificações e avaliação de impacto | Procedimento/matriz de impacto por etapa, formulários e casos de teste | Original preservado; justificativa, evidência, autorização e efeitos derivados registrados; sem retroatividade indevida | Coordenação / Qualidade / responsável técnico | G0-P10, G0-P27, D09 | **Parcial — resultados versionados e emendas justificadas existem; avaliação institucional de impacto entre etapas pendente** |
 | G0-12 | Validação operacional SIM01–SIM12 | Roteiros executados, participantes/funções, atas, resultados, desvios e aceite | Todos os cenários executados com representantes autorizados do SEFI; divergências tratadas; aceite formal | Responsável pela Validação Institucional / representantes SEFI | D01–D20; matriz de competências | **Pendente — bloqueador; testes automatizados não substituem homologação operacional com usuários SEFI** |
-| G0-13 | Critérios de aceitação CA01–CA37 | Matriz requisito–teste–resultado–evidência, com versão e rastreabilidade | Cada CA possui pré-condição, passos, resultado esperado/obtido, evidência, status e aprovador; falhas críticas encerradas | QA / responsáveis de domínio | G0-P12; SIM01–SIM12 | **Código de testes presente; rastreabilidade CA01–CA37 e resultados executados/aprovados não comprovados — bloqueador** |
+| G0-13 | Critérios de aceitação CA01–CA37 | Matriz requisito–teste–resultado–evidência, com versão e rastreabilidade | Cada CA possui pré-condição, passos, resultado esperado/obtido, evidência, status e aprovador; falhas críticas encerradas | QA / responsáveis de domínio | G0-P12; SIM01–SIM12 | **Suíte automatizada executada com sucesso no CI do HEAD; rastreabilidade explícita CA01–CA37, evidências por critério e aprovação de QA não comprovadas — bloqueador** |
 | G0-14 | Revisão de arquitetura e segurança | Relatório técnico com diagramas, ameaças, controles, riscos residuais e parecer | Fluxos, fronteiras de confiança, autorização no servidor, segredos, logs, anexos, backup e operação revisados | Arquitetura / segurança / TI | G0-P13, G0-P29; decisões D13–D17, P21, P24–P25 | **Parcial — controles de aplicação identificados; revisão independente, riscos residuais e validação operacional pendentes — bloqueador** |
-| G0-15 | Persistência e integridade em PostgreSQL | Modelo físico revisado, migrações, constraints, transações e testes em instância PostgreSQL real | Integridade referencial, atomicidade, isolamento, unicidade e rollback demonstrados; sem depender apenas de mocks | Arquitetura / desenvolvimento / QA | G0-P14, D03–D04, D18–D20, G0-P23 | **Parcial — PostgreSQL/Alembic e testes específicos presentes; migração executada em banco real não verificada — bloqueador** |
-| G0-16 | Concorrência, idempotência e versionamento | Testes concorrentes reproduzíveis, contratos e relatórios | Repetições e conflitos produzem resultado determinístico; eventos e alterações permanecem atômicos; expected_version aplicado | Desenvolvimento / QA | G0-P23, D14 | **Parcial — versionamento otimista e teste de advisory lock concorrente presentes; idempotência do fluxo SEFI não comprovada — bloqueador** |
-| G0-17 | Testes ponta a ponta do fluxo crítico | Relatório E2E automatizado e evidências de execução | Fluxo solicitação → chegada → conferência → pendências → custódia → aceite/amostra coberto; casos negativos e permissões incluídos | QA / produto / SEFI | SIM01–SIM12, CA01–CA37, arquitetura | **Parcial — testes HTTP ASGI e smoke Docker presentes; README declara ausência de E2E de navegador; execução atual não verificada — bloqueador** |
-| G0-18 | Pipeline CI e reprodutibilidade | Configuração versionada, logs de execução e relatório de cobertura pertinente | Testes executados em ambiente reproduzível; falhas visíveis; dependências e versões controladas | Desenvolvimento / DevOps / QA | G0-P15, G0-P14 | **Workflow CI versionado com jobs backend, frontend e Docker; resultado do HEAD não confirmado (nenhum status check retornado) — bloqueador** |
+| G0-15 | Persistência e integridade em PostgreSQL | Modelo físico revisado, migrações, constraints, transações e testes em instância PostgreSQL real | Integridade referencial, atomicidade, isolamento, unicidade e rollback demonstrados; sem depender apenas de mocks | Arquitetura / desenvolvimento / QA | G0-P14, D03–D04, D18–D20, G0-P23 | **Parcial — CI do HEAD confirmou alembic upgrade head, alembic check e suíte PostgreSQL 16 com sucesso; isso valida o schema implementado, não a persistência do domínio SEFI ainda ausente — bloqueador** |
+| G0-16 | Concorrência, idempotência e versionamento | Testes concorrentes reproduzíveis, contratos e relatórios | Repetições e conflitos produzem resultado determinístico; eventos e alterações permanecem atômicos; expected_version aplicado | Desenvolvimento / QA | G0-P23, D14 | **Parcial — teste PostgreSQL de advisory lock concorrente executado com sucesso no CI do HEAD e mecanismos de versionamento presentes; contratos/testes de idempotência para o fluxo SEFI não comprovados — bloqueador** |
+| G0-17 | Testes ponta a ponta do fluxo crítico | Relatório E2E automatizado e evidências de execução | Fluxo solicitação → chegada → conferência → pendências → custódia → aceite/amostra coberto; casos negativos e permissões incluídos | QA / produto / SEFI | SIM01–SIM12, CA01–CA37, arquitetura | **Parcial — testes HTTP/ASGI e smoke Docker executados com sucesso no CI do HEAD; não cobrem o fluxo SEFI completo nem comprovam homologação operacional ou E2E de navegador — bloqueador** |
+| G0-18 | Pipeline CI e reprodutibilidade | Configuração versionada, logs de execução e relatório de cobertura pertinente | Testes executados em ambiente reproduzível; falhas visíveis; dependências e versões controladas | Desenvolvimento / DevOps / QA | G0-P15, G0-P14 | **CI do HEAD verificado: execução 42897866725 concluída com sucesso; jobs backend, frontend e Docker verdes, incluindo PostgreSQL 16, typecheck/build e smoke test. Permanecem pendentes evidências de cobertura/rastreabilidade CA e validação SEFI — bloqueador** |
 | G0-19 | Identidade e acesso de solicitantes externos | Fluxo de cadastro, vínculo, recuperação, suspensão e revogação; testes de autorização | Acesso limitado ao escopo autorizado; servidor aplica isolamento por solicitação/anexo; tentativas indevidas negadas e auditadas | Segurança / TI / produto | G0-P21, D15 | **Parcial — JWT/RBAC para perfis internos existe; fluxo e isolamento de solicitantes externos não evidenciados — pendente** |
 | G0-20 | Migração e reconciliação de legado | Inventário, mapeamento, plano, relatório de reconciliação e tratamento de exceções | Totais e amostras conferidos; origem preservada; vínculos sem evidência não criados; exceções aprovadas | Gestão de dados / SEFI / QA | G0-P22, G0-18 | **Pendente — migrações de schema existem; plano/script de migração e reconciliação de dados legados não evidenciados** |
 | G0-21 | Agrupamento, fracionamento e amostragem por categoria | Matriz técnica aprovada por categoria e testes de aplicação | Quantidades, unidades, lotes, objetos de custódia e amostras rastreáveis; exceções justificadas | Responsável técnico / Qualidade | G0-P26, D03–D04, D20 | **Pendente** |
@@ -252,9 +252,9 @@ A inspeção confirma que há uma base de software funcional e estruturada: API 
 
 Entretanto, o principal impedimento não é a ausência geral de tecnologia. É a **aderência do domínio implementado ao processo SEFI aprovado**. Os modelos ORM registrados são centrados em `DeviceSample`, `ChainOfCustody`, `LabTest`, `LabTestResult`, `CapaAction`, auditoria, assinatura e usuários. O modelo funcional ratificado para a etapa inicial do SEFI exige fluxo de solicitação, itens declarados, chegada/recebimento, conferência, pendências, objetos sob custódia e aceite que gera amostra operacional. Esses conceitos não aparecem como entidades próprias no conjunto de modelos ORM inspecionado.
 
-Também há diferença entre a evidência de engenharia e a evidência de execução: workflow/testes estão versionados, mas os resultados atuais do CI não foram confirmados; README declara resultados de referência, mas não foram executados nesta inspeção; configuração PostgreSQL e testes PG existem, mas não foi conectada uma instância real.
+Também há diferença entre evidência de engenharia e evidência de conformidade: o workflow foi executado com sucesso no HEAD (run 42897866725), inclusive testes PostgreSQL 16, migrações, frontend e smoke Docker. A execução comprova os passos automatizados definidos no pipeline, mas não demonstra que os testes cubram os requisitos SEFI ainda não modelados, nem substitui SIM01–SIM12, CA01–CA37 rastreados, revisão independente ou validação institucional.
 
-**Recomendação técnica:** manter **NO-GO para implementação de novas funcionalidades SEFI** até concluir G0-26 (aderência do domínio), validar SIM01–SIM12 e CA01–CA37, obter evidências reais do CI e executar a validação PostgreSQL/E2E aplicável. A presença de código não deve ser interpretada como conformidade com a baseline funcional ratificada.
+**Recomendação técnica:** manter **NO-GO para implementação de novas funcionalidades SEFI** até resolver G0-26 (aderência do domínio), executar e obter aceite de SIM01–SIM12, normalizar e rastrear CA01–CA37, concluir revisão independente de arquitetura/segurança, fechar dependências institucionais e demonstrar testes E2E do fluxo SEFI. A execução CI/PG no HEAD está agora comprovada; ela não elimina essas pendências.
 
 ## 14. Situação formal
 
@@ -269,3 +269,60 @@ A elaboração desta matriz é atividade de governança e documentação. Não a
 |---|---|---|
 | 0.1 | 2026-11-10 | Primeira matriz consolidada de prontidão, com entregáveis, evidências, critérios de aceitação, responsáveis propostos, dependências e situação preliminar. |
 | 0.2 | 2026-11-10 | Inspeção estática direta do código, testes, PostgreSQL/Alembic, segurança, front-end e CI; atualização dos status com evidências versionadas; inclusão de bloqueador crítico de aderência ao modelo SEFI. |
+
+## 16. Auditoria cruzada das matrizes e evidências — 2026-11-10
+
+### 16.1 Base examinada e método
+
+A auditoria cruzada confrontou esta matriz, a Matriz de Aderência, a baseline D01–D20 e G0-P01–P30, os arquivos de código/testes no HEAD da branch main e as execuções GitHub Actions.
+
+**HEAD examinado:** 7fc72d133f855341318e85a487bd66c263a315db (main).
+**Commit-base citado no relatório multidisciplinar:** 615b0a93f4a4eb0f884789070030fd99173a935b.
+**CI do commit-base:** run 42895297325, concluído com sucesso.
+**CI do HEAD:** run 42897866725, concluído com sucesso.
+
+No HEAD, foram confirmados com sucesso: Ruff, mypy, alembic upgrade head, alembic check, pytest com SQLite, pytest com PostgreSQL 16, typecheck/build do frontend e build/inicialização/smoke test Docker. A conclusão dos jobs foi verificada pelos metadados e etapas do workflow.
+
+O relatório multidisciplinar informa 51 testes aprovados e 4 skipped. A conclusão bem-sucedida da etapa de testes no CI foi confirmada, mas a contagem numérica não foi reextraída dos logs de console nesta auditoria; a contagem permanece atribuída ao relatório apresentado.
+
+### 16.2 Confronto das alegações multidisciplinares
+
+| Alegação / evidência apresentada | Verificação cruzada | Resultado para G0 |
+|---|---|---|
+| 9 tabelas ORM e 3 revisões Alembic | Inventário direto confirmou nove entidades/tabelas de domínio e três revisões: a1cd5ac5805f_schema_inicial.py, 0002_guards.py e 0003_audit_export.py. | Confirmado como estrutura técnica atual; não significa cobertura do domínio SEFI. |
+| Argon2id, JWT/refresh rotation, lockout e RBAC | Implementações e testes correspondentes localizados; CI backend passou. | Evidência técnica favorável; política institucional, MFA/SSO e governança de perfis permanecem pendentes. |
+| Assinatura eletrônica com manifesto, hash e token de uso único | Modelo, serviço, rotas e testes localizados; CI passou. | Reutilizável com adaptação; modalidade jurídica/institucional e integração com decisões SEFI não homologadas. |
+| Auditoria append-only, hash/HMAC e guardas PostgreSQL | Modelo, SQL/migração e testes de cadeia/guardas localizados; etapa PostgreSQL 16 do CI passou. | Evidência favorável para as tabelas/ações atuais; cobertura de eventos SEFI e proteção operacional ainda requerem revisão. |
+| Transferência de custódia e restrição ao custodiante atual | Rota/serviço/teste localizados e CI passou; ChainOfCustody referencia device_sample_id. | Parcial; não satisfaz integralmente D07 nem representa custódia independente por ObjetoCustodia. |
+| CAPA após reprovação de ensaio e regras de resultado | Serviços e testes localizados; CI passou. | Válido para ensaios/CAPA; CAPA não substitui pendência ou recusa de recebimento (D05/D06). |
+| Exportação auditável ZIP/CSV/JSON com hash/HMAC | Serviço, rota e testes de exportação/verificação localizados; CI passou. | Capacidade técnica presente; política completa de consulta, retenção, autorização e exportação SEFI depende de aceitação. |
+| Testes PostgreSQL skipped localmente, executados no CI | test_postgres_guards.py usa skip condicional sem LIMS_TEST_DATABASE_URL; workflow define PostgreSQL 16 e etapa PG do HEAD passou. | Alegação confirmada para o CI do HEAD; não extrapolar para backup/restauração, carga ou homologação. |
+| CI completo, typecheck e build | Run 42897866725 e os três jobs concluíram com sucesso. | Confirmado para esse commit; não garante commits posteriores nem conformidade funcional SEFI. |
+| Restariam apenas pendências institucionais/humanas | A inspeção do domínio confirma agregados e barreiras centrais de recebimento SEFI ausentes. | Não confirmado; há pendência funcional/técnica de domínio além das institucionais. |
+
+### 16.3 Divergências materiais
+
+1. **D20 — admissão da amostra:** POST /samples consome assinatura e cria diretamente DeviceSample; o teste valida essa criação direta. Não há barreira anterior de aceite baseada em conferência, quantidades reconciliadas, critérios impeditivos e validações competentes.
+2. **Identidade dos agregados:** ChainOfCustody referencia device_sample_id. Não se comprovou separação entre ObjetoCustodia e AmostraOperacional.
+3. **D01–D04 e D19:** não foram localizados modelos/rotas próprios para solicitação, recebimento, item recebido, chegada complementar e reconciliação de quantidades.
+4. **D05–D06 e D11–D12:** não foram localizados ciclos próprios de pendência, recusa e checklist; CAPA e status de ensaio não são substitutos semânticos.
+5. **D08:** localização aparece na amostra e no contexto da transferência; não foi identificado evento independente de movimentação sem troca de custodiante.
+6. **D13 e D17:** não foi identificado ciclo de anexos/evidências SEFI nem evidência operacional de backup/restauração testada.
+7. **D10 e D15:** RBAC é base aproveitável, mas não equivale à matriz institucional de competências, designações, substitutos e independência por ato.
+8. **D09:** emenda de resultado de ensaio não demonstra fluxo geral de retificação de solicitação, recebimento, objeto e efeitos sobre laudos.
+
+### 16.4 Parecer consolidado
+
+A avaliação multidisciplinar é corroborada quanto à existência de uma fundação de engenharia consistente e executável no pipeline: autenticação, autorização, assinatura, auditoria, custódia de amostra, ensaios, CAPA, migrações, testes PostgreSQL, frontend e smoke Docker possuem evidências versionadas e CI verde no HEAD examinado.
+
+Não se corrobora, entretanto, a conclusão de que restariam apenas pendências institucionais/humanas. A aderência funcional do domínio implementado à baseline SEFI continua parcial e insuficiente, sobretudo na cadeia Solicitação → Recebimento → ItemRecebimento → ObjetoCustodia → Conferência/Decisão → Aceite → AmostraOperacional. A divergência D20/G0-26 permanece bloqueadora.
+
+**Classificação consolidada:**
+- Maturidade de engenharia da base atual: evidenciada em nível relevante pelo código, testes e CI.
+- Aderência ao domínio SEFI aprovado: parcial/insuficiente para admissão e custódia inicial.
+- Validação operacional SIM01–SIM12: pendente; os documentos disponíveis caracterizam simulação documental, não homologação com usuários.
+- Rastreabilidade e execução dos CA01–CA37: pendente de matriz requisito–teste–resultado–evidência e aceite formal.
+- Governança institucional: pendente em designações, checklists concretos, prazos/canais, modalidade de assinatura, destinação e políticas correlatas.
+- Prontidão formal: não atingida.
+
+**Parecer:** manter **GATE G0 NÃO APROVADO** e **IMPLEMENTAÇÃO NÃO AUTORIZADA**. O CI verde atualiza positivamente a evidência de execução da engenharia existente, mas não altera a decisão de NO-GO para implementação SEFI.
