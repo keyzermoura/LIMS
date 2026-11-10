@@ -41,7 +41,7 @@ As correções foram feitas por consolidação documental, sem reabrir nem alter
 | AUD06 | Alta | Regra de conclusão com itens não apresentados não estava uniformemente refletida nas transições. | Critérios EST05 incorporados à transição agregada do recebimento e aos bloqueios. | EST-REC-001 v1.4, seções 4.2 e 25.7. |
 | AUD07 | Alta | Estado atual de custódia não estava claramente separado do histórico de transferências. | Estado atual definido como projeção do último evento confirmado; eventos e responsáveis anteriores preservados. | EST-REC-001 v1.4, seções 3.8 e 25.4; MOD-DOM-001 v0.4, seção 15.4. |
 | AUD08 | Alta | Assinatura eletrônica poderia ser confundida com validação independente. | Definidos como controles distintos; assinatura não substitui validação e nem toda assinatura exige segundo signatário. | EST-REC-001 v1.4, seções 4.4 e 25.2; MOD-DOM-001 v0.4, seção 15.6. |
-| AUD09 | Média | Transições não explicitavam consistentemente granularidade, responsável, pré-condições e bloqueios. | Tabelas de recebimento, item, decisão e validação foram revistas; detalhamento integral das demais entidades permanece como próxima etapa da máquina de estados. | EST-REC-001 v1.4, seções 4.2–4.4 e 25. |
+| AUD09 | Média | Transições não explicitavam consistentemente granularidade, responsável, pré-condições e bloqueios. | Máquina de estados detalhada por entidade, com origem/destino, responsável, pré-condições, bloqueios e controles de auditoria; critérios funcionais CA01–CA24 acrescentados. | EST-REC-001 v1.4, seções 26–27. |
 | AUD10 | Alta | Consolidação por ItemRecebimento poderia perder decisões individuais de ObjetosCustodia. | Definida regra de consolidação, PARCIALMENTE_DECIDIDO e independência dos destinos/decisões. | EST-REC-001 v1.4, seção 25.1; MOD-DOM-001 v0.4, seção 15.3. |
 | AUD11 | Alta | Vínculo entre aceite, criação de amostra e continuidade de custódia precisava de condições explícitas. | Reforçados aceite final, pendências/validações resolvidas, atomicidade, idempotência, vínculo 1:0..1 e evento de continuidade da custódia. | EST-REC-001 v1.4, seção 25.5; MOD-DOM-001 v0.4, seção 15.5. |
 | AUD12 | Alta | Retificação não estava completamente conectada à avaliação de impacto após criação de amostra/ensaios/laudos. | Consolidado novo ato vinculado ao original, sem sobrescrita, com avaliação de impacto e sem exclusão automática. | EST-REC-001 v1.4, seção 25.6; EST08 seção 21; MOD-DOM-001 v0.4, seção 15.7. |
@@ -79,13 +79,13 @@ A auditoria não inventa nem substitui decisões institucionais ainda necessári
 - Atomicidade e idempotência da criação de amostra são requisitos; ainda não foram implementados nem testados.
 - O mecanismo de assinatura não foi escolhido nem validado juridicamente.
 - Não foi realizada migração ou associação de dados legados; vínculos sem evidência confiável continuam proibidos.
-- A máquina de estados ainda precisa de detalhamento completo por entidade e de critérios de aceite testáveis.
+- Os critérios CA01–CA24 ainda precisam ser convertidos em testes automatizados e executados; a máquina de estados funcional por entidade está documentada na seção 26.
 
 ## 7. Conclusão
 
 Os 12 achados foram tratados no nível documental definido para esta etapa. Não foi identificada necessidade de reabrir as decisões funcionais EST01–EST10 nem de alterar as cardinalidades aprovadas no M0.2.
 
-A auditoria documental pode ser considerada concluída para fins de preparação da próxima etapa, condicionada à revisão do responsável funcional. A próxima etapa recomendada é consolidar a máquina de estados completa por entidade, seguida da matriz RBAC detalhada e do catálogo de critérios de aceite.
+A auditoria documental pode ser considerada concluída para fins de preparação da próxima etapa, condicionada à revisão do responsável funcional. A próxima etapa recomendada é revisar os critérios CA01–CA24 com casos reais anonimizados e, depois, realizar a avaliação multidisciplinar de arquitetura, segurança e prontidão para o Gate G0.
 
 **Esta conclusão não representa aprovação do Gate G0 e não autoriza implementação.**
 
