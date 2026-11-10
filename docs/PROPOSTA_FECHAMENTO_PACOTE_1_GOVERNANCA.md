@@ -295,10 +295,10 @@ Regras:
 
 | ID | Decisão proposta | Recomendação | O que depende de manifestação/autoridade institucional |
 |---|---|---|---|
-| GOV-P01 | Modelo de autorização | Capacidade + escopo + contexto/estado; papéis como agrupadores | Confirmar se este é o modelo conceitual adotado. |
+| GOV-P01 | Modelo de autorização | Capacidade + escopo + contexto/estado; papéis como agrupadores | **Validada em revisão pelo responsável pelo projeto (2026-11-10).** A instituição ainda deve formalizar catálogo, escopos e autoridades reais. |
 | GOV-P02 | Concessão de competência | Autoridade formal aprova; administrador técnico executa; beneficiário não se autoatribui | Identificar autoridade, delegações e procedimento oficial. |
 | GOV-P03 | Revisão/revogação | Validade explícita e revisão por mudança funcional/afastamento/desligamento; revogação executada tecnicamente após autorização | Definir prazos, responsáveis e integração com gestão de pessoas. |
-| GOV-P04 | Segregação | Aplicar independência obrigatória executor/validador quando exigida; manter demais acumulações conforme política | Decidir incompatibilidades entre conferente, decisor, coordenação, signatário, custodiante e administrador. |
+| GOV-P04 | Segregação | Aplicar independência obrigatória executor/validador quando exigida; manter demais acumulações conforme política | **Validada em revisão pelo responsável pelo projeto (2026-11-10)** quanto ao princípio geral, em coerência com GOV01 e GOV03. Incompatibilidades adicionais entre conferente, decisor, coordenação, signatário, custodiante e administrador dependem de definição institucional. |
 | GOV-P05 | Matriz de assinatura | Aceite/recusa, validação independente formal, retificação formal, exceção e concessão/revogação com aprovação exigem assinatura formal; outros atos condicionais conforme procedimento | Aprovar matriz por operação e modalidade/nível de garantia. |
 | GOV-P06 | Assinatura e competência | Competência verificada na emissão e novamente no consumo; snapshot obrigatório para atos assinados | Confirmar política, validade, revogação e retenção. |
 | GOV-P07 | Autoria e tempo | Separar participantes e `occurred_at`/`recorded_at`/`signed_at` | Confirmar política de timestamps, fuso e lançamento tardio. |
@@ -309,7 +309,7 @@ Regras:
 
 ## 11. Dependências e sequência de fechamento
 
-1. Validar as recomendações de desenho GOV-P01, GOV-P04, GOV-P05, GOV-P06, GOV-P07, GOV-P08 e GOV-P10 pelo responsável pelo projeto em revisão.
+1. GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) foram validadas pelo responsável pelo projeto em revisão em 2026-11-10. Permanecem para validação as recomendações GOV-P05, GOV-P06, GOV-P07, GOV-P08 e GOV-P10.
 2. Obter da instituição as definições de autoridade, delegação, cargos/funções, modalidade de assinatura, prazos, retenção, exceções e escopos.
 3. Consolidar catálogo de capacidades e matriz de acesso por operação, rota, recurso, estado e escopo.
 4. Confrontar a matriz com runtime de todas as rotas e serviços, incluindo as operações API10 1–7 e contratos legados.
@@ -334,7 +334,7 @@ O Pacote 1 só poderá ser marcado como fechado quando:
 
 ## 13. Controle e limitações
 
-Esta proposta é exclusivamente documental. Não altera código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não foi executada validação de runtime, banco ou produção. As recomendações ainda não foram validadas pelo responsável do projeto nem pela instituição, salvo as diretrizes GOV01–GOV05 e as Operações 1–7 da API10 já registradas nos documentos-base.
+Esta proposta é exclusivamente documental. Não altera código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não foi executada validação de runtime, banco ou produção. As recomendações GOV-P01 e GOV-P04 foram validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites descritos na seção 10. As demais recomendações GOV-P02, GOV-P03 e GOV-P05–GOV-P11 permanecem sem validação pelo responsável do projeto. Nenhuma dessas validações equivale a aprovação institucional.
 
 **Situação:** Pacote 1 aberto. **Implementação bloqueada.**
 
@@ -343,3 +343,4 @@ Esta proposta é exclusivamente documental. Não altera código, banco, migraç�
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-10 | Proposta consolidada de fechamento com modelo de autorização, concessões, segregação, assinatura, autoria, auditoria e exceções, derivada da inspeção REV-LIMS-GOV-001. |
+| 0.2 | 2026-11-10 | Registro da validação em revisão de GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação); definições institucionais específicas e demais decisões permanecem pendentes. |
