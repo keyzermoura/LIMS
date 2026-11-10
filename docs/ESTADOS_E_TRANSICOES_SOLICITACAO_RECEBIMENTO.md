@@ -1402,8 +1402,9 @@ CA25–CA37 são propostas de complementação funcional derivadas da revisão m
 
 As decisões D01–D20 foram consolidadas em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md` (versão 1.0). Incorporar ao desenho das transições e regras: registro de chegada e seus metadados (D01–D02); quantidades e granularidade de objetos (D03–D04); pendências e recusa (D05–D06); eventos distintos de transferência e localização (D07–D08); retificação (D09); validação independente (D10); checklists versionados e governados (D11–D12); anexos e auditoria (D13–D14); acesso individual e assinatura (D15–D16); continuidade (D17); identificadores (D18); chegada posterior (D19); barreira formal de admissão e criação de amostra (D20).
 
-Este adendo registra pré-validação funcional do usuário, ainda sujeita à validação institucional do SEFI. Não altera o status do Gate G0 nem autoriza implementação.
+Este adendo registra decisões D01–D20 ratificadas institucionalmente pelo responsável designado em 2026-11-10. A validação operacional dos cenários com usuários do SEFI e as dependências técnicas/institucionais permanecem pendentes. Não altera o status do Gate G0 nem autoriza implementação.
 
 ### Histórico de versões
 
-| 1.6 | 2026-11-10 | Adendo de rastreabilidade às decisões pré-validadas D01–D20. |
+| 1.6 | 2026-11-10 | Adendo de rastreabilidade às decisões D01–D20 pré-validadas. |
+| 1.7 | 2026-11-10 | Atualização do status após ratificação institucional integral de D01–D20; validação operacional e Gate G0 permanecem pendentes. |
