@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.6  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02, EST03 e EST04 aprovadas; não aprovada para implementação  
+**Versão:** 0.7  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02, EST03, EST04 e EST05 aprovadas; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -237,7 +237,7 @@ Eventos sugeridos:
 | EST02 | Conferente pode ser o mesmo usuário que registrou a chegada? | P0 |
 | EST03 | Coordenação é obrigatória para quais tipos de exceção e decisões? | P0 — resolvida funcionalmente |
 | EST04 | Qual destino e fluxo de custódia se aplicam a item recusado? | P0 — resolvida funcionalmente |
-| EST05 | Quando um recebimento é considerado concluído se alguns itens não foram apresentados? | P0 |
+| EST05 | Quando um recebimento é considerado concluído se alguns itens não foram apresentados? | P0 — resolvida funcionalmente |
 | EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 |
 | EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 |
 | EST08 | Como tratar correção excepcional de item marcado como não apresentado ou de decisão já formalizada? | P1 |
@@ -371,7 +371,7 @@ As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas,
 - **EST01/EST02/EST10 — perfis e segregação:** quem registra chegada, quem confere, se o mesmo usuário pode executar ambas as funções e se pode aprovar a própria decisão;
 - **EST03 — coordenação:** regra aprovada e registrada na seção 16; eventuais detalhamentos operacionais devem respeitar seus limites;
 - **EST04 — recusados:** destinos e controles aprovados e registrados na seção 17; eventuais procedimentos operacionais devem respeitar essa regra;
-- **EST05 — ausentes:** se o recebimento pode ser concluído administrativamente com item não apresentado, sem concluir tecnicamente o item;
+- **EST05 — ausentes:** regra de conclusão administrativa aprovada e registrada na seção 18; itens não apresentados permanecem sem aceite técnico;
 - **EST06 — critérios:** quem aprova a classificação impeditivo/saneável/informativo e como versionar checklists;
 - **EST07 — assinatura:** quais eventos exigem assinatura eletrônica formal e quais podem ser cobertos por autenticação e trilha de auditoria;
 - **EST08 — correções:** fluxo de retificação com justificativa, vínculo ao evento original e preservação dos valores anteriores;
@@ -489,3 +489,49 @@ EST04 fica **resolvida funcionalmente**. O estado ENCERRADA somente poderá ser 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.6 | 2026-11-10 | Registro da decisão EST04: destinos permitidos para materiais recusados e encerramento da custódia somente após destinação efetiva e documentada. |
+
+
+## 18. Registro de decisão funcional — EST05
+
+**Decisão:** APROVADA — permitir a conclusão administrativa do recebimento mesmo quando houver itens não apresentados, desde que atendidas as condições de encerramento.  
+**Data:** 2026-11-10  
+**Escopo:** regra de fechamento do recebimento com preservação da situação dos itens ausentes.
+
+### Condições obrigatórias para conclusão
+
+O recebimento poderá ser concluído administrativamente com um ou mais itens em estado NAO_APRESENTADO, desde que todas as condições abaixo sejam atendidas:
+
+1. A ausência de cada item esteja formalmente registrada no momento da chegada, com ator e data/hora reais.
+2. Não exista ObjetoCustodia nem material correspondente sob guarda institucional para o item marcado como não apresentado.
+3. Todos os itens apresentados tenham decisão formal compatível com as regras do processo.
+4. Não existam pendências obrigatórias abertas nem validações de coordenação aguardando manifestação.
+5. Não exista ObjetoCustodia sob custódia sem destino definido.
+6. O histórico da solicitação e do recebimento preserve explicitamente quais itens não foram apresentados.
+
+### Limites e efeitos da conclusão
+
+1. A conclusão administrativa do recebimento não representa aceite técnico dos itens não apresentados.
+2. Item NAO_APRESENTADO não gera ObjetoCustodia nem AmostraOperacional.
+3. A conclusão não permite alterar retroativamente a apresentação para APRESENTADO na data original.
+4. Uma entrega posterior deverá ser tratada por nova solicitação ou por exceção institucional formalmente autorizada, com registro da data/hora efetivas e sem apagar o histórico anterior.
+5. O estado agregado do recebimento poderá ser CONCLUIDO mesmo com itens NAO_APRESENTADO, desde que todas as condições acima sejam satisfeitas.
+6. A situação individual NAO_APRESENTADO deverá permanecer visível e consultável após o encerramento.
+
+### Verificações de bloqueio
+
+O sistema deverá impedir a conclusão quando:
+- houver item apresentado sem decisão formal;
+- existir pendência obrigatória aberta;
+- houver validação obrigatória da coordenação pendente;
+- existir material sob custódia sem destino definido;
+- houver inconsistência entre a ausência registrada e a existência de material ou objeto de custódia vinculado ao item.
+
+### Efeito sobre EST05
+
+EST05 fica **resolvida funcionalmente**. A regra de conclusão administrativa com itens não apresentados passa a integrar os critérios de fechamento do recebimento, sem alterar o significado de aceite técnico e sem criar custódia ou amostra para material ausente.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.7 | 2026-11-10 | Registro da decisão EST05: conclusão administrativa do recebimento permitida com itens não apresentados, sob condições explícitas e sem aceite técnico desses itens. |
