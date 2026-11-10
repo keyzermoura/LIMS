@@ -1,7 +1,7 @@
 # Proposta de Resolução da Decisão API10 — Autorização e Segregação de Funções
 
 **Identificador:** PROP-LIMS-API10-001  
-**Versão:** 0.5  
+**Versão:** 0.6  
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -144,6 +144,19 @@ O responsável pelo projeto concordou, em revisão, com a seguinte diretriz para
 - A decisão não poderá dispensar critérios técnicos impeditivos, evidências obrigatórias ou outras pré-condições do fluxo. A coordenação não poderá contornar esses controles.
 
 A validação acima é uma diretriz do projeto em revisão, não uma aprovação institucional de competências funcionais nem autorização para implementação. Permanecem pendentes a definição dos perfis institucionais e autoridades competentes, os critérios específicos por classe de material, os casos de validação adicional/assinatura e a compatibilização técnica com os contratos e estados das APIs relacionadas.
+
+### 5.5 Regra validada em revisão — validação pela coordenação
+
+O responsável pelo projeto concordou, em revisão, com a seguinte diretriz para a validação pela coordenação:
+
+- A validação da coordenação será condicional, não constituindo etapa obrigatória para todos os recebimentos.
+- Sua exigência deverá decorrer de critérios e situações previamente definidos em procedimento institucional aprovado, considerando, por exemplo, classe de material, risco, ocorrência ou regra específica do processo, sem presumir esses critérios antes da definição institucional.
+- Quando exigida, a coordenação poderá revisar a documentação e as evidências, verificar o cumprimento das etapas obrigatórias e registrar a validação ou apontar inconsistências.
+- A validação da coordenação não substitui a decisão formal de aceite/recusa atribuída ao decisor autorizado.
+- A coordenação não poderá dispensar critérios técnicos impeditivos, evidências obrigatórias ou pré-condições do fluxo, nem forçar aceite incompatível com essas regras.
+- A decisão de exigir ou não a validação deverá ser rastreável, com fundamento no critério/procedimento aplicável.
+
+A validação acima é uma diretriz do projeto em revisão, não uma aprovação institucional dos critérios de obrigatoriedade nem autorização para implementação. Permanecem pendentes a definição institucional dos casos, critérios e autoridade de coordenação, além da compatibilização com os estados e contratos das APIs relacionadas.
 
 ## 6. Segregação de funções e autoaprovação
 
@@ -293,11 +306,11 @@ A proposta somente poderá ser considerada fechada após:
 
 ## 15. Encaminhamento e controle de execução
 
-**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; (ii) da conferência por servidor autorizado, sem competência automática para decidir aceite/recusa; e (iii) do registro da regularização pelo executor, com validação independente por outro servidor autorizado quando exigida; e (iv) da decisão de aceite/recusa como atribuição específica, independente das permissões de conferência e regularização, sem dispensa de critérios impeditivos.
+**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; (ii) da conferência por servidor autorizado, sem competência automática para decidir aceite/recusa; e (iii) do registro da regularização pelo executor, com validação independente por outro servidor autorizado quando exigida; e (iv) da decisão de aceite/recusa como atribuição específica, independente das permissões de conferência e regularização, sem dispensa de critérios impeditivos; e (v) da validação da coordenação como etapa condicional, exigida somente nos casos definidos institucionalmente e sem substituir o decisor ou dispensar critérios impeditivos.
 
 **Não realizado:** alterações em código, banco de dados, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
-**Estado:** regras gerais das Operações 1 (formalização da chegada física), 2 (conferência dos materiais), 3 (regularização de pendências) e 4 (decisão de aceite/recusa) validadas pelo responsável pelo projeto em revisão. Demais operações, definição dos casos de validação obrigatória, perfis e autoridades institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
+**Estado:** regras gerais das Operações 1 (formalização da chegada física), 2 (conferência dos materiais), 3 (regularização de pendências), 4 (decisão de aceite/recusa) e 5 (validação condicional pela coordenação) validadas pelo responsável pelo projeto em revisão. Definição institucional dos casos e critérios de validação obrigatória, demais operações, perfis e autoridades institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
 
 ## 16. Histórico de alterações
 
@@ -308,3 +321,4 @@ A proposta somente poderá ser considerada fechada após:
 | 0.3 | 2026-11-10 | Registro da validação em revisão da conferência por servidor especificamente autorizado, sem competência automática para decidir aceite/recusa. |
 | 0.4 | 2026-11-10 | Registro da validação em revisão do registro de regularização pelo executor e da validação independente por outro servidor autorizado quando exigida. |
 | 0.5 | 2026-11-10 | Registro da validação em revisão da decisão de aceite/recusa como atribuição específica, independente da conferência e regularização, sem dispensa de critérios impeditivos. |
+| 0.6 | 2026-11-10 | Registro da validação em revisão da validação condicional pela coordenação, exigida somente nos casos definidos institucionalmente e sem substituir o decisor ou dispensar critérios impeditivos. |
