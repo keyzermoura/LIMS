@@ -1,10 +1,10 @@
 # Proposta de fechamento GOV-P09 e GOV-P11 — Integridade operacional e acesso à auditoria
 
 **Identificador:** PROP-LIMS-GOV-SEC-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-10  
 **Branch:** `main`  
-**Estado:** proposta para revisão do responsável pelo projeto; não validada; aprovação institucional e comprovação operacional pendentes; implementação bloqueada.
+**Estado:** recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 validadas em revisão pelo responsável pelo projeto em 2026-11-10; aprovação institucional, fechamento técnico e comprovação operacional pendentes; implementação bloqueada.
 
 ## 1. Objetivo e limites
 
@@ -114,7 +114,7 @@ ADMIN técnico não recebe automaticamente acesso irrestrito ao conteúdo de aud
 
 ## 6. Decisões para manifestação do responsável pelo projeto
 
-Solicita-se avaliar em conjunto AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09, considerando os limites de cada recomendação.
+Em 2026-11-10, o responsável pelo projeto validou em revisão AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09, considerando os limites e ressalvas de cada recomendação. A validação confirma as diretrizes propostas para orientar o desenho, mas não escolhe fornecedores, não define políticas institucionais nem comprova controles implantados.
 
 A validação em revisão do projeto não substitui aprovação institucional, não comprova implantação dos controles e não autoriza implementação.
 
@@ -137,10 +137,11 @@ GOV-P09/GOV-P11 somente poderão ser considerados fechados quando:
 
 **Não realizado:** alteração de código, modelos, banco, migrações, serviços, rotas, frontend, OpenAPI, secrets, triggers, grants, infraestrutura, testes, build, CI ou configuração de produção. Não houve acesso a banco, cofre de segredos, backups ou ambiente operacional.
 
-**Estado:** AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 não validadas. GOV-P09/GOV-P11 permanecem abertas; aprovação institucional, comprovação operacional e autorização específica de implementação pendentes.
+**Estado:** AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 validadas em revisão pelo responsável pelo projeto em 2026-11-10. GOV-P09/GOV-P11 permanecem abertas até formalização institucional, fechamento técnico e comprovação operacional; autorização específica de implementação continua pendente.
 
 ## 9. Histórico
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-10 | Criação da proposta para revisão de integridade operacional, gestão de chaves e segregação de acesso à auditoria. |
+| 0.2 | 2026-11-10 | Registro da validação em revisão de AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09; políticas institucionais, comprovação operacional, fechamento técnico e autorização de implementação permanecem pendentes. |
