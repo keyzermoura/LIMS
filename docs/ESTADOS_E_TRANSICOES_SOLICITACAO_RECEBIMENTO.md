@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.7  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02, EST03, EST04 e EST05 aprovadas; não aprovada para implementação  
+**Versão:** 0.8  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST06 aprovadas; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -238,7 +238,7 @@ Eventos sugeridos:
 | EST03 | Coordenação é obrigatória para quais tipos de exceção e decisões? | P0 — resolvida funcionalmente |
 | EST04 | Qual destino e fluxo de custódia se aplicam a item recusado? | P0 — resolvida funcionalmente |
 | EST05 | Quando um recebimento é considerado concluído se alguns itens não foram apresentados? | P0 — resolvida funcionalmente |
-| EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 |
+| EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 — resolvida funcionalmente |
 | EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 |
 | EST08 | Como tratar correção excepcional de item marcado como não apresentado ou de decisão já formalizada? | P1 |
 | EST09 | Qual regra de prazo e encerramento de pendências? | P1 |
@@ -372,7 +372,7 @@ As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas,
 - **EST03 — coordenação:** regra aprovada e registrada na seção 16; eventuais detalhamentos operacionais devem respeitar seus limites;
 - **EST04 — recusados:** destinos e controles aprovados e registrados na seção 17; eventuais procedimentos operacionais devem respeitar essa regra;
 - **EST05 — ausentes:** regra de conclusão administrativa aprovada e registrada na seção 18; itens não apresentados permanecem sem aceite técnico;
-- **EST06 — critérios:** quem aprova a classificação impeditivo/saneável/informativo e como versionar checklists;
+- **EST06 — critérios:** classificação e controle de versão aprovados e registrados na seção 19; a definição concreta dos critérios por categoria deverá ser formalizada nos checklists institucionais;
 - **EST07 — assinatura:** quais eventos exigem assinatura eletrônica formal e quais podem ser cobertos por autenticação e trilha de auditoria;
 - **EST08 — correções:** fluxo de retificação com justificativa, vínculo ao evento original e preservação dos valores anteriores;
 - **EST09 — prazos:** prazos de regularização, alertas, escalonamento e encerramento por decurso de prazo.
@@ -535,3 +535,47 @@ EST05 fica **resolvida funcionalmente**. A regra de conclusão administrativa co
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.7 | 2026-11-10 | Registro da decisão EST05: conclusão administrativa do recebimento permitida com itens não apresentados, sob condições explícitas e sem aceite técnico desses itens. |
+
+
+## 19. Registro de decisão funcional — EST06
+
+**Decisão:** APROVADA — adotar as classificações Impeditivo (E), Saneável (S) e Informativo (I), vinculadas a checklists versionados e aprovados pelo responsável técnico competente.  
+**Data:** 2026-11-10  
+**Escopo:** classificação dos critérios de conferência e seus efeitos sobre o fluxo de aceite e regularização.
+
+### Classificações aprovadas
+
+| Classificação | Significado | Efeito no fluxo |
+|---|---|---|
+| **Impeditivo (E)** | Requisito obrigatório cuja não conformidade impede o aceite do item ou objeto avaliado. | Não permite aceite enquanto não conforme. Não pode ser dispensado pela coordenação. |
+| **Saneável (S)** | Requisito cuja não conformidade pode ser corrigida ou complementada, conforme procedimento aplicável. | Gera pendência; exige providência, evidência de regularização e nova avaliação antes da decisão final. |
+| **Informativo (I)** | Informação relevante para registro e rastreabilidade, sem efeito impeditivo autônomo sobre o aceite. | Deve ser registrado quando aplicável, mas sua ausência ou resultado não conforme não bloqueia o aceite por si só, salvo se outra regra institucional estabelecer requisito obrigatório associado. |
+
+### Governança e versionamento dos checklists
+
+1. Cada critério deverá estar vinculado a um checklist identificado e versionado.
+2. A classificação E, S ou I deverá ser definida antes do uso do checklist e aprovada pelo responsável técnico competente, conforme a governança institucional.
+3. A versão efetivamente utilizada deverá ser preservada em cada conferência, permitindo reconstruir quais critérios e classificações estavam vigentes no momento da avaliação.
+4. Alterações de descrição, aplicabilidade, classificação, método de verificação ou efeito no fluxo deverão gerar nova versão, justificativa, responsável pela aprovação e data de vigência.
+5. A alteração de checklist não poderá modificar retroativamente conferências ou decisões já formalizadas.
+6. Uma conferência iniciada deverá permanecer vinculada à versão de checklist com que foi iniciada. Eventual migração para nova versão exigirá procedimento formal, justificativa e registro de auditoria; não poderá ocorrer silenciosamente.
+7. A coordenação não poderá reclassificar pontualmente um critério impeditivo para permitir aceite de um caso individual.
+8. A classificação concreta dos critérios por tipo/categoria de dispositivo deverá ser definida nos respectivos checklists institucionais, com participação técnica competente. Esta decisão não presume nem cria classificações específicas para critérios ainda não avaliados.
+
+### Regras de aplicação
+
+- Critério E com resultado NAO_CONFORME bloqueia o aceite do objeto ou item a que se aplica.
+- Critério S com resultado NAO_CONFORME exige pendência e regularização documentada; não autoriza aceite enquanto a condição impeditiva ao aceite permanecer aberta.
+- Critério I deve ter sua avaliação ou justificativa registrada, mas não bloqueia o aceite isoladamente.
+- A resposta NAO_APLICAVEL exige justificativa e deve respeitar as condições de aplicabilidade definidas no checklist.
+- A classificação do critério e o resultado observado são informações distintas: a primeira pertence à versão do checklist; o segundo pertence à conferência realizada.
+
+### Efeito sobre EST06
+
+EST06 fica **resolvida funcionalmente** quanto às categorias de classificação e à governança de versionamento. Permanece necessária a elaboração e aprovação dos checklists concretos por categoria de dispositivo, antes de sua utilização operacional.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.8 | 2026-11-10 | Registro da decisão EST06: classificações E/S/I, efeitos no fluxo e governança de checklists versionados. |
