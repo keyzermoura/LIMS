@@ -1,7 +1,7 @@
 # Proposta de Resolução da Decisão API10 — Autorização e Segregação de Funções
 
 **Identificador:** PROP-LIMS-API10-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -95,6 +95,19 @@ Legenda: **P** = permissão necessária proposta; **C** = condicional ao procedi
 | Administrar usuários/permissões | — | — | — | — | — | — | — | — | P/C | C |
 
 A matriz deve ser detalhada por operação, classe de material, unidade/setor, etapa do processo e nível de risco. “C” exige definição expressa antes da implementação; não é autorização implícita.
+
+### 5.1 Regra validada em revisão — formalização da chegada física
+
+O responsável pelo projeto validou, em revisão, a seguinte diretriz para a operação de formalização da chegada física:
+
+- Qualquer servidor que possua permissão específica para essa operação poderá formalizar a chegada, mesmo que não seja a pessoa que recebeu materialmente o objeto.
+- O registro deve identificar corretamente o recebedor físico efetivo (`received_by`) e preservar separadamente o usuário autenticado que realizou o lançamento (`recorded_by`).
+- A identidade do recebedor físico não pode ser preenchida automaticamente com a identidade do registrador, nem substituída pelo usuário que posteriormente confere ou aceita o objeto.
+- A permissão para formalizar a chegada deve ser concedida explicitamente e respeitar o escopo organizacional/funcional aplicável.
+- Essa formalização registra a chegada e inicia a custódia; não representa conferência concluída, aceite técnico ou criação automática de `DeviceSample`.
+
+A validação acima é uma diretriz do projeto em revisão, não uma aprovação institucional de competência funcional nem autorização para implementação. Permanecem pendentes a definição dos perfis institucionais reais, do mecanismo de comprovação do recebedor físico, dos escopos e das demais operações da matriz.
+
 
 ## 6. Segregação de funções e autoaprovação
 
@@ -244,14 +257,15 @@ A proposta somente poderá ser considerada fechada após:
 
 ## 15. Encaminhamento e controle de execução
 
-**Atividade realizada:** elaboração desta proposta documental para revisão da autorização e segregação de funções da API10.
+**Atividade realizada:** elaboração da proposta API10 e registro da validação, em revisão do projeto, da regra de que servidor especificamente autorizado pode formalizar a chegada sem ser necessariamente o recebedor físico, mantendo distintas as identidades `recorded_by` e `received_by`.
 
 **Não realizado:** alterações em código, banco de dados, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
-**Estado:** proposta técnica elaborada; validação funcional, técnica e institucional pendente. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
+**Estado:** primeira regra da Operação 1 (formalização da chegada física) validada pelo responsável pelo projeto em revisão. Demais operações, perfis institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
 
 ## 16. Histórico de alterações
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-10 | Criação da proposta técnica API10 para autorização, escopo, segregação, autoria, auditoria e integração com API05–API09. |
+| 0.2 | 2026-11-10 | Registro da validação em revisão da regra de formalização da chegada por servidor autorizado distinto do recebedor físico, preservando `recorded_by` e `received_by`. |
