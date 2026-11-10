@@ -1,7 +1,7 @@
 # Matriz de Aderência — Domínio Existente × Domínio SEFI Aprovado
 
 **Identificador:** MAT-ADER-SEFI-001  
-**Versão:** 1.0  
+**Versão:** 1.1  
 **Data:** 2026-11-10  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch examinada:** `main`  
@@ -15,7 +15,7 @@ Confrontar o domínio atualmente implementado no repositório com a baseline fun
 
 A análise considera o código efetivamente localizado em modelos ORM, enums, schemas Pydantic, rotas, serviços e testes. A classificação é funcional: a existência de uma tabela ou rota com nome semelhante não significa que ela satisfaça a semântica e os controles definidos para o processo SEFI.
 
-**Limite importante:** esta é uma inspeção estática de código e documentação. Não foram executados testes, migrações, build, containers ou consultas a banco real nesta etapa. A presença de um teste no repositório não equivale à comprovação de sua execução bem-sucedida no HEAD examinado.
+**Limite importante:** a análise do domínio é estática, por leitura de código e documentação. Nesta auditoria cruzada, além da inspeção estática, foram verificados os metadados e resultados dos jobs GitHub Actions do HEAD 7fc72d133f855341318e85a487bd66c263a315db; backend (incluindo PostgreSQL 16 e Alembic), frontend e Docker/smoke concluíram com sucesso. Não foi feita execução manual/local independente, inspeção de ambiente institucional, teste de restauração, pentest ou homologação com usuários SEFI. A execução CI comprova apenas os passos definidos no workflow para esse commit.
 
 ## 2. Critérios de classificação
 
@@ -157,7 +157,7 @@ A execução das etapas B–F deve ocorrer como trabalho de análise e documenta
 
 **Gate G0: NÃO APROVADO.**  
 **Implementação: NÃO AUTORIZADA.**  
-**Escopo desta matriz: inspeção estática e documentação; nenhum código, banco, API, frontend, CI ou infraestrutura foi alterado.**
+**Escopo desta matriz: inspeção estática, auditoria documental e verificação dos resultados CI; nenhum código, banco, API, frontend, CI ou infraestrutura foi alterado.**
 
 ## 12. Evidências consultadas
 
@@ -192,3 +192,57 @@ Arquivos do repositório examinados nesta versão:
 - `backend/tests/test_postgres_guards.py`
 
 **Limitação de evidência:** os testes foram lidos, mas não executados nesta atividade. A classificação “inexistente” significa que o componente não foi localizado no conjunto inspecionado; não é afirmação de inexistência em todo e qualquer branch, ambiente ou artefato não consultado.
+
+## 13. Auditoria cruzada e evidências complementares — versão 1.1
+
+### 13.1 Identificação dos commits e execução CI
+
+- Branch examinada: main.
+- HEAD: 7fc72d133f855341318e85a487bd66c263a315db.
+- Commit-base referido no relatório multidisciplinar: 615b0a93f4a4eb0f884789070030fd99173a935b.
+- CI do commit-base: run 42895297325, conclusão success.
+- CI do HEAD: run 42897866725, conclusão success.
+
+No HEAD, foram confirmados os jobs Backend, Front-end e Docker. No backend, concluíram com sucesso Ruff, mypy, alembic upgrade head, alembic check, testes SQLite e testes PostgreSQL 16. No frontend, typecheck e build. No Docker, validação do Compose, build, inicialização, seed e smoke test.
+
+O relatório multidisciplinar informa 51 testes aprovados e 4 skipped. Esta auditoria confirmou a conclusão bem-sucedida da etapa de testes no CI, mas não reextraiu a contagem numérica dos logs de console; a contagem permanece identificada como informação do relatório fornecido.
+
+### 13.2 Evidências adicionais e limites semânticos
+
+| Componente / alegação | Evidência direta | Conclusão de aderência |
+|---|---|---|
+| Modelos ORM e migrações | models/__init__.py registra User, RefreshToken, DeviceSample, ChainOfCustody, LabTest, LabTestResult, CapaAction, AuditLog e ElectronicSignature; três revisões Alembic estão versionadas. | Estrutura técnica presente; não existem agregados próprios suficientes para o recebimento SEFI. |
+| Criação de amostra | POST /samples consome assinatura e chama sample_service.create_sample; teste test_sample_creation_requires_signature verifica criação direta com status RECEBIDO. | Confirma a divergência D20: não há gate de aceite anterior à amostra operacional. |
+| Custódia | ChainOfCustody referencia device_sample_id; rota POST /custody/transfer e teste de restrição ao custodiante atual estão presentes. | Reutilizável com adaptação; não representa custódia independente por ObjetoCustodia nem confirmação autônoma do recebedor. |
+| Auditoria e assinatura | Modelos, serviços, migrações/SQL e testes de cadeia, manifesto e guardas PostgreSQL presentes. | Base técnica relevante; cobertura de eventos SEFI, autoridade por ato e controles operacionais ainda requerem validação. |
+| PostgreSQL real | Workflow provisiona PostgreSQL 16; etapa de testes PostgreSQL e migrações passou no CI do HEAD. | Execução CI comprovada para o schema atual; não equivale à validação de um modelo SEFI que ainda não foi implementado. |
+| CI e front-end | Run 42897866725: três jobs concluídos com sucesso. | Evidência positiva de reprodutibilidade do pipeline nesse commit; não é homologação funcional. |
+| Testes e critérios CA | Testes de API/domínio/segurança/rate limit/auditoria existentes e executados no CI. | A existência/execução dos testes atuais não demonstra rastreabilidade completa CA01–CA37. |
+
+### 13.3 Divergências mantidas após a auditoria
+
+A auditoria cruzada não altera as classificações funcionais D01–D20 da versão 1.0, pois as novas evidências fortalecem a avaliação de engenharia, mas não mudam a semântica do fluxo implementado. Permanecem especialmente relevantes:
+
+- D01–D04 e D19: ausência de agregados próprios de solicitação, recebimento, item recebido e reconciliação de quantidades;
+- D05–D06: ausência de ciclos próprios de pendência e recusa; CAPA/reprovação de ensaio não substituem esses conceitos;
+- D07–D08: transferência associada à amostra e ausência de evento autônomo de movimentação sem transferência;
+- D10–D12: RBAC existente, mas sem matriz de competências/independência e governança de checklists SEFI;
+- D13 e D17: ausência de ciclo de anexos/evidências SEFI e de evidência de backup/restauração operacional testada;
+- D09: emenda de resultado não equivale à retificação transversal;
+- D20: criação direta de DeviceSample sem barreira formal de aceite permanece bloqueador crítico.
+
+### 13.4 Parecer
+
+A base atual demonstra maturidade de engenharia relevante: CI verde no HEAD, testes PostgreSQL 16 executados, migrações verificadas, frontend compilado e smoke Docker aprovado. Isso confirma e fortalece parte das alegações técnicas do relatório multidisciplinar.
+
+A conclusão de que restariam apenas pendências institucionais/humanas, porém, não é sustentada. O domínio implementado ainda não cobre a cadeia de admissão SEFI aprovada. Aderência funcional permanece parcial e insuficiente para o fluxo de recebimento e criação de amostra operacional.
+
+**Gate G0: NÃO APROVADO.**
+**Implementação: NÃO AUTORIZADA.**
+
+## 14. Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.0 | 2026-11-10 | Matriz inicial de aderência do domínio existente à baseline SEFI. |
+| 1.1 | 2026-11-10 | Auditoria cruzada com o relatório multidisciplinar, inspeção direta do HEAD 7fc72d1 e confirmação dos jobs CI; mantidas as classificações funcionais D01–D20 e a decisão de Gate G0 não aprovado. |
