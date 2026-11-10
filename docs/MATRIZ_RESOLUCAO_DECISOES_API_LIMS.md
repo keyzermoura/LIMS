@@ -1,7 +1,7 @@
 # Matriz de Resolução das Decisões da API — Recebimento e Custódia
 
 **Identificador:** MAT-LIMS-API-001  
-**Versão:** 2.0  
+**Versão:** 2.1  
 **Situação:** Instrumento de análise e encaminhamento; propostas técnicas não aprovadas para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -148,3 +148,4 @@ A classificação **Implementável** exige, adicionalmente, revisão técnica, a
 | 1.8 | 2026-11-10 | Registro da validação em revisão da Operação 4 da API10: aceite/recusa como atribuição específica, independente da conferência e regularização, sem dispensa de critérios impeditivos. |
 | 1.9 | 2026-11-10 | Registro da validação em revisão da Operação 5 da API10: validação da coordenação condicional, nos casos definidos institucionalmente, sem substituir o decisor ou dispensar critérios impeditivos. |
 | 2.0 | 2026-11-10 | Registro da validação em revisão da Operação 6 da API10: transferência de custódia por usuário com permissão específica, identificação dos responsáveis pela entrega e pelo recebimento e histórico rastreável. |
+| 2.1 | 2026-11-10 | Registro da validação em revisão da Operação 7 da API10: separação entre administração técnica e concessão de competências funcionais, com autoridade institucional e auditoria. |
