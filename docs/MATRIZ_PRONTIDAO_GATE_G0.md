@@ -1,7 +1,7 @@
 # Matriz Consolidada de Prontidão — Gate G0 do LIMS–SEFI
 
 **Identificador:** MAT-G0-SEFI-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-10  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch:** `main`  
@@ -66,7 +66,8 @@ Nenhum status é elevado a concluído apenas porque uma proposta relacionada foi
 | G0-22 | Consulta histórica, paginação e exportação | Especificação e testes de consulta/exportação | Ordenação determinística e paginação estável; filtros coerentes; exportações completas, autorizadas e rastreáveis | Produto / arquitetura / QA | G0-P28, D14–D15 | **Pendente** |
 | G0-23 | Política de autenticação reforçada e proteção contra abuso | Análise de risco, política de MFA/SSO quando aplicável, limites e testes de abuso | Controles proporcionais ao risco, monitoramento e resposta a abuso definidos e validados | Segurança / TI | G0-P29, G0-P21 | **Pendente** |
 | G0-24 | Classificação, retenção e destinação de informações | Tabela de classificação/temporalidade, base institucional, aprovações e procedimento | Retenção, arquivamento, bloqueio e eliminação autorizada definidos; trilha e evidências preservadas | Gestão documental / Jurídico / TI / SEFI | G0-P30, D13–D14, D17 | **Pendente** |
-| G0-25 | Decisão formal do Gate G0 | Dossiê de evidências, pareceres, lista de pendências e ata/decisão final | Todos os bloqueadores encerrados ou formalmente tratados conforme alçada; decisão explícita de GO/NO-GO | Autoridade competente / responsável pela validação | G0-01 a G0-24 | **Não iniciado — bloqueado pelos itens anteriores** |
+| G0-25 | Decisão formal do Gate G0 | Dossiê de evidências, pareceres, lista de pendências e ata/decisão final | Todos os bloqueadores encerrados ou formalmente tratados conforme alçada; decisão explícita de GO/NO-GO | Autoridade competente / responsável pela validação | G0-01 a G0-24 e G0-26 | **Não iniciado — bloqueado pelos itens anteriores** |
+| G0-26 | Aderência do código existente à baseline funcional M0.1/M0.2 e D01–D20 | Matriz de rastreabilidade entre entidades, rotas, estados e regras aprovadas versus modelos, schemas, serviços, rotas e testes implementados | Cada regra obrigatória tem implementação e teste correspondentes, ou lacuna explicitamente classificada e aprovada para tratamento; não presumir equivalência entre DeviceSample e ObjetoCustodia/AmostraOperacional | Produto / arquitetura / domínio SEFI / QA | G0-12 a G0-17 | **Pendente — bloqueador crítico; divergência de domínio identificada na inspeção** |
 
 *Os responsáveis são papéis propostos para planejamento, não designações nominais nem atribuições institucionais já formalizadas.*
 
@@ -156,15 +157,103 @@ A pesquisa de arquivos de código pelo conector GitHub nesta etapa não retornou
 - `docs/ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md` — versão 1.7; estados, transições, CA e requisitos complementares.
 - `docs/MODELO_CONCEITUAL_DOMINIO_SOLICITACAO_RECEBIMENTO.md` — versão 0.7; domínio e cardinalidades M0.2.
 
-## 12. Situação formal
+## 12. Inspeção técnica direta do repositório
+
+**Baseline inspecionada:** branch `main`, HEAD `615b0a93f4a4eb0f884789070030fd99173a935b`. A inspeção foi estática, por leitura direta de arquivos versionados no GitHub. Não foram executados comandos locais, testes, migrações, containers nem conexões a banco nesta etapa.
+
+### 12.1 Código e arquitetura existentes
+
+O repositório contém aplicação implementada, não apenas documentação:
+- **Back-end:** Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2 assíncrono e asyncpg.
+- **Front-end:** React 18, TypeScript, Vite e Tailwind; scripts de typecheck e build.
+- **Organização:** `backend/app/api`, `core`, `db`, `models`, `schemas`, `services`; `frontend/src` com páginas, hooks, componentes e cliente HTTP.
+- **Domínio ORM registrado em `backend/app/models/__init__.py`:** `DeviceSample`, `ChainOfCustody`, `LabTest`, `LabTestResult`, `CapaAction`, `AuditLog`, `ElectronicSignature`, `RefreshToken` e `User`.
+- **Rotas inspecionadas:** `samples.py` registra amostra diretamente; `custody.py` registra transferência e histórico; `audit.py` oferece consulta, verificação e exportação da trilha.
+
+**Achado crítico de aderência:** o conjunto de modelos ORM e rotas inspecionado representa entrada direta de `DeviceSample`, cadeia de custódia, ensaios, laudos, CAPA, usuários e auditoria. Não foram identificadas entidades próprias para `Solicitação`, `ItemDeclarado`, `Recebimento`, `ItemRecebimento`, `ObjetoCustodia` e `AmostraOperacional`, conforme o modelo M0.1/M0.2 ratificado para o fluxo SEFI. A amostra atual tem estado inicial `RECEBIDO` e atributos de recebimento/custodiante/localização. Não se deve presumir que ela substitua o fluxo de solicitação, conferência, pendências, aceite e criação posterior de amostra. Essa divergência exige uma matriz de aderência e decisão arquitetural antes de qualquer implementação.
+
+### 12.2 Banco de dados e migrações
+
+Evidências versionadas:
+- `docker-compose.yml` define serviço PostgreSQL `postgres:16-alpine`, volume persistente `lims_pgdata`, healthcheck e serviço `migrate` executando `alembic upgrade head` antes da API.
+- `backend/app/db/database.py` cria engine assíncrona, pool, sessão por requisição e desativa DDL de startup quando `AUTO_CREATE_SCHEMA=false`.
+- `backend/app/models/base.py` define UUID, timestamps, JSONB no PostgreSQL/JSON no SQLite e `OptimisticLockMixin`.
+- `backend/alembic/env.py` carrega `DATABASE_URL` do ambiente e compara tipos/defaults com metadata.
+- `backend/alembic/versions/0002_guards.py` declara revisão `0002_guards`, dependente de `a1cd5ac5805f`, com sequences e triggers para impedir alterações/exclusões em auditoria, resultados e custódia, além de guardas de assinatura.
+- `backend/app/db/sql/001_immutability.sql` contém sequences e triggers PostgreSQL; a migração versionada registra snapshot das proteções.
+
+**Limite da evidência:** o código de migração e a configuração PostgreSQL estão presentes, mas nenhuma migração foi executada nesta inspeção. Não houve conexão a uma instância real, validação de schema aplicado, teste de rollback de migração, backup ou restauração. A revisão inicial referenciada por `a1cd5ac5805f` ainda deve ser inspecionada individualmente e comparada ao modelo vigente.
+
+### 12.3 Testes
+
+Arquivos efetivamente identificados:
+- `backend/tests/conftest.py`: fixtures para SQLite temporário ou PostgreSQL real, schema isolado por teste e instalação de SQL de guardas.
+- `backend/tests/test_api_flow.py`: fluxos HTTP pela aplicação FastAPI com ASGITransport; inclui autenticação, RBAC, assinatura obrigatória/uso único, custódia, resultado, CAPA, rotação de refresh, auditoria e rate limiting.
+- `backend/tests/test_postgres_guards.py`: testes específicos para triggers de imutabilidade, manifesto de assinatura, sequences e serialização da cadeia com oito eventos concorrentes via `asyncio.gather`.
+
+O README declara como resultados de referência 47 testes aprovados + 4 ignorados em SQLite e 51 aprovados em PostgreSQL 16. Esses números são **declaração documental do README**, não resultado executado e confirmado nesta inspeção. A suíte API usa ASGITransport; o README também declara que não há testes E2E de navegador com Playwright/Cypress.
+
+### 12.4 Segurança — controles encontrados e limitações declaradas
+
+Controles presentes no código lido:
+- Argon2id para hash de senhas, com parâmetros explícitos no módulo de segurança.
+- JWT de acesso e refresh, rotação de refresh e versão de senha para invalidar sessões.
+- Token de assinatura de uso único, curto e vinculado a usuário, entidade, ação e significado.
+- RBAC aplicado por dependências nas rotas.
+- Bloqueio temporário de conta e rate limiting para login/assinatura.
+- Auditoria encadeada por SHA-256/HMAC e triggers PostgreSQL append-only.
+- Configuração recusa segredos padrão e DEBUG habilitado quando `ENVIRONMENT=prod`.
+- Dockerfile do backend executa a API com usuário sem privilégios.
+
+Limitações explicitamente documentadas no README/código:
+1. Rate limiting é mantido em memória por processo; não fornece teto global consistente em múltiplos workers.
+2. Não há MFA nem SSO.
+3. Superusuário PostgreSQL pode desabilitar triggers; append-only não equivale a armazenamento WORM/imutabilidade contra administrador do banco.
+4. Não há armazenamento de anexos; o modelo guarda metadados/resultados.
+5. Contas e atalhos de demonstração estão no front-end e o README exige removê-los antes de implantação real.
+6. Não há E2E de navegador.
+7. Não há qualificação formal IQ/OQ/PQ nem dossiê regulatório.
+8. Os segredos em `.env.example` e defaults do Compose são deliberadamente valores de desenvolvimento; devem ser substituídos e validados em ambiente implantado.
+
+Esta leitura identifica controles e limitações declaradas; não equivale a pentest, revisão independente completa ou validação em ambiente operacional.
+
+### 12.5 CI e entrega
+
+O arquivo `.github/workflows/ci.yml` está versionado e define:
+- **backend:** Python 3.12, serviço PostgreSQL 16, Ruff, mypy, `alembic upgrade head`, `alembic check`, pytest em SQLite e PostgreSQL;
+- **frontend:** Node 22, `npm ci`, typecheck e build;
+- **docker:** validação do Compose, build das imagens, subida da stack, seed e execução de `scripts/docker-smoke.sh`.
+
+O script `scripts/docker-smoke.sh` valida health da API e banco, SPA via Nginx, login, listagem de amostras, leitura da auditoria e verificação da cadeia.
+
+**Resultado da execução CI:** para o HEAD inspecionado, a consulta de status combinados não retornou status checks; a consulta de workflows disponível também não retornou execuções. Portanto, o workflow está configurado, mas o sucesso do CI no HEAD atual não está comprovado por esta inspeção. A ausência de resultados retornados não prova que não tenha ocorrido execução por outro evento/consulta.
+
+### 12.6 Índice de evidências diretas
+
+| Área | Arquivo(s) consultado(s) | Evidência que sustenta a conclusão |
+|---|---|---|
+| Stack e escopo declarado | `README.md` | Stack, arquitetura, domínio, estrutura, limitações e resultados de referência |
+| Banco/ambiente | `docker-compose.yml`, `.env.example` | PostgreSQL 16, volume, healthcheck, serviço migrate e variáveis |
+| Persistência | `backend/app/db/database.py`, `backend/app/models/base.py` | Engine async, sessão, JSONB/JSON, optimistic version |
+| Migrações | `backend/alembic/env.py`, `backend/alembic/versions/0002_guards.py`, `backend/app/db/sql/001_immutability.sql` | Alembic, revision chain, sequences e triggers |
+| Modelos e domínio | `backend/app/models/__init__.py`, `backend/app/models/device_sample.py`, `backend/app/models/enums.py` | Entidades registradas, estado e estrutura de amostra/perfis |
+| Rotas | `backend/app/api/v1/routes/samples.py`, `custody.py`, `audit.py` | Entrada direta de amostra, transferência, consulta e exportação |
+| Testes | `backend/tests/conftest.py`, `test_api_flow.py`, `test_postgres_guards.py` | Fixtures SQLite/PostgreSQL, testes HTTP e guardas PostgreSQL |
+| Segurança | `backend/app/core/security.py`, `config.py`, `api/deps.py`, `core/ratelimit.py` | Hash, JWT, assinatura, RBAC, configuração e rate limit |
+| CI | `.github/workflows/ci.yml`, `scripts/docker-smoke.sh` | Jobs backend/frontend/Docker e smoke test |
+| Front-end | `frontend/package.json`, `frontend/src/pages/Login.tsx`, `frontend/Dockerfile` | Dependências/scripts, atalhos demo e build Nginx |
+| Container backend | `backend/Dockerfile` | Usuário sem privilégios, imagem e healthcheck |
+
+## 14. Situação formal
 
 **Gate G0: NÃO APROVADO.**  
 **Implementação: NÃO AUTORIZADA.**
 
 A elaboração desta matriz é atividade de governança e documentação. Não altera código, banco de dados, API, frontend, CI ou infraestrutura, nem autoriza início de implementação.
 
-## 13. Histórico
+## 15. Histórico
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-10 | Primeira matriz consolidada de prontidão, com entregáveis, evidências, critérios de aceitação, responsáveis propostos, dependências e situação preliminar. |
+| 0.2 | 2026-11-10 | Inspeção estática direta do código, testes, PostgreSQL/Alembic, segurança, front-end e CI; atualização dos status com evidências versionadas; inclusão de bloqueador crítico de aderência ao modelo SEFI. |
