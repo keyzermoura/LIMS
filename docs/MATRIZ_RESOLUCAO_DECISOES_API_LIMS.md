@@ -190,4 +190,3 @@ A proposta complementar `PROPOSTA_FECHAMENTO_GOV_P07_P08_AUTORIA_AUDITORIA.md` (
 | 2.6 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; formalização institucional, fechamento técnico e autorização de implementação permanecem pendentes. |
 | 2.7 | 2026-11-10 | Registro da validação em revisão de AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07; políticas institucionais, fechamento técnico e autorização de implementação permanecem pendentes. |
 | 2.8 | 2026-11-10 | Referência à proposta GOV-P09/GOV-P11 PROP-LIMS-GOV-SEC-001 v0.1; recomendações AUD-P09/AUD-P11 em revisão, ainda não validadas; Pacote 1 permanece aberto. |
-| 2.8 | 2026-11-10 | Referência à proposta GOV-P09/GOV-P11 PROP-LIMS-GOV-SEC-001 v0.1; recomendações AUD-P09/AUD-P11 em revisão, ainda não validadas; Pacote 1 permanece aberto. |
