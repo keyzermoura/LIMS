@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 1.1  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST09 aprovadas; não aprovada para implementação  
+**Versão:** 1.2  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST10 aprovadas; EST01 pendente; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -242,7 +242,7 @@ Eventos sugeridos:
 | EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 — resolvida funcionalmente |
 | EST08 | Como tratar correção excepcional de item marcado como não apresentado ou de decisão já formalizada? | P1 — resolvida funcionalmente |
 | EST09 | Qual regra de prazo e encerramento de pendências? | P1 — resolvida funcionalmente |
-| EST10 | Qual a política de segregação de funções e autoaprovação? | P0 |
+| EST10 | Qual a política de segregação de funções e autoaprovação? | P0 — resolvida funcionalmente |
 
 ## 9. Critérios de aceite do desenho
 
@@ -259,7 +259,7 @@ O desenho de estados e transições estará pronto para detalhamento técnico qu
 
 ## 10. Próximo passo
 
-Realizar revisão funcional orientada pelas questões EST01–EST10. Após as respostas, consolidar a máquina de estados e produzir os critérios de aceite verificáveis para a Etapa 1. A implementação permanece bloqueada até conclusão da Fase 0, aprovação do portão G0 e autorização específica.
+Concluir a decisão funcional remanescente EST01 e, em seguida, consolidar a máquina de estados e produzir os critérios de aceite verificáveis para a Etapa 1. As decisões EST02–EST10 estão registradas. A implementação permanece bloqueada até conclusão da Fase 0, aprovação do portão G0 e autorização específica.
 
 ## 12. Recomendações adicionais para custódia e granularidade
 
@@ -366,9 +366,7 @@ A decisão RECUSADA não é evento de encerramento da custódia. A custódia só
 
 ### 14.6 Pontos que permanecem para decisão funcional
 
-As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas, a próxima revisão deve decidir especialmente:
-
-- **EST01/EST02/EST10 — perfis e segregação:** quem registra chegada, quem confere, se o mesmo usuário pode executar ambas as funções e se pode aprovar a própria decisão;
+A EST01 permanece aberta. As decisões EST02 e EST10 já definem, respectivamente, a possibilidade de acumular recebimento e conferência e os controles gerais de segregação e autoaprovação. A próxima revisão deverá definir os perfis institucionais autorizados a cadastrar solicitações, registrar chegadas e realizar conferências;
 - **EST03 — coordenação:** regra aprovada e registrada na seção 16; eventuais detalhamentos operacionais devem respeitar seus limites;
 - **EST04 — recusados:** destinos e controles aprovados e registrados na seção 17; eventuais procedimentos operacionais devem respeitar essa regra;
 - **EST05 — ausentes:** regra de conclusão administrativa aprovada e registrada na seção 18; itens não apresentados permanecem sem aceite técnico;
@@ -396,12 +394,12 @@ As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas,
 2. O sistema deverá registrar cada atividade como evento distinto, com ator, papel/permissão efetiva e data/hora próprios.
 3. A permissão para receber não concede automaticamente permissão para conferir; o usuário deverá possuir as duas permissões funcionais.
 4. A possibilidade de acumular as duas funções não elimina validações independentes da coordenação quando exigidas por regra institucional.
-5. A decisão não autoriza autoaprovação de decisões que estejam sujeitas à validação da coordenação. A política geral de autoaprovação permanece pendente em EST10.
+5. A autoaprovação de decisões sujeitas à validação independente é vedada, conforme detalhamento aprovado na EST10.
 6. A regra deverá ser aplicada de forma uniforme aos objetos e itens abrangidos pelo recebimento, preservando o histórico individual.
 
 ### Efeito sobre EST02
 
-EST02 fica **resolvida funcionalmente**. A matriz de permissões deverá permitir a acumulação dos papéis de recebedor e conferente, condicionada à atribuição explícita das permissões correspondentes. EST01 e EST10 permanecem abertas.
+EST02 fica **resolvida funcionalmente**. A matriz de permissões deverá permitir a acumulação dos papéis de recebedor e conferente, condicionada à atribuição explícita das permissões correspondentes. A definição dos perfis institucionais autorizados permanece pendente em EST01. A segregação e a autoaprovação são tratadas na EST10.
 
 ### Histórico
 
@@ -803,3 +801,76 @@ Esta decisão não autoriza implementação e não estabelece recusa automática
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.1 | 2026-11-10 | Registro da decisão EST09: prazos configuráveis a partir da comunicação formal, alertas, escalonamento, prorrogação autorizada e encerramento controlado sem recusa automática por vencimento. |
+
+
+## 23. Registro de decisão funcional — EST10
+
+**Decisão:** APROVADA — permitir o acúmulo de atividades operacionais compatíveis, mas impedir a autoaprovação de decisões críticas sempre que houver exigência de validação independente. A indisponibilidade de outro servidor não constitui autorização automática para dispensar essa validação.  
+**Data:** 2026-11-10  
+**Escopo:** segregação de funções, prevenção de conflitos de interesse e controles de autorização nas atividades de solicitação, recebimento, conferência, aceite, validação, retificação e encerramento da custódia.
+
+### 23.1 Acúmulo de funções operacionais
+
+1. O sistema poderá permitir que um mesmo servidor acumule atividades operacionais, desde que possua as permissões correspondentes e que não exista regra institucional específica de segregação aplicável.
+2. Poderão ser acumuladas, conforme atribuições e permissões, atividades como cadastro de solicitação, registro de chegada física, conferência técnica, registro de pendências e inclusão de evidências.
+3. A permissão para executar uma atividade não concederá automaticamente permissão para executar outra. Cada permissão deverá ser atribuída explicitamente.
+4. O acúmulo operacional não elimina validações independentes obrigatórias nem autoriza que o usuário aprove formalmente a própria decisão quando a independência for exigida.
+
+### 23.2 Decisões sujeitas à validação independente
+
+A validação independente deverá ser observada, no mínimo, nas situações em que as decisões funcionais anteriores exigem atuação da coordenação ou assinatura/autoridade distinta, incluindo:
+
+- validação da coordenação sobre decisão submetida à sua apreciação, conforme EST03;
+- decisões de recusa e exceções institucionais sujeitas à coordenação, conforme EST03;
+- autorização de retificação excepcional, conforme EST08;
+- decisões de aceite final e encerramento da custódia, respeitadas as competências, assinaturas e controles formais definidos na EST07 e nas demais regras aplicáveis.
+
+O autor ou executor da decisão submetida à validação independente não poderá atuar como seu próprio validador. A matriz de competências deverá identificar claramente o responsável pela elaboração/execução e o responsável pela validação.
+
+### 23.3 Indisponibilidade de validador independente
+
+1. A ausência ou indisponibilidade de outro servidor não dispensará automaticamente a validação independente.
+2. Enquanto a validação obrigatória não for realizada, a decisão permanecerá pendente e o sistema deverá impedir a conclusão da etapa que dela dependa.
+3. O caso poderá ser encaminhado a outra autoridade institucional formalmente competente e independente, desde que essa substituição esteja prevista ou autorizada pelas regras institucionais.
+4. Não será admitida exceção informal, autoaprovação ou alteração retroativa de autoria para contornar a exigência de independência.
+
+### 23.4 Controles sistêmicos e auditoria
+
+O sistema deverá:
+
+1. Identificar o usuário, os papéis e as permissões associados a cada operação.
+2. Verificar as permissões no momento da execução da operação, sem presumir autorização a partir de atividades anteriores.
+3. Comparar a identidade do autor/executor com a do validador nas etapas que exigem independência e bloquear a autoaprovação.
+4. Registrar tentativas de operações não autorizadas ou bloqueadas, quando tecnicamente disponíveis.
+5. Preservar os atores, papéis, permissões, datas/horas, decisões, justificativas e referências aos eventos anteriores.
+6. Permitir consulta e auditoria da sequência de elaboração, execução, validação e formalização de cada decisão.
+
+### 23.5 Matriz funcional resumida
+
+| Atividade | Acúmulo operacional | Regra de independência |
+|---|---|---|
+| Cadastro da solicitação | Permitido conforme permissões | Sem exigência geral de validação independente nesta decisão |
+| Registro da chegada | Permitido conforme permissões | Não implica autorização para conferir ou aprovar |
+| Conferência técnica | Permitido conforme permissões, inclusive pelo mesmo servidor que registrou a chegada, conforme EST02 | Validações obrigatórias continuam aplicáveis |
+| Registro de pendência e inclusão de evidências | Permitido conforme permissões | A avaliação/validação segue as regras de competência aplicáveis |
+| Avaliação de regularização | Permitido conforme atribuições | Reavaliação deverá ser feita por responsável autorizado; independência quando exigida pela regra aplicável |
+| Validação da coordenação | Não pode ser acumulada com a autoria/executação da decisão submetida à validação | Obrigatoriamente independente |
+| Autorização de retificação excepcional | Pode instruir/solicitar, mas não autorizar a própria retificação quando exigida autorização da coordenação | Autorização independente conforme EST08 |
+| Aceite final | Conforme matriz de competências | Independência quando a validação for obrigatória; assinatura formal conforme EST07 |
+| Encerramento da custódia | Conforme matriz de competências | Assinatura formal e controles de destinação conforme EST04 e EST07 |
+
+### 23.6 Efeito da indisponibilidade operacional
+
+A falta de validador independente deverá ser tratada como impedimento temporário à conclusão da decisão que exige validação. O sistema deverá manter o caso identificável e pendente, sem converter a indisponibilidade em aprovação tácita ou recusa automática. A gestão deverá encaminhar o caso à autoridade substituta competente, quando houver previsão institucional.
+
+### Efeito sobre EST10
+
+EST10 fica **resolvida funcionalmente** quanto ao acúmulo de atividades operacionais, à proibição de autoaprovação nas decisões sujeitas à validação independente e ao tratamento da indisponibilidade de validador. A definição nominal dos perfis institucionais, dos cargos e das substituições autorizadas permanece vinculada à EST01 e à matriz de competências institucional, a serem formalizadas antes da utilização operacional.
+
+Esta decisão não autoriza implementação. A implementação permanece condicionada à conclusão da Fase 0, aprovação do portão G0 e autorização específica.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.2 | 2026-11-10 | Registro da decisão EST10: acúmulo de atividades operacionais permitido conforme permissões; autoaprovação vedada quando houver validação independente; indisponibilidade não dispensa validação. |
