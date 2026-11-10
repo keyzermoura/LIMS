@@ -1,7 +1,7 @@
 # Auditoria de Consistência das Decisões EST01–EST10
 
 **Identificador:** AUD-LIMS-001  
-**Versão:** 1.1  
+**Versão:** 1.2
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Escopo:** consistência entre EST01–EST10, máquina de estados EST-REC-001 e modelo de domínio MOD-DOM-001.  
@@ -180,3 +180,14 @@ A avaliação anterior descreve pontos fortes do código existente e riscos arqu
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.1 | 2026-11-10 | Segunda rodada multidisciplinar; achados AUD13–AUD22; revisão CA01–CA24; cenários operacionais e complementos CA25–CA37. |
+
+
+## Adendo — consistência com D01–D20
+
+A matriz aprovada nesta rodada de pré-validação está em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. As decisões complementam EST01–EST10 sem reabri-las automaticamente. Pontos que exigem validação cruzada antes do Gate G0: independência e autoridade de validação (D10, EST03/EST10); governança/versionamento de checklists (D11–D12, EST06); integridade de anexos e trilha de auditoria (D13–D14); permissões e assinatura (D15–D16, EST01/EST07); política de continuidade (D17); protocolo/acession e QR (D18); chegada posterior (D19, EST05); e pré-condições de admissão da amostra (D20).
+
+A aprovação pelo usuário não equivale a aprovação institucional. Lacunas de parametrização, autoridade, tecnologia e evidência de testes permanecem abertas. Gate G0 não aprovado; implementação não autorizada.
+
+### Histórico de versões
+
+| 1.2 | 2026-11-10 | Adendo de consistência e rastreabilidade às decisões D01–D20. |
