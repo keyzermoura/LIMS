@@ -1,8 +1,8 @@
 # Proposta de Resolução API09 — Comportamento quando o objeto já foi aceito
 
 **Identificador:** PROP-LIMS-API09-001  
-**Versão:** 0.1  
-**Situação:** Proposta técnica para revisão; validação funcional, técnica e institucional pendente — implementação bloqueada  
+**Versão:** 0.2  
+**Situação:** Regras gerais validadas pelo responsável pelo projeto em revisão (2026-11-09); fechamento operacional/técnico e aprovação institucional pendentes — implementação bloqueada  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -185,7 +185,17 @@ Adotar a **Alternativa B**:
 
 A proposta preserva DEC05 e coordena as salvaguardas de API06/API07. Não autoriza implementação nem alteração de contratos existentes.
 
-## 14. Controle de execução
+## 14. Registro da validação em revisão do projeto
+
+Em 2026-11-09, o usuário validou, como diretriz do responsável pelo projeto em revisão, as três regras gerais centrais desta proposta:
+
+1. nova chave para objeto já aceito resulta em HTTP 409 `OBJECT_ALREADY_ACCEPTED`, sem criar outra `DeviceSample`;
+2. repetição da mesma operação, com a mesma chave e o mesmo conteúdo, reproduz o resultado original conforme API07;
+3. em nova operação lógica, o estado de objeto já aceito tem precedência sobre `VERSION_CONFLICT`; a precedência não altera o replay concluído da mesma chave.
+
+A validação é parcial e não equivale à aprovação institucional formal. Permanecem pendentes o fechamento operacional da resposta e da referência à amostra existente, autorização/API10, integração técnica com API06/API07, compatibilidade runtime/banco, atomicidade/assinatura/API05, revisão do modelo relacional e aprovação institucional aplicável. A implementação permanece bloqueada.
+
+## 15. Controle de execução
 
 **Realizado:** recuperação das propostas API06/API07 e da matriz API01–API12 na branch `main); elaboração documental da proposta API09, com cenários de replay, nova chave, chave divergente, concorrência, estado já aceito, precedência de erros e exposição autorizada da referência existente.
 
@@ -193,8 +203,9 @@ A proposta preserva DEC05 e coordena as salvaguardas de API06/API07. Não autori
 
 **Pendências:** validação funcional e técnica da proposta; confirmação conjunta da precedência API06/API07; fechamento da autorização API10, assinatura API05, envelope API01 e integridade relacional; aprovação institucional aplicável. Implementação permanece bloqueada.
 
-## 15. Histórico de alterações
+## 16. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-09 | Primeira proposta de comportamento para objeto já aceito, distinguindo replay idempotente, nova chave, concorrência e conflito de versão. |
+| 0.2 | 2026-11-09 | Registro da validação das três regras gerais pelo responsável pelo projeto em revisão; fechamento operacional/técnico e aprovação institucional permanecem pendentes. |
