@@ -343,7 +343,7 @@ Esta proposta é exclusivamente documental. Não altera código, banco, migraç�
 
 Em 2026-11-10, foi elaborada a proposta complementar PROP-LIMS-GOV-SIG-001 (docs/PROPOSTA_FECHAMENTO_GOV_P05_P06_ASSINATURA.md), que detalha a matriz de assinatura por natureza do ato e as invariantes de competência na emissão/consumo, snapshot, integridade, atomicidade, revogação e replay idempotente.
 
-A proposta específica não valida GOV-P05 ou GOV-P06. Ambas permanecem pendentes de manifestação do responsável pelo projeto e de aprovação institucional aplicável. A modalidade de assinatura, signatários por ato, retenção e demais definições institucionais não foram presumidas.
+As recomendações SIG-P01–SIG-P06 da proposta específica foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites registrados em PROP-LIMS-GOV-SIG-001 v0.2. GOV-P05/GOV-P06 permanecem pendentes de formalização institucional e fechamento técnico. A modalidade de assinatura, signatários por ato, retenção e demais definições institucionais não foram presumidas.
 
 ## 14. Histórico
 
