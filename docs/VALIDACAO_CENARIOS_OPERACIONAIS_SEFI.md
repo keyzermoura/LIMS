@@ -291,8 +291,9 @@ A matriz completa está em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. A valid
 
 Os SIM01–SIM12 permanecem simulação documental, não teste automatizado nem homologação. Acrescentar cenários de restauração de backup, integridade de anexos/hash, autorização e assinatura, acesso indevido a anexos e conflitos de concorrência na etapa de QA.
 
-**Situação:** pré-validação funcional concluída; validação com operadores/representantes SEFI pendente; Gate G0 não aprovado; implementação não autorizada.
+**Situação:** decisões D01–D20 ratificadas institucionalmente pelo responsável designado; SIM01–SIM12 permanecem simulação documental, com validação operacional por usuários/representantes do SEFI pendente; Gate G0 não aprovado; implementação não autorizada.
 
 ### Histórico de versões
 
-| 1.1 | 2026-11-10 | Adendo de rastreabilidade dos cenários às decisões D01–D20. |
+| 1.1 | 2026-11-10 | Adendo de rastreabilidade dos cenários às decisões D01–D20 pré-validadas. |
+| 1.2 | 2026-11-10 | Atualização após ratificação institucional integral de D01–D20; permanece pendente a validação operacional de SIM01–SIM12. |
