@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.8  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST06 aprovadas; não aprovada para implementação  
+**Versão:** 0.9  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST07 aprovadas; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -239,7 +239,7 @@ Eventos sugeridos:
 | EST04 | Qual destino e fluxo de custódia se aplicam a item recusado? | P0 — resolvida funcionalmente |
 | EST05 | Quando um recebimento é considerado concluído se alguns itens não foram apresentados? | P0 — resolvida funcionalmente |
 | EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 — resolvida funcionalmente |
-| EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 |
+| EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 — resolvida funcionalmente |
 | EST08 | Como tratar correção excepcional de item marcado como não apresentado ou de decisão já formalizada? | P1 |
 | EST09 | Qual regra de prazo e encerramento de pendências? | P1 |
 | EST10 | Qual a política de segregação de funções e autoaprovação? | P0 |
@@ -373,7 +373,7 @@ As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas,
 - **EST04 — recusados:** destinos e controles aprovados e registrados na seção 17; eventuais procedimentos operacionais devem respeitar essa regra;
 - **EST05 — ausentes:** regra de conclusão administrativa aprovada e registrada na seção 18; itens não apresentados permanecem sem aceite técnico;
 - **EST06 — critérios:** classificação e controle de versão aprovados e registrados na seção 19; a definição concreta dos critérios por categoria deverá ser formalizada nos checklists institucionais;
-- **EST07 — assinatura:** quais eventos exigem assinatura eletrônica formal e quais podem ser cobertos por autenticação e trilha de auditoria;
+- **EST07 — assinatura:** regra aprovada e registrada na seção 20; assinatura formal restrita aos atos decisórios e de encerramento definidos;
 - **EST08 — correções:** fluxo de retificação com justificativa, vínculo ao evento original e preservação dos valores anteriores;
 - **EST09 — prazos:** prazos de regularização, alertas, escalonamento e encerramento por decurso de prazo.
 
@@ -579,3 +579,52 @@ EST06 fica **resolvida funcionalmente** quanto às categorias de classificação
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.8 | 2026-11-10 | Registro da decisão EST06: classificações E/S/I, efeitos no fluxo e governança de checklists versionados. |
+
+
+## 20. Registro de decisão funcional — EST07
+
+**Decisão:** APROVADA — exigir assinatura eletrônica formal para atos decisórios e de encerramento com efeitos institucionais relevantes, mantendo autenticação individual e trilha de auditoria para operações rotineiras.  
+**Data:** 2026-11-10  
+**Escopo:** definição das ações que exigem assinatura eletrônica formal no fluxo de solicitação, recebimento, conferência, decisão e custódia.
+
+### Ações que exigem assinatura eletrônica formal
+
+A assinatura eletrônica formal será obrigatória para:
+
+1. **Decisão final de aceite:** formalização da aprovação do item ou ObjetoCustodia para ingresso no fluxo laboratorial, observadas as condições e validações obrigatórias.
+2. **Validação da coordenação:** manifestação formal da coordenação quando sua validação for exigida pelas regras EST03 ou por regra institucional aplicável.
+3. **Encerramento da custódia:** confirmação formal da devolução, entrega a representante autorizado ou outra destinação institucional autorizada, após sua efetiva realização.
+4. **Retificação excepcional:** correção de registro ou decisão já formalizada, quando autorizada pelo procedimento aplicável, com justificativa, referência ao registro original e preservação integral do histórico.
+
+### Operações cobertas por autenticação e trilha de auditoria
+
+Não será exigida assinatura eletrônica formal individual para cada operação rotineira, desde que executada por usuário autenticado e autorizado e registrada em trilha de auditoria íntegra. Incluem-se, entre outras:
+
+- cadastro e edição de solicitação ainda não formalizada;
+- registro da chegada física;
+- identificação de itens apresentados ou não apresentados;
+- preenchimento de checklist e registro de resultados;
+- abertura, acompanhamento e atualização de pendências;
+- inclusão de fotografias, documentos e outras evidências;
+- registros operacionais de movimentação e acompanhamento da custódia que não representem seu encerramento formal.
+
+A dispensa de assinatura formal nessas operações não dispensa autenticação individual, controle de permissões, registro de ator e data/hora, nem a preservação do histórico de alterações.
+
+### Requisitos gerais da assinatura
+
+1. A assinatura deverá estar vinculada de forma inequívoca ao usuário signatário, ao ato praticado e ao conteúdo/versão exata que foi formalizado.
+2. O sistema deverá registrar identidade do signatário, data/hora, ação assinada, objeto/item relacionado e referência ao conteúdo formalizado.
+3. Qualquer alteração posterior no conteúdo formalizado deverá invalidar a possibilidade de tratar a assinatura anterior como aprovação do novo conteúdo; deverá ser realizado novo ato formal, com preservação do anterior.
+4. A assinatura não substitui as regras de autorização, competência, segregação de funções ou validação da coordenação.
+5. O mecanismo tecnológico e o nível jurídico de assinatura aplicável deverão ser definidos na especificação técnica e validados conforme as políticas institucionais e os requisitos legais pertinentes. Esta decisão funcional não presume, por si só, exigência de certificado ICP-Brasil nem escolhe fornecedor ou tecnologia.
+6. Os registros de assinatura deverão ser preservados e consultáveis para auditoria, com vínculo ao histórico do processo.
+
+### Efeito sobre EST07
+
+EST07 fica **resolvida funcionalmente** quanto à distinção entre atos que exigem assinatura eletrônica formal e operações rotineiras cobertas por autenticação e trilha de auditoria. A definição do mecanismo tecnológico, do nível jurídico de assinatura e de sua integração permanece para etapa própria de especificação, sem autorização de implementação.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.9 | 2026-11-10 | Registro da decisão EST07: assinatura eletrônica formal para decisão final de aceite, validação obrigatória da coordenação, encerramento da custódia e retificações excepcionais; operações rotineiras com autenticação e trilha de auditoria. |
