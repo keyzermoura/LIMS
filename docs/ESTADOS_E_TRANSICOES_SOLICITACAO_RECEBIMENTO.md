@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 1.4  
-**Situação:** Proposta consolidada após auditoria de consistência EST01–EST10 e alinhamento ao M0.2; não aprovada para implementação  
+**Versão:** 1.5  
+**Situação:** Proposta consolidada após auditoria EST01–EST10 e revisão multidisciplinar; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-10
