@@ -1,7 +1,7 @@
 # Registro de Validação Institucional das Decisões SEFI — D01 a D20
 
 **Identificador:** DEC-SEFI-001  
-**Versão:** 1.1  
+**Versão:** 1.5  
 **Data:** 2026-11-10  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch:** `main`  
@@ -147,6 +147,26 @@ A aprovação deste bloco ratifica a necessidade, o escopo e a abordagem de vali
 **Situação do Gate G0:** permanece **NÃO APROVADO** até a execução das atividades, apresentação das evidências e resolução das pendências impeditivas.  
 **Implementação:** permanece **NÃO AUTORIZADA** por este registro.
 
+## 13. Decisões institucionais do Gate G0 — bloco G0-P16 a G0-P20
+
+Em 2026-11-10, o responsável pela Validação Institucional do LIMS – SEFI aprovou integralmente, sem ressalvas, as cinco propostas do quarto bloco de pendências do Gate G0:
+
+| ID | Tema | Decisão | Limites e detalhamentos pendentes |
+|---|---|---|---|
+| G0-P16 | Designação formal de responsáveis e substitutos | **Aprovada integralmente** | Aprovado o modelo de matriz nominal vinculada a funções e permissões, com titular, substituto, autoridade responsável pela designação, limites de atuação, validação independente, vigência e histórico. As designações individuais e sua formalização institucional permanecem pendentes. |
+| G0-P17 | Desenvolvimento e aprovação dos checklists por categoria | **Aprovada integralmente** | Aprovado o fluxo de inventário de categorias, identificação das referências aplicáveis, elaboração de critérios objetivos, classificação E/S/I fundamentada, revisão da Qualidade, aprovação técnica competente e controle de versão/vigência. Os checklists concretos e seus critérios técnicos ainda precisam ser elaborados e aprovados; checklist não aprovado não deve ser utilizado. |
+| G0-P18 | Prazos e canais oficiais de comunicação | **Aprovada integralmente** | Aprovado o processo de definição de prazos por ocorrência, marcos iniciais, unidades de contagem, regras de prorrogação, canais oficiais, responsáveis e evidências de comunicação. Valores, canais e regras concretas dependem de definição e aprovação institucional antes da parametrização. |
+| G0-P19 | Modalidade de assinatura eletrônica | **Aprovada integralmente** | Aprovado o processo de levantamento das decisões que exigem assinatura, classificação de risco e avaliação jurídica, normativa e tecnológica, com participação das áreas competentes. A modalidade, o certificado, a plataforma e a solução tecnológica não foram escolhidos e permanecem pendentes de avaliação e decisão institucional. |
+| G0-P20 | Procedimento institucional de devolução e destinação | **Aprovada integralmente** | Aprovado o processo de elaboração do procedimento para autorização, comprovação de representação, identificação e condição dos materiais, responsáveis pela entrega/recebimento, data/hora, confirmação e tratamento de retirada não realizada ou divergência. Formulários, alçadas e designações concretas permanecem pendentes. |
+
+Não foram apresentadas observações ou ressalvas pelo responsável pela Validação Institucional.
+
+A aprovação deste bloco ratifica os processos, requisitos e diretrizes acima. Não significa que as designações nominais, checklists concretos, prazos/canais, solução de assinatura ou formulários/alçadas estejam definidos ou publicados.
+
+**Resultado do bloco:** 5 de 5 propostas aprovadas integralmente, sem ressalvas.  
+**Situação do Gate G0:** permanece **NÃO APROVADO** até a conclusão das definições, atividades e evidências de validação requeridas.  
+**Implementação:** permanece **NÃO AUTORIZADA** por este registro.
+
 ## 12. Histórico
 
 | Versão | Data | Descrição |
@@ -156,3 +176,4 @@ A aprovação deste bloco ratifica a necessidade, o escopo e a abordagem de vali
 | 1.2 | 2026-11-10 | Registro da aprovação integral das propostas G0-P01 a G0-P05, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
 | 1.3 | 2026-11-10 | Registro da aprovação integral das propostas G0-P06 a G0-P10, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
 | 1.4 | 2026-11-10 | Registro da aprovação integral das propostas G0-P11 a G0-P15, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
+| 1.5 | 2026-11-10 | Registro da aprovação integral das propostas G0-P16 a G0-P20, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
