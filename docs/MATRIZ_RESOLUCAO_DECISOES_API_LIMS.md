@@ -1,7 +1,7 @@
 # Matriz de Resolução das Decisões da API — Recebimento e Custódia
 
 **Identificador:** MAT-LIMS-API-001  
-**Versão:** 2.3  
+**Versão:** 2.5  
 **Situação:** Instrumento de análise e encaminhamento; propostas técnicas não aprovadas para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
