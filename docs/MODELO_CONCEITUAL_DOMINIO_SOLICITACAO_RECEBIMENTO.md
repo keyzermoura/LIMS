@@ -1,8 +1,8 @@
 # Modelo Conceitual do Domínio — Solicitação e Recebimento
 
 **Identificador:** MOD-DOM-001  
-**Versão:** 0.3  
-**Situação:** Modelo conceitual aprovado funcionalmente (M0.2); não aprovado para implementação  
+**Versão:** 0.4  
+**Situação:** Modelo conceitual M0.2 aprovado funcionalmente, com consolidação 0.4 após auditoria EST01–EST10; não aprovado para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -277,3 +277,94 @@ A aprovação encerra a revisão funcional do modelo conceitual M0.2 e autoriza 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.3 | 2026-11-10 | Registro da aprovação integral do modelo de domínio M0.2 e consolidação das cardinalidades e decisões funcionais. |
+
+
+## 15. Consolidação de domínio após auditoria EST01–EST10
+
+**Data:** 2026-11-10  
+**Versão do modelo:** 0.4  
+**Situação:** consolidação funcional do modelo M0.2; não aprovada para implementação.
+
+Esta seção torna explícitas as decisões aprovadas na seção 14 e elimina ambiguidades de nomenclatura presentes nas seções preliminares. Não altera as cardinalidades aprovadas em M0.2.
+
+### 15.1 Entidades canônicas e responsabilidades
+
+| Entidade | Responsabilidade consolidada | Observação |
+|---|---|---|
+| Solicitante | Pessoa, órgão ou instituição em nome de quem a demanda é registrada. | Não implica conta externa na primeira entrega. |
+| Solicitação | Demanda administrativa e seu contexto. | Possui no máximo um recebimento principal. |
+| ItemDeclarado | Linha de material solicitada. | Preserva quantidade e unidade declaradas. |
+| Recebimento | Registro da chegada física principal. | Guarda data/hora efetivas e recebedor real. |
+| ItemRecebimento | Representação de cada ItemDeclarado no recebimento. | Existe também para itens não apresentados. |
+| ObjetoCustodia | Material efetivamente apresentado e mantido sob custódia, individual ou agrupado de forma tecnicamente justificada. | Entidade canônica para custódia e decisão independente quando aplicável. |
+| EventoCustodia | Evento imutável de início, movimentação, transferência ou encerramento da custódia. | Não é substituto do ObjetoCustodia; registra fatos e transições. |
+| RespostaChecklist | Resultado de critério de checklist versionado. | Preserva versão, avaliador, data/hora, justificativa e evidências. |
+| Pendência | Providência requerida e seu ciclo de comunicação, regularização, prazo e encerramento. | Pode estar vinculada ao item ou objeto afetado. |
+| DecisãoRecebimento | Ato formal de aceite, pendência ou recusa. | Registrada no ObjetoCustodia quando desfechos puderem divergir; no ItemRecebimento quando o desfecho for único. |
+| ValidaçãoCoordenação | Revisão de decisão específica quando obrigatória. | Deve ser independente do autor/executor nos casos aplicáveis. |
+| Evidência | Documento, imagem ou arquivo que sustenta fato, conferência ou decisão. | Integridade, autoria, acesso e retenção a especificar. |
+| AmostraOperacional | Registro laboratorial criado após aceite final. | Cada ObjetoCustodia pode originar no máximo uma amostra. |
+| Ensaio | Atividade analítica vinculada à amostra. | Uma amostra pode originar vários ensaios. |
+| ReferênciaExterna | Identificador de sistema externo quando aplicável. | Não substitui identificador institucional. |
+
+**Nomenclatura:** UnidadeRecebida deixa de ser entidade canônica da primeira versão. A necessidade de representar uma unidade individual é atendida por ObjetoCustodia, que também pode representar agrupamento homogêneo justificado. Não criar UnidadeFisica independente na primeira versão, conforme M0.2.
+
+### 15.2 Cardinalidades canônicas aprovadas
+
+| Origem | Cardinalidade | Destino | Regra |
+|---|---:|---|---|
+| Solicitante | 1:N | Solicitação | Um solicitante pode originar várias solicitações. |
+| Solicitação | 1:N | ItemDeclarado | Uma solicitação possui um ou mais itens declarados. |
+| Solicitação | 1:0..1 | Recebimento | No máximo um recebimento principal por solicitação. |
+| ItemDeclarado | 1:1 | ItemRecebimento | Cada linha declarada possui uma representação no recebimento. |
+| ItemRecebimento | 1:0..N | ObjetoCustodia | Somente material apresentado pode gerar objeto(s). |
+| ObjetoCustodia | 1:0..1 | AmostraOperacional | No máximo uma amostra operacional por objeto aceito. |
+| AmostraOperacional | 1:N | Ensaio | Uma amostra pode originar vários ensaios. |
+
+EventoCustodia deve referenciar ObjetoCustodia; Pendência, RespostaChecklist e DecisãoRecebimento devem referenciar o menor nível funcionalmente adequado (item ou objeto), preservando integridade e rastreabilidade. Essas referências não alteram as cardinalidades aprovadas acima.
+
+### 15.3 Regras de decisão e consolidação
+
+1. A decisão é registrada no ObjetoCustodia quando houver possibilidade de aceite, recusa, resultado, rastreabilidade ou destinação independentes.
+2. A decisão diretamente no ItemRecebimento somente se aplica quando o desfecho for único para todo o material e não houver discriminação necessária.
+3. Quando um ItemRecebimento possuir vários ObjetosCustodia, sua situação é derivada das decisões dos objetos.
+4. Decisões divergentes devem ser visíveis como situação agregada PARCIALMENTE_DECIDIDO ou equivalente; nunca ocultar o detalhe por objeto.
+5. Um objeto recusado não implica recusa dos demais objetos do item.
+6. O item só pode ser integralmente aceito quando todos os objetos apresentados estiverem aceitos e as validações obrigatórias concluídas.
+7. Itens não apresentados não geram ObjetoCustodia, decisão técnica ou AmostraOperacional.
+
+### 15.4 Custódia e continuidade laboratorial
+
+1. A custódia começa na chegada física e antes do aceite/amostra.
+2. O estado atual de custódia é uma projeção do último evento válido e confirmado; eventos anteriores permanecem preservados.
+3. Transferência solicitada, mas não confirmada pelo destinatário, não transfere a responsabilidade.
+4. A custódia só é encerrada após devolução/entrega ou destinação autorizada efetivamente realizada e documentada.
+5. A criação da AmostraOperacional não reinicia a custódia. A passagem à guarda laboratorial gera novo evento de transferência/continuidade, vinculado ao ObjetoCustodia.
+6. Objeto recusado permanece sob custódia até destinação efetiva.
+
+### 15.5 Criação da AmostraOperacional
+
+A criação exige decisão ACEITA no nível aplicável, checklist concluído, ausência de pendências impeditivas abertas e validações obrigatórias concluídas. A operação deve ser atômica e idempotente, protegida contra reenvio/concorrência, e preservar vínculo com ObjetoCustodia e Recebimento. A cardinalidade 1:0..1 impede duplicação de amostra por objeto.
+
+AmostraOperacional não é sinônimo de unidade física nem de corpo de prova. A definição e quantidade de corpos de prova decorrem do método/plano de ensaio, fora do escopo decisório de recebimento.
+
+### 15.6 Identidade, permissões, validação e assinatura
+
+Os cinco perfis funcionais aprovados são SOLICITANTE, RECEPÇÃO, CONFERENTE, COORDENAÇÃO e ADMINISTRADOR. Permissões são explícitas e verificadas no momento da operação; perfis podem ser acumulados quando autorizados, respeitada a independência obrigatória da EST10. ADMINISTRADOR não possui autoridade técnica implícita nem pode elevar as próprias permissões ou apagar auditoria.
+
+Assinatura eletrônica formal e validação independente são controles distintos. A assinatura formal vincula usuário, ato e conteúdo exato; a validação independente exige ator diferente do autor/executor quando prevista. A tecnologia e o nível jurídico da assinatura permanecem para especificação própria.
+
+### 15.7 Pendências, retificações e dados legados
+
+1. Pendências usam os estados PENDENTE, EM_REGULARIZACAO, AGUARDANDO_REAVALIACAO, REGULARIZADA, PRAZO_VENCIDO, NAO_REGULARIZAVEL e CANCELADA. PRAZO_VENCIDO não encerra a pendência nem gera recusa automática; NAO_REGULARIZAVEL exige decisão formal e não equivale automaticamente à recusa.
+2. Retificações são novos atos vinculados ao original, sem sobrescrita; exigem justificativa, evidência, validação da coordenação quando aplicável, assinatura formal e avaliação de impacto quando já houver amostra.
+3. Registros legados sem evidência confiável não devem receber vínculo presumido com Solicitação, Recebimento, ItemRecebimento ou ObjetoCustodia.
+4. Identificadores externos permanecem referências auxiliares e não substituem o identificador institucional.
+
+### 15.8 Prevalência e histórico
+
+Esta seção 15 consolida a interpretação atual do modelo aprovado em M0.2. Se houver divergência entre recomendações preliminares das seções 1–13 e as decisões formais da seção 14 ou esta consolidação, prevalecem as cardinalidades e decisões aprovadas em 14.1–14.3 e as regras consolidadas nesta seção 15. O histórico original é preservado para rastreabilidade.
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.4 | 2026-11-10 | Consolidação do domínio após auditoria EST01–EST10; padronização de ObjetoCustodia, granularidade decisória, custódia, amostra, perfis e pendências, sem alteração das cardinalidades M0.2. |
