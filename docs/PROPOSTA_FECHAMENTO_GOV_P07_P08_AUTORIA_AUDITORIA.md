@@ -1,10 +1,10 @@
 # Proposta de fechamento GOV-P07 e GOV-P08 — Autoria, timestamps e auditoria
 
 **Identificador:** PROP-LIMS-GOV-AUD-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-10  
 **Branch:** `main`  
-**Estado:** proposta para revisão do responsável pelo projeto; não validada; aprovação institucional e fechamento técnico pendentes; implementação bloqueada.
+**Estado:** recomendações AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07 validadas em revisão pelo responsável pelo projeto em 2026-11-10; aprovação institucional e fechamento técnico pendentes; implementação bloqueada.
 
 ## 1. Objetivo e limites
 
@@ -168,7 +168,7 @@ Não se afirma que esses controles estejam implantados. KMS/Vault, responsável 
 
 ## 6. Decisões para manifestação do responsável pelo projeto
 
-Solicita-se avaliar em conjunto as recomendações AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07, nos limites indicados nas tabelas das seções 3.3 e 4.5.
+As recomendações AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07 foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, exclusivamente nos limites indicados nas tabelas das seções 3.3 e 4.5. Essa validação não fixa políticas institucionais nem comprova controles operacionais.
 
 Uma validação em revisão do projeto não substitui aprovação institucional de política temporal, retenção, acesso, segurança, responsabilidades ou infraestrutura. Não autoriza implementação.
 
@@ -191,10 +191,11 @@ GOV-P07/P08 somente poderão ser considerados fechados quando:
 
 **Não realizado:** alteração de código, modelos, banco, migrações, serviços, rotas, frontend, OpenAPI, testes, build, CI, infraestrutura, chaves, triggers ou grants. Não houve consulta a banco/runtime/produção nem validação operacional.
 
-**Estado:** proposta para revisão; AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07 não validadas. GOV-P01/P04 e SIG-P01–SIG-P06 permanecem validadas em revisão nos limites registrados. Aprovação institucional, fechamento técnico e autorização específica de implementação permanecem pendentes.
+**Estado:** AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07 validadas em revisão pelo responsável pelo projeto em 2026-11-10. GOV-P01/P04 e SIG-P01–SIG-P06 permanecem validadas em revisão nos limites registrados. Permanecem pendentes política institucional de fuso, lançamento tardio, retificação, participantes, acesso, retenção, minimização, segurança e infraestrutura; fechamento técnico, aprovação institucional e autorização específica de implementação continuam pendentes.
 
 ## 9. Histórico
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-10 | Consolidação das recomendações de autoria, timestamps, cobertura, envelope e integridade da auditoria para revisão de GOV-P07/GOV-P08. |
+| 0.2 | 2026-11-10 | Registro da validação em revisão de AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07; políticas institucionais, fechamento técnico e implementação permanecem pendentes. |
