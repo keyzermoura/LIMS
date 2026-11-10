@@ -382,7 +382,7 @@ ItemDeclarado deverá preservar a quantidade e unidade informadas na solicitaç�
 
 ### 16.2 Eventos e tempos
 
-EventoCustodia deverá distinguir tipo de evento, instante do fato (`occurred_at`), instante de registro no sistema (`recorded_at`) e autor do registro (`recorded_by`). O tipo de evento deverá distinguir RECEIPT, TRANSFER, LOCATION_CHANGE, RETURN, DISPOSITION, CLOSURE e CORRECTION. O estado atual de custódia/localização será uma projeção derivada dos eventos válidos e confirmados; o histórico permanece preservado. Esta definição não cria entidade física adicional nem altera cardinalidades aprovadas.
+EventoCustodia deverá distinguir tipo de evento, instante do fato (`occurred_at`), instante de registro no sistema (`recorded_at`), autor do registro (`recorded_by`), pessoa que recebeu fisicamente (`received_by`, no evento RECEIPT) e custodiante/localização inicial ou de destino. O campo conceitual `Recebimento.received_at` deverá corresponder ao `occurred_at` do evento RECEIPT. O tipo de evento deverá distinguir RECEIPT, TRANSFER, LOCATION_CHANGE, RETURN, DISPOSITION, CLOSURE e CORRECTION. O estado atual de custódia/localização será uma projeção derivada dos eventos válidos e confirmados; o histórico permanece preservado. Esta definição não cria entidade física adicional nem altera cardinalidades aprovadas.
 
 ### 16.3 Identificadores
 
