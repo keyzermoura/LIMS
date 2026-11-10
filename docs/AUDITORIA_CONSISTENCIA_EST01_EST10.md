@@ -94,3 +94,89 @@ A auditoria documental pode ser considerada concluída para fins de preparação
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-10 | Primeira auditoria cruzada EST01–EST10 × M0.2; registro e tratamento documental dos achados AUD01–AUD12. |
+
+
+## 9. Segunda rodada — revisão multidisciplinar da máquina de estados e CA01–CA24
+
+**Data:** 2026-11-10  
+**Fontes adicionais:** avaliação multidisciplinar compartilhada em 2026-11-09/10 e revisão das seções 26–27 do EST-REC-001 v1.4.  
+**Resultado:** identificadas lacunas que não invalidam as decisões EST01–EST10 nem as cardinalidades M0.2, mas exigem complementação antes da aprovação do Gate G0.
+
+### 9.1 Novos achados
+
+| ID | Prioridade | Achado | Recomendação/Tratamento documental |
+|---|---|---|---|
+| AUD13 | Crítica | Escopo do SOLICITANTE não possuía critério explícito de isolamento em listagem, detalhe e evidências. | Definir autorização por vínculo do registro no servidor e acrescentar CA25. |
+| AUD14 | Alta | Quantidade declarada, quantidade apresentada e quantidade representada pelo ObjetoCustodia não estavam separadas. | Preservar dimensões distintas e acrescentar CA26–CA27. |
+| AUD15 | Alta | Tempo do fato e tempo do registro não estavam separados em todos os eventos. | Definir occurred_at, recorded_at e recorded_by; acrescentar CA28. |
+| AUD16 | Alta | Taxonomia de eventos de custódia não distinguia localização, transferência, devolução, destinação e encerramento. | Adotar taxonomia conceitual RECEIPT/TRANSFER/LOCATION_CHANGE/RETURN/DISPOSITION/CLOSURE/CORRECTION; acrescentar CA29–CA30. |
+| AUD17 | Alta | Protocolo institucional, accession e QR não tinham semântica e ciclo de vida explicitados. | Separar finalidade, entidade, unicidade e momento de atribuição; acrescentar CA37. |
+| AUD18 | Crítica | Atomicidade/idempotência e concorrência estavam descritas como princípios, sem contrato de conflito e cenários suficientes. | Especificar chave persistida, hash, replay, conflito em andamento e expected_version; acrescentar CA31–CA33. |
+| AUD19 | Alta | Consulta histórica/paginação não possuía requisito de ordenação estável e continuidade. | Definir paginação determinística e acrescentar CA34. |
+| AUD20 | Alta | Evidências binárias não tinham requisito de integridade, metadados, armazenamento e retenção suficientemente descrito. | Definir metadados/hash/acesso/retenção e acrescentar CA35; tecnologia permanece pendente. |
+| AUD21 | Alta | Transição dos registros legados para o novo domínio poderia gerar vínculos presumidos ou quebra de compatibilidade. | Exigir migração aditiva, reconciliação auditável e não associação sem evidência; acrescentar CA36. |
+| AUD22 | Alta | Recomendações técnicas da avaliação externa não estavam separadas por horizonte e criticidade. | Classificar rate limiting distribuído, WORM/ancoragem externa, MFA/SSO, object storage, E2E e paridade PostgreSQL como itens de arquitetura/segurança e plano de testes, não como autorização imediata de implementação. |
+
+### 9.2 Revisão individual dos CA01–CA24
+
+A revisão constatou que os 24 critérios são coerentes como base funcional, mas não formam cobertura suficiente para o Gate G0 sem os complementos CA25–CA37. Os principais pontos são:
+
+- CA01–CA03: adequados em princípio; CA01 deve cobrir autorização por escopo do registro e CA03 deve ser testado também para acumulação de perfis.
+- CA04–CA06: coerentes com EST06; falta validar combinação de critérios E/S/I, justificativa NAO_APLICAVEL e checklist versionado em cenários compostos.
+- CA07–CA08: coerentes; explicitar que ausência não gera ObjetoCustodia e que quantidades divergentes não são sobrescritas.
+- CA09–CA11: coerentes; faltava distinguir LOCATION_CHANGE de TRANSFER e eventos de RETURN/DISPOSITION/CLOSURE.
+- CA12–CA13: coerentes; vencimento permanece indicador de controle e evidência recebida exige reavaliação.
+- CA14–CA15: coerentes; a validação deve ser independente, assinada e limitada à competência, sem dispensar critério impeditivo.
+- CA16–CA17: insuficientes para demonstrar idempotência robusta; acrescentar replay, mesma chave com payload distinto, requisição em andamento e concorrência.
+- CA18: adequado; complementar com quantidades e agrupamento de objetos.
+- CA19–CA20: coerentes; exigir trilha completa da retificação e avaliação de impacto antes de qualquer efeito operacional.
+- CA21–CA22: adequados como controles de aplicação; a proteção contra administrador privilegiado de banco exige defesa arquitetural adicional, não apenas teste de permissão.
+- CA23: coerente; deve preservar occurred_at e recorded_at e impedir retroatividade fictícia.
+- CA24: coerente; complementar com versão de regra/checklist e prova de reprodutibilidade.
+
+### 9.3 Recomendações técnicas separadas por horizonte
+
+**Necessárias para especificação do Gate G0:**
+- estratégia de migração aditiva e reconciliação de legado;
+- contratos de idempotência e concorrência otimista;
+- escopo de autorização do solicitante;
+- evidências binárias com integridade e política de retenção;
+- paginação/consulta histórica;
+- testes automatizados dos critérios, incluindo concorrência.
+
+**Necessárias para arquitetura de produção, com decisão institucional:**
+- rate limiting distribuído (Redis ou camada de ingress/reverse proxy), pois o limitador em memória não coordena múltiplos workers;
+- proteção da trilha de auditoria contra administrador privilegiado, avaliando ancoragem periódica externa/WORM;
+- MFA e futura integração SSO/IdP (OIDC/SAML), desacoplando assinatura da verificação direta de senha;
+- armazenamento de anexos em object storage compatível, como MinIO/S3, sem fixar fornecedor antes da avaliação;
+- testes E2E do fluxo de autenticação, recebimento, assinatura e auditoria;
+- testes de integridade/concorrência executados em PostgreSQL real no CI, não apenas SQLite.
+
+### 9.4 Cenários operacionais mínimos para validação com o SEFI
+
+1. Recebimento integral com conferência e aceite de todos os objetos.
+2. Recebimento parcial com um item não apresentado e conclusão administrativa válida.
+3. Divergência entre quantidade declarada e apresentada.
+4. Um item com dois objetos, sendo um aceito e outro recusado.
+5. Pendência saneável, comunicação formal, vencimento, prorrogação e reavaliação.
+6. Recusa com permanência em custódia e posterior devolução/destinação.
+7. Transferência entre responsáveis e mudança de localização sem transferência.
+8. Retificação de ausência ou decisão após criação de amostra, com avaliação de impacto.
+9. Reenvio concorrente de criação de recebimento/amostra e alteração com versão obsoleta.
+10. Tentativa de solicitante acessar solicitação/evidência de terceiro.
+11. Consulta paginada do histórico durante novas movimentações.
+12. Recebimento de material após conclusão anterior como não apresentado, sem retroatividade.
+
+### 9.5 Conclusão da segunda rodada
+
+A máquina de estados v1.4 e CA01–CA24 são uma base consistente, porém **a revisão multidisciplinar não recomenda declarar prontidão funcional completa para o Gate G0 antes de incorporar e validar CA25–CA37, os cenários operacionais e os contratos técnicos pendentes**. As decisões EST01–EST10 e cardinalidades M0.2 não foram reabertas nem alteradas.
+
+A avaliação anterior descreve pontos fortes do código existente e riscos arquiteturais, mas não foi executada nesta rodada uma auditoria direta do código, dos testes ou da infraestrutura. Portanto, tais pontos permanecem como hipóteses/itens a verificar na etapa de arquitetura e segurança; não são declarados como defeitos confirmados por inspeção independente.
+
+**Não houve alteração de código, schema, API, frontend, pipeline ou infraestrutura. Gate G0 permanece não aprovado e implementação não autorizada.**
+
+## 10. Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.1 | 2026-11-10 | Segunda rodada multidisciplinar; achados AUD13–AUD22; revisão CA01–CA24; cenários operacionais e complementos CA25–CA37. |
