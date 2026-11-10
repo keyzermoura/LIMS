@@ -1,7 +1,7 @@
 # Revisão Multidisciplinar — Máquina de Estados e Critérios de Aceitação do LIMS
 
 **Identificador:** REV-MD-LIMS-002  
-**Versão:** 1.0  
+**Versão:** 1.1
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Base documental:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; AUD-LIMS-001 v1.1; avaliação multidisciplinar compartilhada em 2026-11-09/10.  
@@ -189,3 +189,16 @@ A avaliação multidisciplinar externa descreve pontos fortes e riscos do códig
 - `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md` — simulação documental SIM01–SIM12.
 - Avaliação multidisciplinar anterior: `Markdown colado(2).md`.
 
+
+
+## 11. Atualização — pré-validação das decisões D01–D20
+
+Em 2026-11-10, o usuário pré-validou sequencialmente as vinte decisões consolidadas em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. O conjunto cobre recebimento, quantidades, objetos de custódia, pendências, recusa, movimentações, retificação, independência, checklists, evidências, auditoria, controle de acesso, assinatura, backup, identificadores, chegada posterior e admissão de amostras.
+
+**Parecer atualizado:** o conjunto documental pode avançar para validação institucional estruturada com o SEFI. A rodada não substitui a reunião/ratificação institucional nem resolve as dependências técnicas e institucionais listadas no registro D01–D20.
+
+**Gate G0: NÃO APROVADO. Implementação: NÃO AUTORIZADA.** Nenhum código, banco, API, frontend, CI ou infraestrutura foi alterado nesta consolidação.
+
+### Histórico de versões
+
+| 1.1 | 2026-11-10 | Registro da pré-validação das decisões D01–D20 e atualização do encaminhamento ao Gate G0. |
