@@ -1,8 +1,8 @@
 # Proposta de Resolução API07 — Idempotência das Operações HTTP
 
 **Identificador:** PROP-LIMS-API07-001  
-**Versão:** 0.1  
-**Situação:** Proposta técnica para revisão; validação arquitetural, funcional e de segurança pendente — bloqueadora  
+**Versão:** 0.2  
+**Situação:** Regras gerais validadas pelo responsável pelo projeto em revisão (2026-11-10); fechamento operacional, técnico e institucional pendente — implementação bloqueada  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-10
@@ -347,14 +347,17 @@ Manter constraints de domínio, transações e controle de versão API06 como sa
 
 ## 15. Controle de execução
 
-**Realizado:** recuperação da decisão API07 na matriz vigente; análise da especificação de API, OpenAPI, proposta API02, proposta API06 e modelo relacional; elaboração desta proposta documental.
+**Realizado:** recuperação da decisão API07 na matriz vigente; análise da especificação de API, OpenAPI, proposta API02, proposta API06 e modelo relacional; elaboração da proposta e registro da validação das regras gerais pelo responsável pelo projeto em revisão em 2026-11-10.
 
 **Não realizado:** alterações em código, modelos, banco, migrações, endpoints, frontend, especificação funcional ou OpenAPI; testes, build, CI ou validação automática.
 
-**Situação:** proposta técnica elaborada; validação arquitetural, funcional, segurança e aprovação institucional pendentes. Não há autorização de implementação.
+**Pendências de fechamento:** definir transação, reserva/estado IN_PROGRESS, bloqueios, timeout e recuperação; validar janela de 7 dias e retenção do marcador; fechar segurança e proteção do snapshot; resolver API09 (nova chave para objeto já aceito), API10 (autorização), API03 (granularidade) e compatibilidade runtime; obter aprovação institucional aplicável.
+
+**Situação:** regras gerais validadas em revisão do projeto; fechamento operacional, técnico e institucional pendente. Não há autorização de implementação.
 
 ## 16. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-10 | Primeira proposta de política de idempotência, persistência, replay, retenção e compatibilidade com API06/API09. |
+| 0.2 | 2026-11-10 | Registro da validação das regras gerais pelo responsável pelo projeto em revisão; detalhes operacionais, retenção, segurança, dependências e aprovação institucional permanecem pendentes. |
