@@ -1,7 +1,7 @@
 # Proposta de Resolução da Decisão API10 — Autorização e Segregação de Funções
 
 **Identificador:** PROP-LIMS-API10-001  
-**Versão:** 0.2  
+**Versão:** 0.3  
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -108,6 +108,18 @@ O responsável pelo projeto validou, em revisão, a seguinte diretriz para a ope
 
 A validação acima é uma diretriz do projeto em revisão, não uma aprovação institucional de competência funcional nem autorização para implementação. Permanecem pendentes a definição dos perfis institucionais reais, do mecanismo de comprovação do recebedor físico, dos escopos e das demais operações da matriz.
 
+
+### 5.2 Regra validada em revisão — conferência dos materiais
+
+O responsável pelo projeto validou, em revisão, a seguinte diretriz para a operação de conferência dos materiais apresentados:
+
+- A conferência poderá ser executada por servidor com permissão específica de conferente, respeitado o escopo organizacional/funcional aplicável.
+- O conferente poderá registrar os itens efetivamente apresentados, as quantidades recebidas, as condições físicas e de integridade, as divergências identificadas, as evidências e as pendências pertinentes.
+- A permissão de conferência, isoladamente, não concede competência para decidir o aceite ou a recusa do material.
+- A decisão de aceite/recusa permanece atribuída ao papel/capacidade de decisor definido na matriz institucional, observadas as validações adicionais exigidas pelo fluxo.
+- O registro da conferência deve preservar autoria, instante e histórico das informações, sem apagar ou sobrescrever silenciosamente registros anteriores.
+
+A validação acima é uma diretriz do projeto em revisão, não uma aprovação institucional da competência de cargos ou servidores nem autorização para implementação. Permanecem pendentes a definição dos perfis institucionais reais, eventuais regras de segregação/validação da conferência, os requisitos específicos por classe de material e a compatibilização com os contratos das APIs relacionadas.
 
 ## 6. Segregação de funções e autoaprovação
 
@@ -257,11 +269,11 @@ A proposta somente poderá ser considerada fechada após:
 
 ## 15. Encaminhamento e controle de execução
 
-**Atividade realizada:** elaboração da proposta API10 e registro da validação, em revisão do projeto, da regra de que servidor especificamente autorizado pode formalizar a chegada sem ser necessariamente o recebedor físico, mantendo distintas as identidades `recorded_by` e `received_by`.
+**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; e (ii) da conferência por servidor com permissão específica para registrar materiais, quantidades, condições, divergências, evidências e pendências, sem competência automática para decidir aceite/recusa.
 
 **Não realizado:** alterações em código, banco de dados, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
-**Estado:** primeira regra da Operação 1 (formalização da chegada física) validada pelo responsável pelo projeto em revisão. Demais operações, perfis institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
+**Estado:** regras gerais das Operações 1 (formalização da chegada física) e 2 (conferência dos materiais) validadas pelo responsável pelo projeto em revisão. Demais operações, perfis institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
 
 ## 16. Histórico de alterações
 
@@ -269,3 +281,4 @@ A proposta somente poderá ser considerada fechada após:
 |---|---|---|
 | 0.1 | 2026-11-10 | Criação da proposta técnica API10 para autorização, escopo, segregação, autoria, auditoria e integração com API05–API09. |
 | 0.2 | 2026-11-10 | Registro da validação em revisão da regra de formalização da chegada por servidor autorizado distinto do recebedor físico, preservando `recorded_by` e `received_by`. |
+| 0.3 | 2026-11-10 | Registro da validação em revisão da conferência por servidor especificamente autorizado, sem competência automática para decidir aceite/recusa. |
