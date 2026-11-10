@@ -1280,3 +1280,119 @@ A máquina de estados e os critérios acima estão consolidados funcionalmente p
 - converter os critérios CA01–CA24 em testes rastreáveis.
 
 A conclusão desta especificação não autoriza implementação.
+
+
+## 28. Complementos da revisão multidisciplinar — identidade, quantidades e tempo dos eventos
+
+**Data:** 2026-11-10  
+**Situação:** requisitos funcionais complementares identificados em revisão multidisciplinar; sujeitos à validação institucional e técnica. Não alteram cardinalidades M0.2 nem autorizam implementação.
+
+### 28.1 Quantidades declaradas, apresentadas e representadas
+
+O fluxo deverá distinguir, sem sobrescrita ou inferência:
+
+- **Quantidade declarada:** quantidade informada na solicitação.
+- **Quantidade apresentada:** quantidade efetivamente observada na chegada física.
+- **Quantidade representada por ObjetoCustodia:** quantidade/unidade que aquele objeto ou agrupamento representa para fins de guarda, rastreabilidade e decisão.
+
+As unidades de medida e a forma de apresentação deverão ser registradas de modo explícito. A quantidade representada por um ObjetoCustodia não implica, por si só, que ele corresponda a uma única unidade física. Divergências entre declarado e apresentado deverão ser registradas como fato observado e encaminhadas conforme checklist/regra aplicável; não se deve corrigir silenciosamente a declaração original. Fracionamento, agrupamento e individualização dependerão de justificativa de rastreabilidade, risco e independência de decisão/ensaio.
+
+### 28.2 Tempo do fato versus tempo do registro
+
+Todo evento relevante deverá distinguir conceitualmente:
+
+- `occurred_at`: quando o fato ocorreu, conforme observado ou comprovado;
+- `recorded_at`: quando o evento foi registrado no sistema;
+- `recorded_by`: identidade de quem registrou.
+
+Os campos não são intercambiáveis. O horário efetivo da chegada física deverá ser capturado no evento de recebimento; o horário de gravação deverá ser gerado pelo sistema. Registro tardio exige justificativa e preserva ambos os tempos. Não se admite retroagir `recorded_at` nem inventar `occurred_at`. Datas/horas devem possuir fuso/offset inequívoco e fonte temporal controlada. Correções são novos eventos CORRECTION vinculados ao evento original.
+
+### 28.3 Taxonomia mínima dos eventos de custódia
+
+A trilha de custódia deverá distinguir, no mínimo, os seguintes fatos:
+
+| Tipo | Significado |
+|---|---|
+| RECEIPT | Entrada física inicial do material sob responsabilidade institucional. |
+| TRANSFER | Mudança confirmada de responsável/custodiante. |
+| LOCATION_CHANGE | Mudança de localização sem necessariamente mudar o custodiante. |
+| RETURN | Devolução física ao solicitante ou representante autorizado. |
+| DISPOSITION | Outra destinação institucional formalmente autorizada e efetivamente executada. |
+| CLOSURE | Encerramento formal da custódia após comprovação da entrega/devolução/destinação. |
+| CORRECTION | Retificação de evento anterior, sem apagar ou substituir o original. |
+
+Solicitação de transferência não é TRANSFER confirmado. RETURN/DISPOSITION descrevem o fato de destinação; CLOSURE registra o encerramento formal após verificação das condições. A taxonomia deverá permitir reconstruir custodiante e localização em qualquer instante relevante.
+
+### 28.4 Protocolo institucional, accession e QR
+
+O sistema deverá separar os conceitos:
+
+1. **Protocolo SEFI:** identificador institucional do processo/solicitação ou recebimento, conforme regra de numeração a aprovar.
+2. **Accession:** identificador laboratorial atribuído à amostra operacional após o aceite e criação da amostra, conforme regra laboratorial a aprovar.
+3. **QR Code:** representação legível por máquina de um identificador ou endereço/URI controlado; não é, por si só, a identidade primária nem substitui os identificadores persistidos.
+
+Cada identificador deverá possuir escopo, entidade referenciada, regra de unicidade, momento de atribuição, origem e histórico. Não atribuir accession a item não apresentado, objeto recusado ou objeto ainda não aceito. A regra definitiva de numeração, conteúdo do QR e interoperabilidade permanece decisão institucional/técnica pendente.
+
+## 29. Complementos da revisão multidisciplinar — acesso, integridade e concorrência
+
+### 29.1 Isolamento do solicitante
+
+O perfil SOLICITANTE deverá ter escopo de dados restrito às solicitações às quais esteja legitimamente vinculado. A autorização deverá ser verificada no servidor em todas as operações de leitura, listagem, consulta de detalhe, download de evidência e alteração; ocultar registros apenas na interface não é controle suficiente. Tentativas de acesso a identificadores de terceiros deverão ser negadas sem revelar existência ou conteúdo não autorizado. A eventual habilitação de contas externas e sua governança permanecem decisão de escopo e segurança; o requisito de isolamento deve ser preservado independentemente do canal de acesso.
+
+### 29.2 Concorrência otimista e versão esperada
+
+Operações de alteração sobre agregados sujeitos a concorrência deverão admitir controle de versão, conceitualmente por `expected_version`. Se a versão apresentada pelo cliente não corresponder à versão vigente, a operação deverá ser rejeitada como conflito, sem sobrescrever a alteração concorrente; contrato proposto: HTTP 409 com código estável `VERSION_CONFLICT`. A interface deverá atualizar os dados e solicitar nova decisão explícita, sem repetir automaticamente uma decisão de negócio.
+
+### 29.3 Idempotência e reenvio
+
+Operações críticas sujeitas a repetição de rede ou concorrência deverão usar chave de idempotência persistida e associada ao escopo da operação, identidade/autorização, hash do conteúdo relevante e resultado. Regras mínimas:
+
+1. Mesma chave e mesmo conteúdo após conclusão: devolver resultado previamente registrado, sem repetir efeitos.
+2. Mesma chave com conteúdo diferente: rejeitar como conflito de chave/conteúdo.
+3. Mesma chave enquanto a primeira execução estiver em andamento: responder conflito transitório estável (proposta: HTTP 409, `IDEMPOTENCY_REQUEST_IN_PROGRESS`).
+4. Falha antes do commit: não deixar efeito parcial nem marcar falsamente como concluída.
+5. Política de retenção/expiração deve cobrir a janela real de reenvio e auditoria; a expiração não pode permitir duplicação de identificadores de negócio.
+
+A política de persistência, expiração, escopo e recuperação de chaves deverá ser especificada antes da implementação.
+
+### 29.4 Histórico, consulta e paginação
+
+Listagens de eventos, auditoria, recebimentos e custódia deverão ter ordenação determinística, paginação estável e filtros por entidade/período/tipo, preservando a sequência cronológica e evitando omissões ou duplicações entre páginas. A consulta paginada não poderá alterar a trilha nem expor dados fora do escopo de autorização. Exportações deverão preservar identificadores, tempos do fato/registro e vínculos entre eventos.
+
+### 29.5 Evidências binárias
+
+Fotos, PDFs, termos e outros anexos deverão possuir metadados de autoria, vínculo ao processo/item/objeto, data/hora, tipo, tamanho, hash de integridade, classificação de acesso e política de retenção. O armazenamento binário deverá ser separado do banco relacional por serviço/objeto de armazenamento apropriado, com controle de acesso, versionamento ou imutabilidade conforme risco e cópias de segurança. A tecnologia (por exemplo, MinIO ou serviço S3 compatível) não está escolhida nesta especificação.
+
+### 29.6 Dados legados
+
+A transição do modelo existente para Solicitação, Recebimento, ItemRecebimento e ObjetoCustodia deverá ser aditiva e retrocompatível. Não criar vínculos presumidos quando os dados legados não demonstrarem origem, quantidade, identidade ou custódia. Cada associação migrada deverá ter regra, evidência, origem e possibilidade de auditoria; registros não associáveis permanecem legados sem vínculo forçado. Plano de migração, reconciliação, reversão e validação será requisito de arquitetura/Gate G0.
+
+## 30. Critérios funcionais complementares da revisão
+
+Além de CA01–CA24, ficam propostos os seguintes critérios para fechar lacunas identificadas. Devem ser incorporados à suíte de aceitação após revisão técnica:
+
+| ID | Cenário | Resultado esperado |
+|---|---|---|
+| CA25 | SOLICITANTE consulta, lista ou baixa evidência de solicitação de terceiro sem vínculo autorizado. | Acesso negado no servidor, sem revelar conteúdo ou existência indevida; evento de segurança registrado conforme política. |
+| CA26 | Quantidade declarada difere da quantidade apresentada. | Ambas permanecem preservadas; divergência é registrada e encaminhada ao critério/checklist aplicável. |
+| CA27 | Um ObjetoCustodia representa agrupamento de unidades. | Quantidade/unidade representada e justificativa de agrupamento ficam explícitas; não se presume equivalência objeto-unidade física. |
+| CA28 | Evento de chegada é registrado depois do fato. | occurred_at e recorded_at permanecem distintos; registro tardio exige justificativa e não altera o tempo de gravação. |
+| CA29 | Há mudança de localização sem mudança de custodiante. | LOCATION_CHANGE atualiza localização projetada sem simular TRANSFER nem trocar responsável. |
+| CA30 | Solicitação de transferência não é confirmada pelo destinatário. | Custodiante e localização vigentes permanecem conforme último evento confirmado. |
+| CA31 | Mesmo pedido crítico é reenviado com a mesma chave e conteúdo após sucesso. | Resultado original é devolvido sem duplicar recebimento, evento ou amostra. |
+| CA32 | Chave de idempotência é reutilizada com conteúdo diferente. | Requisição é rejeitada como conflito; nenhum efeito adicional ocorre. |
+| CA33 | Duas alterações concorrentes usam a mesma versão esperada. | Apenas uma é efetivada; a outra recebe VERSION_CONFLICT e não sobrescreve dados. |
+| CA34 | Eventos são consultados em páginas sucessivas durante novas gravações. | Ordenação/paginação estáveis, sem perda ou duplicação lógica dos eventos já existentes. |
+| CA35 | Anexo é enviado, consultado ou substituído. | Hash, metadados, vínculo, autorização e histórico são preservados; alteração não destrói evidência formalizada. |
+| CA36 | Registro legado não possui evidência suficiente para vínculo com novo domínio. | Não é associado por presunção; permanece identificado como legado não reconciliado. |
+| CA37 | Protocolo SEFI, accession e QR são apresentados em telas/documentos. | Cada elemento mantém finalidade e vínculo próprios; QR não substitui identificador persistido. |
+
+### 30.1 Limite desta complementação
+
+CA25–CA37 são propostas de complementação funcional derivadas da revisão multidisciplinar. A adoção definitiva dos contratos HTTP, tecnologias de armazenamento, políticas de retenção, SSO/MFA e mecanismos de ancoragem externa depende da arquitetura e da governança institucional. Nenhum item desta seção autoriza migração, endpoint, alteração de interface ou infraestrutura.
+
+### 30.2 Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.5 | 2026-11-10 | Complementos multidisciplinares sobre quantidades, timestamps, taxonomia de custódia, protocolo/accession/QR, isolamento de solicitante, concorrência, idempotência, histórico, evidências e dados legados; critérios propostos CA25–CA37. |
