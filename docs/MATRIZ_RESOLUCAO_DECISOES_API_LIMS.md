@@ -1,7 +1,7 @@
 # Matriz de Resolução das Decisões da API — Recebimento e Custódia
 
 **Identificador:** MAT-LIMS-API-001  
-**Versão:** 3.0  
+**Versão:** 3.1  
 **Situação:** Instrumento de análise e encaminhamento; propostas técnicas não aprovadas para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -176,7 +176,7 @@ Em 2026-11-10, foi registrada a inspeção estática REV-LIMS-GOV-001 (`docs/REV
 
 Foi elaborada a proposta PROP-LIMS-GOV-002 (`docs/PROPOSTA_FECHAMENTO_PACOTE_1_GOVERNANCA.md`), consolidando recomendações para autorização por capacidade + escopo + contexto, concessão por autoridade institucional e execução técnica separada, matriz de segregação, assinatura por natureza do ato, autoria/timestamps, auditoria, gestão de chaves e exceções.
 
-**Estado:** proposta consolidada PROP-LIMS-GOV-002 v0.9 para revisão; GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites registrados na proposta. GOV-P05/GOV-P06 (SIG-P01–SIG-P06) foram validadas em revisão pelo responsável pelo projeto em 2026-11-10; GOV-P02 e GOV-P03 permanecem pendentes. GOV-P10 teve as recomendações GOV10-01 a GOV10-11 validadas em revisão em 2026-11-10, nos limites de PROP-LIMS-GOV-EXC-001 v0.1; formalização institucional e fechamento técnico permanecem pendentes. GOV-P09/GOV-P11 tiveram as recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 validadas em revisão em 2026-11-10, nos limites de PROP-LIMS-GOV-SEC-001 v0.2; fechamento institucional, técnico e comprovação operacional continuam pendentes. GOV-P07/GOV-P08 foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites de PROP-LIMS-GOV-AUD-001 v0.2. O fechamento institucional e técnico de GOV-P05/GOV-P06 continua pendente. GOV01–GOV05 e Operações 1–7 da API10 permanecem preservadas. Aprovação institucional e autorização de implementação continuam pendentes.
+**Estado:** proposta consolidada PROP-LIMS-GOV-002 v0.9 para revisão; GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites registrados na proposta. GOV-P05/GOV-P06 (SIG-P01–SIG-P06) foram validadas em revisão pelo responsável pelo projeto em 2026-11-10; GOV-P02 teve o modelo de três níveis e as recomendações GOV02-01 a GOV02-11 validados em revisão em 2026-11-10, nos limites de PROP-LIMS-GOV-AUTH-001 v0.1; designações/delegações institucionais, procedimento e fechamento técnico permanecem pendentes. GOV-P03 permanece pendente. GOV-P10 teve as recomendações GOV10-01 a GOV10-11 validadas em revisão em 2026-11-10, nos limites de PROP-LIMS-GOV-EXC-001 v0.1; formalização institucional e fechamento técnico permanecem pendentes. GOV-P09/GOV-P11 tiveram as recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 validadas em revisão em 2026-11-10, nos limites de PROP-LIMS-GOV-SEC-001 v0.2; fechamento institucional, técnico e comprovação operacional continuam pendentes. GOV-P07/GOV-P08 foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites de PROP-LIMS-GOV-AUD-001 v0.2. O fechamento institucional e técnico de GOV-P05/GOV-P06 continua pendente. GOV01–GOV05 e Operações 1–7 da API10 permanecem preservadas. Aprovação institucional e autorização de implementação continuam pendentes.
 
 **Controle:** atualização exclusivamente documental em `main`; sem alterações em código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
@@ -196,7 +196,7 @@ A proposta complementar `PROPOSTA_FECHAMENTO_GOV_P07_P08_AUTORIA_AUDITORIA.md` (
 
 Em 2026-11-10, o responsável pelo projeto validou em revisão as recomendações AUD-P09-01 a AUD-P09-09 (integridade operacional, imutabilidade, gestão de chaves, monitoramento, backup, contingência e verificação independente) e AUD-P11-01 a AUD-P11-09 (segregação de capacidades, escopo/finalidade, minimização, rastreabilidade de consultas/exportações, retenção e acesso emergencial), conforme PROP-LIMS-GOV-SEC-001 v0.2.
 
-A validação é diretriz de desenho no âmbito da revisão do projeto. Não representa aprovação institucional, não comprova controles operacionais e não autoriza implementação. GOV-P09/GOV-P11 permanecem abertas até definição das políticas e autoridades institucionais, comprovação dos controles no ambiente autorizado, fechamento técnico e autorização específica de implementação. GOV-P10 teve GOV10-01 a GOV10-11 validadas em revisão; autoridades, hipóteses admissíveis, critérios de emergência, prazos, controles compensatórios, responsáveis pela revisão e fechamento técnico permanecem pendentes. GOV-P02 e GOV-P03 permanecem pendentes.
+A validação é diretriz de desenho no âmbito da revisão do projeto. Não representa aprovação institucional, não comprova controles operacionais e não autoriza implementação. GOV-P09/GOV-P11 permanecem abertas até definição das políticas e autoridades institucionais, comprovação dos controles no ambiente autorizado, fechamento técnico e autorização específica de implementação. GOV-P10 teve GOV10-01 a GOV10-11 validadas em revisão; autoridades, hipóteses admissíveis, critérios de emergência, prazos, controles compensatórios, responsáveis pela revisão e fechamento técnico permanecem pendentes. GOV-P02 teve o modelo de três níveis e as recomendações GOV02-01 a GOV02-11 validados em revisão; formalização institucional e fechamento técnico permanecem pendentes. GOV-P03 permanece pendente.
 
 **Controle:** atualização exclusivamente documental na branch `main`; nenhum código, banco, migração, endpoint, frontend, OpenAPI, teste, build ou CI foi alterado/executado.
 
@@ -204,6 +204,7 @@ A validação é diretriz de desenho no âmbito da revisão do projeto. Não rep
 |---|---|---|
 | 2.9 | 2026-11-10 | Registro da validação em revisão de AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09; fechamento institucional/técnico e implementação permanecem pendentes. |
 | 3.0 | 2026-11-10 | Registro da validação em revisão de GOV10-01 a GOV10-11 para GOV-P10; definições institucionais, fechamento técnico e implementação permanecem pendentes. |
+| 3.1 | 2026-11-10 | Registro da validação em revisão do modelo de três níveis e de GOV02-01 a GOV02-11 para GOV-P02; designações/delegações institucionais e fechamento técnico permanecem pendentes. |
 
 
 ## 14. Registro de validação em revisão — GOV-P10
@@ -213,3 +214,10 @@ Em 2026-11-10, o responsável pelo projeto validou em revisão as recomendaçõe
 A validação constitui diretriz de desenho no âmbito da revisão do projeto. Não representa aprovação institucional nem autorização de implementação. Permanecem pendentes a definição de autoridades, hipóteses admissíveis, critérios de emergência, prazos, controles compensatórios, responsáveis pela revisão e fechamento técnico. GOV-P02 e GOV-P03 permanecem pendentes.
 
 **Controle:** atualização exclusivamente documental na branch `main`; nenhum código, banco, migração, endpoint, frontend, OpenAPI, teste, build ou CI foi alterado/executado.
+
+
+## 15. Registro de validação em revisão — GOV-P02
+
+Em 2026-11-10, o responsável pelo projeto validou em revisão o modelo de três níveis para concessão de permissões: (1) a instituição define a matriz de competências e delegações; (2) o gestor/responsável funcional solicita ou justifica e aprova somente quando formalmente delegado; (3) o administrador técnico executa a concessão aprovada, sem decidir autonomamente a competência funcional. Foram também validadas as recomendações GOV02-01 a GOV02-11, conforme PROP-LIMS-GOV-AUTH-001 v0.1 (`docs/PROPOSTA_FECHAMENTO_GOV_P02_CONCESSAO_PERMISSOES.md`).
+
+A validação constitui diretriz de desenho no âmbito da revisão do projeto. Não designa autoridades ou delegações reais, não representa aprovação institucional e não autoriza implementação. Permanecem pendentes a matriz institucional, os procedimentos, evidências, contingências, integração com gestão de pessoas e fechamento técnico. GOV-P03 permanece pendente.
