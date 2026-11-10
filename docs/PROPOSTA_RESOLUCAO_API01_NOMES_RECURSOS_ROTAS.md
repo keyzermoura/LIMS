@@ -151,10 +151,11 @@ Após validação funcional/arquitetural, atualizar de forma coordenada a especi
 
 **Não realizado:** alteração de código, modelos, banco de dados, migrações, endpoints, frontend ou OpenAPI; execução de testes, build, CI ou validação automática; alteração de rotas legadas.
 
-**Situação:** proposta técnica elaborada; validação funcional/arquitetural e eventual aprovação institucional pendentes. Não há autorização de implementação.
+**Situação:** proposta validada pelo responsável pelo projeto em revisão em 2026-11-10, como diretriz de nomenclatura e organização das novas rotas. A validação mantém a preservação integral dos contratos legados e não autoriza aliases, renomeações ou alterações retroativas. Permanece pendente a conferência técnica final do inventário runtime e dos contratos legados antes de atualizar a especificação/OpenAPI ou considerar implementação. Esta decisão de revisão do projeto não equivale a aprovação institucional nem a autorização de implementação.
 
 ## 12. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-10 | Primeira proposta de padronização de recursos e rotas HTTP, com convenção para rotas novas e preservação de compatibilidade legada. |
+| 0.2 | 2026-11-10 | Registro da validação pelo responsável pelo projeto em revisão; conferência runtime e aprovação institucional permanecem pendentes. |
