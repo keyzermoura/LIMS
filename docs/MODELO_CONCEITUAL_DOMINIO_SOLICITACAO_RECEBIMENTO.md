@@ -1,8 +1,8 @@
 # Modelo Conceitual do Domínio — Solicitação e Recebimento
 
 **Identificador:** MOD-DOM-001  
-**Versão:** 0.2  
-**Situação:** Proposta técnica para revisão funcional; não aprovada para implementação  
+**Versão:** 0.3  
+**Situação:** Modelo conceitual aprovado funcionalmente (M0.2); não aprovado para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -236,3 +236,44 @@ Os exemplos não são decisões finais sobre critérios de amostragem. Devem ser
 |---|---|---|
 | 0.1 | 2026-11-09 | Primeira proposta conceitual de entidades, relações, estados e sequência de eventos. |
 | 0.2 | 2026-11-09 | Inclusão das recomendações de ObjetoCustodia, granularidade e cenários para DEC04/DEC05. |
+
+
+## 14. Registro formal da decisão M0.2
+
+**Decisão:** APROVADA INTEGRALMENTE  
+**Data da aprovação:** 2026-11-10  
+**Responsável pela validação funcional:** usuário responsável pelo projeto LIMS  
+**Escopo da aprovação:** modelo conceitual do domínio e cardinalidades recomendadas, incluindo a entidade ObjetoCustodia, a separação entre item declarado, item de recebimento, objeto de custódia, amostra operacional e corpo de prova, e a regra de granularidade descrita na seção 12.
+
+### 14.1 Cardinalidades aprovadas
+
+| Relação | Cardinalidade aprovada | Regra |
+|---|---:|---|
+| Solicitante → Solicitação | 1:N | Um solicitante pode originar várias solicitações. |
+| Solicitação → ItemDeclarado | 1:N | Uma solicitação contém um ou mais itens declarados. |
+| Solicitação → Recebimento | 1:0..1 | No máximo um recebimento principal por solicitação. |
+| ItemDeclarado → ItemRecebimento | 1:1 | Toda linha declarada é representada no recebimento, inclusive quando não apresentada. |
+| ItemRecebimento → ObjetoCustodia | 1:0..N | Cada objeto representa unidade individual ou agrupamento homogêneo justificado. |
+| ObjetoCustodia → AmostraOperacional | 1:0..1 | Um objeto aceito pode originar no máximo uma amostra operacional. |
+| AmostraOperacional → Ensaio | 1:N | Uma amostra pode originar vários ensaios. |
+
+### 14.2 Decisões consolidadas
+
+1. A custódia começa na chegada física, antes do aceite e da criação da amostra operacional.
+2. ObjetoCustodia é a referência conceitual para guarda e rastreabilidade pré-amostra.
+3. Não será criada entidade independente UnidadeFisica na primeira versão; ObjetoCustodia poderá representar unidade individual ou agrupamento homogêneo tecnicamente justificado.
+4. A criação da amostra operacional depende de aceite final e das validações obrigatórias.
+5. Material recusado permanece sob custódia até devolução ou destinação formal efetivamente registrada.
+6. Itens não apresentados não geram objeto de custódia nem amostra operacional.
+7. A quantidade de amostras não será presumida a partir da quantidade declarada ou recebida; dependerá da rastreabilidade, da independência das decisões e do plano de ensaio.
+8. A decisão por objeto de custódia deve ser rastreável individualmente; o estado do item de recebimento será consolidado a partir dos objetos associados, quando houver mais de um.
+
+### 14.3 Efeito da aprovação
+
+A aprovação encerra a revisão funcional do modelo conceitual M0.2 e autoriza o detalhamento das regras de estados e transições. **Não autoriza implementação**, alterações de schema, migrações, endpoints, frontend ou infraestrutura. Essas atividades permanecem condicionadas à conclusão e aprovação dos gates correspondentes.
+
+### 14.4 Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.3 | 2026-11-10 | Registro da aprovação integral do modelo de domínio M0.2 e consolidação das cardinalidades e decisões funcionais. |
