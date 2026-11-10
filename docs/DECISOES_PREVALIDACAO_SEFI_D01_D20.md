@@ -1,17 +1,17 @@
-# Registro de Pré-validação das Decisões SEFI — D01 a D20
+# Registro de Validação Institucional das Decisões SEFI — D01 a D20
 
 **Identificador:** DEC-SEFI-001  
-**Versão:** 1.0  
+**Versão:** 1.1  
 **Data:** 2026-11-10  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch:** `main`  
-**Situação:** decisões pré-validadas pelo usuário; aguardam validação institucional com representantes do SEFI. Não constituem homologação institucional nem autorização de implementação.
+**Situação:** D01–D20 ratificadas integralmente pelo responsável pela Validação Institucional do LIMS – SEFI, em 2026-11-10. A ratificação das regras não equivale à homologação operacional, aprovação do Gate G0 ou autorização de implementação.
 
 ## 1. Objetivo e limites
 
-Consolidar as vinte decisões tomadas sequencialmente pelo responsável funcional durante a rodada de pré-validação. Este registro complementa EST-REC-001, MOD-DOM-001, a auditoria EST01–EST10, a revisão multidisciplinar e a simulação SIM01–SIM12.
+Consolidar as vinte decisões tomadas sequencialmente e ratificadas integralmente pelo responsável pela Validação Institucional do LIMS – SEFI em 2026-11-10. Este registro complementa EST-REC-001, MOD-DOM-001, a auditoria EST01–EST10, a revisão multidisciplinar e a simulação SIM01–SIM12.
 
-As decisões abaixo orientam a atualização documental e a preparação do Gate G0. A aprovação nesta rodada não substitui a reunião/validação institucional, análise jurídica, definição de políticas institucionais ou testes com operadores. Nenhuma alteração de código, banco de dados, API, frontend, CI ou infraestrutura está autorizada por este registro.
+As decisões abaixo constituem a baseline funcional ratificada institucionalmente pelo responsável designado para essa validação. A ratificação não substitui definições institucionais complementares, análise jurídica quando aplicável, validação operacional com usuários, testes de aceitação ou homologação. Nenhuma alteração de código, banco de dados, API, frontend, CI ou infraestrutura está autorizada por este registro.
 
 ## 2. Matriz consolidada
 
@@ -40,6 +40,8 @@ As decisões abaixo orientam a atualização documental e a preparação do Gate
 
 ## 3. Condições e dependências que permanecem abertas
 
+A ratificação institucional de D01–D20 está concluída. Isso não significa que todos os parâmetros necessários à implantação estejam definidos ou que os cenários operacionais tenham sido homologados. As pendências abaixo permanecem sujeitas a definição, evidência e/ou validação específica:
+
 As decisões são funcionais e não definem, por si só, todos os parâmetros institucionais ou técnicos. Permanecem para definição e validação:
 
 1. Matriz nominal/institucional de competências, substituições e autoridades.
@@ -65,10 +67,12 @@ As decisões são funcionais e não definem, por si só, todos os parâmetros in
 | REV-MD-LIMS-002 | Parecer multidisciplinar atualizado, riscos, dependências e situação do Gate G0. |
 | SIM-SEFI-REC-001 | Cenários SIM01–SIM12, critérios de aceitação e cenários adicionais derivados das decisões. |
 
-## 5. Critérios para validação institucional e Gate G0
+## 5. Critérios para validação operacional e Gate G0
 
-Antes de propor aprovação do Gate G0, obter:
-- validação dos fluxos e decisões por representantes de recepção, conferência, coordenação e qualidade;
+**Etapa concluída:** ratificação institucional das decisões D01–D20 pelo responsável pela Validação Institucional do LIMS – SEFI, em 2026-11-10.
+
+Antes de propor aprovação do Gate G0, ainda obter:
+- validação operacional dos fluxos e cenários por usuários/representantes de recepção, conferência, coordenação e qualidade, com evidências registradas;
 - confirmação das competências e autoridades institucionais;
 - aprovação dos checklists e regras operacionais aplicáveis;
 - definição dos parâmetros institucionais ainda abertos;
@@ -76,6 +80,7 @@ Antes de propor aprovação do Gate G0, obter:
 - plano de testes, segurança, continuidade e homologação;
 - parecer de prontidão sem pendências impeditivas.
 
+**Validação institucional das decisões D01–D20: CONCLUÍDA, com ratificação integral e sem ressalvas pelo responsável designado.**  
 **Gate G0: NÃO APROVADO por este registro.**  
 **Implementação: NÃO AUTORIZADA por este registro.**  
 **Escopo desta consolidação: documentação exclusivamente.**
@@ -84,4 +89,5 @@ Antes de propor aprovação do Gate G0, obter:
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 1.0 | 2026-11-10 | Consolidação das decisões D01–D20 pré-validadas pelo usuário. |
+| 1.0 | 2026-11-10 | Consolidação inicial das decisões D01–D20 pré-validadas. |
+| 1.1 | 2026-11-10 | Atualização do status após ratificação institucional integral de D01–D20 pelo responsável designado; mantidos Gate G0 não aprovado e implementação não autorizada. |
