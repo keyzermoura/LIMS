@@ -1,7 +1,7 @@
 # Critérios de Aceite — Fase 1: Solicitação e Recebimento
 
 **Identificador:** CT-ACE-LIMS-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Situação:** Proposta para revisão funcional, técnica e institucional; não aprovada para homologação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -24,6 +24,7 @@ Este documento estabelece o que deverá ser demonstrado. Não declara que qualqu
 - apresentação e conferência independente de cada item;
 - registro de itens não apresentados;
 - checklist, observações, justificativas, pendências e evidências;
+- anexação de arquivos reais (fotografias, PDFs e documentos) vinculados aos registros pertinentes do fluxo de recebimento;
 - decisões individuais por item;
 - validação da coordenação quando exigida;
 - início e continuidade da custódia desde a chegada física;
@@ -76,6 +77,9 @@ A classificação definitiva e a autoridade para aceitar desvios devem ser aprov
 | CT-F20 | O modal de conferência apresenta checklist, observações, justificativas e evidências, alerta sobre alterações não salvas e suporta rolagem interna. | Testes de interface em resoluções suportadas. | Maior |
 | CT-F21 | Atos formais e correções protegidas exigem confirmação, justificativa e autorização conforme matriz aprovada. | Testes de permissões e auditoria. | Bloqueador |
 | CT-F22 | O sistema impede inclusão retroativa de material não apresentado na chegada original, salvo exceção formal aprovada e rastreável. | Testes de bloqueio e fluxo excepcional, se aprovado. | Bloqueador |
+| CT-F23 | O usuário autorizado consegue anexar fotografias, PDFs e documentos aos alvos permitidos do fluxo (solicitação, recebimento, item ou ocorrência), sem vínculo ambíguo. | Testes de upload, consulta e associação por alvo. | Bloqueador |
+| CT-F24 | A interface informa o estado do arquivo (em processamento, disponível, rejeitado ou indisponível) e não oferece download antes da liberação segura. | Testes de estado, falha e tentativa de acesso antecipado. | Bloqueador |
+| CT-F25 | O usuário autorizado consegue consultar e baixar o arquivo preservando seu vínculo e metadados; substituições geram novo registro/versão, sem sobrescrever silenciosamente o original. | Testes de autorização, download e histórico de versões. | Bloqueador |
 
 ## 5. Critérios de dados, integridade e migração
 
@@ -89,6 +93,9 @@ A classificação definitiva e a autoridade para aceitar desvios devem ser aprov
 | CT-D06 | Migrações Alembic são reproduzíveis em banco vazio e em cópia representativa do schema anterior. | Logs de execução e resultado de Alembic. | Bloqueador |
 | CT-D07 | A estratégia de rollback/recuperação foi testada em ambiente isolado. | Evidência de restauração e relatório de recuperação. | Bloqueador |
 | CT-D08 | A reconciliação registra contagens, exceções e diferenças, com aprovação dos responsáveis. | Relatório assinado ou aprovado no processo institucional. | Bloqueador |
+| CT-D09 | Cada arquivo possui metadados mínimos (nome original, tipo detectado, tamanho, hash SHA-256, autor do envio, instante de registro e vínculo de domínio), preservados para consulta e auditoria. | Consulta de metadados e recálculo independente do hash. | Bloqueador |
+| CT-D10 | O conteúdo binário é armazenado em repositório privado, sem depender de URL pública ou caminho exposto ao cliente; o banco mantém metadados e referência controlada ao objeto. | Inspeção de configuração, API e permissões de armazenamento. | Bloqueador |
+| CT-D11 | Exclusão, substituição, retenção e descarte seguem política institucional aprovada e preservam trilha de auditoria; não há exclusão física silenciosa por usuário comum. | Testes de permissão, retenção e trilha de auditoria. | Bloqueador |
 
 ## 6. Critérios técnicos e de qualidade
 
@@ -104,6 +111,11 @@ A classificação definitiva e a autoridade para aceitar desvios devem ser aprov
 | CT-T08 | Não há regressão nos fluxos existentes de amostras, ensaios, QR, custódia, auditoria e CAPA. | Suíte de regressão e roteiro manual. | Bloqueador |
 | CT-T09 | Erros apresentados ao usuário são compreensíveis e não expõem segredos, tokens ou dados indevidos. | Testes de API/UI e revisão de segurança. | Maior |
 | CT-T10 | Logs e monitoramento permitem investigar falhas sem registrar credenciais ou dados sensíveis desnecessários. | Revisão de configuração e evidências de teste. | Maior |
+| CT-T11 | Upload valida tamanho, extensão, MIME declarado e tipo real detectado, com lista permitida e limites definidos institucionalmente. | Testes com formatos permitidos, divergentes, inválidos e acima do limite. | Bloqueador |
+| CT-T12 | Arquivos são submetidos a mecanismo de verificação de conteúdo malicioso antes de serem disponibilizados para consulta/baixamento, ou há controle compensatório formalmente aprovado para o ambiente. | Evidência do mecanismo, testes de rejeição/quarentena e configuração. | Bloqueador |
+| CT-T13 | Upload, persistência de metadados e associação ao registro tratam falhas parciais, evitando referências quebradas e objetos órfãos sem processo de reconciliação. | Testes de falha entre armazenamento e banco e rotina de reconciliação. | Bloqueador |
+| CT-T14 | O acesso ao arquivo revalida autorização no servidor em cada consulta/download; URLs e referências não concedem acesso público ou permanente. | Testes negativos entre usuários/perfis e acesso direto. | Bloqueador |
+| CT-T15 | O sistema controla concorrência e repetição de upload conforme contrato aprovado, sem criar anexos duplicados indevidos nem substituir conteúdo por replay ambíguo. | Testes de repetição, concorrência e idempotência. | Maior |
 
 ## 7. Critérios de segurança, operação e conformidade
 
@@ -112,7 +124,7 @@ Antes de qualquer uso institucional, devem ser avaliados e aprovados, conforme a
 - gestão, armazenamento, rotação e recuperação de segredos;
 - TLS, CORS, exposição de API e controles de sessão;
 - MFA e reautenticação para atos críticos;
-- armazenamento, acesso, integridade, retenção e backup de evidências;
+- armazenamento privado, acesso autorizado, validação de formato/conteúdo, integridade por hash, retenção e backup de evidências e arquivos anexados;
 - backup, restauração, continuidade e resposta a incidentes;
 - gestão de ambientes, dados de teste e dados reais;
 - adequação dos controles de auditoria e assinatura ao uso pretendido;
@@ -137,6 +149,11 @@ A aprovação do CI ou dos critérios técnicos não substitui avaliação de qu
 13. Consulta de amostra legada sem solicitação/recebimento.
 14. Leitura de QR Code histórico após a evolução.
 15. Consulta da linha do tempo completa desde a chegada física até a custódia da amostra.
+16. Upload de fotografia, PDF e documento em cada alvo permitido, com conferência de vínculo e metadados.
+17. Tentativa de upload com extensão/MIME divergentes, arquivo corrompido, tipo não permitido e tamanho acima do limite.
+18. Tentativa de download por usuário sem autorização e por referência direta ao arquivo.
+19. Falha entre gravação binária e confirmação no banco, com recuperação/reconciliação sem arquivo órfão invisível.
+20. Substituição/retificação de evidência preservando o arquivo original e a trilha histórica.
 
 Os cenários devem ser refinados após decisões DEC04, DEC05, DEC07, DEC08 e EST01–EST10.
 
@@ -224,3 +241,4 @@ Conclusão técnica da Fase 1 não equivale a validação institucional nem auto
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-09 | Primeira proposta de critérios de aceite funcionais, de dados, técnicos e de governança para a Fase 1. |
+| 0.2 | 2026-11-10 | Inclusão de anexos binários reais no escopo proposto do MVP e de critérios de segurança, integridade, acesso, armazenamento e testes de evidências. |
