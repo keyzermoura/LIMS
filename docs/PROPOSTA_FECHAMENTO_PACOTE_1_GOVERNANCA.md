@@ -363,6 +363,5 @@ Foi elaborada a proposta complementar PROP-LIMS-GOV-SEC-001 v0.2 (docs/PROPOSTA_
 | 0.4 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; GOV-P05/GOV-P06 seguem pendentes de formalização institucional, fechamento técnico e autorização de implementação. |
 | 0.5 | 2026-11-10 | Registro da validação em revisão de AUD-P07/AUD-P08; políticas institucionais e fechamento técnico permanecem pendentes. |
 | 0.6 | 2026-11-10 | Inclusão da proposta complementar GOV-P09/GOV-P11; recomendações ainda não validadas e Pacote 1 permanece aberto. |
-| 0.7 | 2026-11-10 | Registro da validação em revisão de AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09; fechamento institucional, técnico e comprovação operacional permanecem pendentes. |
 | 0.7 | 2026-11-10 | Consolidação das validações em revisão de GOV-P07/GOV-P08 e atualização dos vínculos com as propostas específicas de autoria, timestamps e auditoria. |
 | 0.8 | 2026-11-10 | Registro da validação em revisão de AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09; políticas institucionais, comprovação operacional e fechamento técnico permanecem pendentes; implementação bloqueada. |
