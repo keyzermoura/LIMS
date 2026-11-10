@@ -149,3 +149,22 @@ A classificação **Implementável** exige, adicionalmente, revisão técnica, a
 | 1.9 | 2026-11-10 | Registro da validação em revisão da Operação 5 da API10: validação da coordenação condicional, nos casos definidos institucionalmente, sem substituir o decisor ou dispensar critérios impeditivos. |
 | 2.0 | 2026-11-10 | Registro da validação em revisão da Operação 6 da API10: transferência de custódia por usuário com permissão específica, identificação dos responsáveis pela entrega e pelo recebimento e histórico rastreável. |
 | 2.1 | 2026-11-10 | Registro da validação em revisão da Operação 7 da API10: separação entre administração técnica e concessão de competências funcionais, com autoridade institucional e auditoria. |
+
+
+## 11. Registro do Pacote 1 — Governança, autorização e responsabilidade
+
+Em 2026-11-10, o responsável pelo projeto concordou, em revisão, com as diretrizes GOV01–GOV05 consolidadas em `docs/PACOTE_1_GOVERNANCA_AUTORIZACAO_RESPONSABILIDADE.md`:
+
+- GOV01: acumulação de capacidades permitida quando a política de segregação permitir e não houver conflito ou impedimento;
+- GOV02: concessão de permissões funcionais por autoridade institucional designada; administrador técnico executa, sem autoatribuição;
+- GOV03: executor não valida a própria regularização quando validação independente for exigida;
+- GOV04: exceções exigem autorização formal, justificativa, escopo delimitado, prazo/condição de encerramento e auditoria;
+- GOV05: assinatura definida por operação e natureza do ato, sem exigência indiscriminada.
+
+As diretrizes gerais foram validadas em revisão do projeto, não institucionalmente. Permanecem pendentes a definição de autoridades e perfis reais, escopos, incompatibilidades adicionais, política/modalidade de assinatura, fluxo de exceções, cobertura efetiva da auditoria e confirmação técnica em serviços/runtime. As regras gerais das Operações 1 a 7 da API10 permanecem preservadas. API05 continua sem fechamento da matriz detalhada e da política institucional. O Pacote 1 não está fechado e a implementação permanece bloqueada.
+
+**Controle:** atualização exclusivamente documental na branch `main`; nenhum código, banco, migração, endpoint, frontend, OpenAPI, teste, build ou CI foi alterado/executado.
+
+| Versão | Data | Alteração |
+|---|---|---|
+| 2.2 | 2026-11-10 | Registro das diretrizes GOV01–GOV05 validadas em revisão e referência à consolidação documental do Pacote 1; fechamento técnico/institucional e implementação permanecem pendentes. |
