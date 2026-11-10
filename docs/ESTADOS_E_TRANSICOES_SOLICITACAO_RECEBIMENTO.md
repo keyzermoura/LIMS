@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 0.9  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST07 aprovadas; não aprovada para implementação  
+**Versão:** 1.0  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST08 aprovadas; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -240,7 +240,7 @@ Eventos sugeridos:
 | EST05 | Quando um recebimento é considerado concluído se alguns itens não foram apresentados? | P0 — resolvida funcionalmente |
 | EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 — resolvida funcionalmente |
 | EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 — resolvida funcionalmente |
-| EST08 | Como tratar correção excepcional de item marcado como não apresentado ou de decisão já formalizada? | P1 |
+| EST08 | Como tratar correção excepcional de item marcado como não apresentado ou de decisão já formalizada? | P1 — resolvida funcionalmente |
 | EST09 | Qual regra de prazo e encerramento de pendências? | P1 |
 | EST10 | Qual a política de segregação de funções e autoaprovação? | P0 |
 
@@ -374,7 +374,7 @@ As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas,
 - **EST05 — ausentes:** regra de conclusão administrativa aprovada e registrada na seção 18; itens não apresentados permanecem sem aceite técnico;
 - **EST06 — critérios:** classificação e controle de versão aprovados e registrados na seção 19; a definição concreta dos critérios por categoria deverá ser formalizada nos checklists institucionais;
 - **EST07 — assinatura:** regra aprovada e registrada na seção 20; assinatura formal restrita aos atos decisórios e de encerramento definidos;
-- **EST08 — correções:** fluxo de retificação com justificativa, vínculo ao evento original e preservação dos valores anteriores;
+- **EST08 — correções:** regra aprovada e registrada na seção 21; retificação excepcional sem sobrescrita, com validação da coordenação e avaliação de impacto quando houver amostra;
 - **EST09 — prazos:** prazos de regularização, alertas, escalonamento e encerramento por decurso de prazo.
 
 ### 14.7 Histórico
@@ -628,3 +628,88 @@ EST07 fica **resolvida funcionalmente** quanto à distinção entre atos que exi
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.9 | 2026-11-10 | Registro da decisão EST07: assinatura eletrônica formal para decisão final de aceite, validação obrigatória da coordenação, encerramento da custódia e retificações excepcionais; operações rotineiras com autenticação e trilha de auditoria. |
+
+
+## 21. Registro de decisão funcional — EST08
+
+**Decisão:** APROVADA — permitir retificações excepcionais de registros de apresentação e de decisões formalizadas, sem apagar ou sobrescrever o histórico original e mediante justificativa, evidência e validação da coordenação.  
+**Data:** 2026-11-10  
+**Escopo:** correção de item registrado como NAO_APRESENTADO e retificação de decisão formalizada no fluxo de recebimento.
+
+### 21.1 Correção de item registrado como NAO_APRESENTADO
+
+A correção será admitida somente quando houver evidência de que o material estava fisicamente presente na ocasião original e que o registro NAO_APRESENTADO decorreu de erro.
+
+Condições obrigatórias:
+
+1. Justificativa formal e específica para a retificação.
+2. Evidência que sustente a presença física do material na ocasião original.
+3. Validação prévia da coordenação, conforme sua competência e a regra EST03.
+4. Preservação integral do registro original NAO_APRESENTADO.
+5. Criação de evento de retificação vinculado ao registro original, com valor anterior, valor corrigido, ator, papel/permissão, data/hora reais e evidências.
+6. Registro da chegada e início da custódia com base nos fatos comprovados, sem inventar, presumir ou retroagir timestamps não demonstráveis.
+7. Aplicação dos controles de assinatura eletrônica formal definidos na EST07 para a retificação.
+
+A retificação não poderá ser usada para registrar como presente, na data original, material que efetivamente chegou em momento posterior.
+
+### 21.2 Material entregue posteriormente
+
+Quando o material não estava presente na ocasião original e foi entregue depois, não haverá correção retroativa do estado NAO_APRESENTADO.
+
+Deverá ser adotada nova solicitação ou exceção institucional formalmente autorizada, conforme a regra aprovada na EST05, com registro da chegada efetiva, data/hora reais e vínculo documental apropriado. O histórico anterior deverá permanecer preservado.
+
+### 21.3 Retificação de decisão já formalizada
+
+Decisões formalizadas — incluindo ACEITA, RECUSADA e PENDENTE — poderão ser retificadas excepcionalmente, desde que:
+
+1. Exista justificativa formal, específica e fundamentada.
+2. Haja evidência que sustente a necessidade e o conteúdo da correção.
+3. A coordenação autorize a retificação antes de sua efetivação.
+4. A decisão original permaneça íntegra e consultável.
+5. Seja criado novo registro decisório, vinculado à decisão anterior, identificando claramente a retificação e seu motivo.
+6. Sejam registrados o responsável, papel/permissão, data/hora reais, evidências e manifestação da coordenação.
+7. A nova decisão seja formalizada com assinatura eletrônica, conforme EST07.
+
+A retificação não poderá ser realizada por edição direta do registro original nem por alteração silenciosa de seu estado ou conteúdo. A nova decisão deverá constituir evento próprio no histórico.
+
+### 21.4 Retificação quando já existe AmostraOperacional
+
+Quando a decisão original já tiver resultado na criação de uma AmostraOperacional, a retificação exigirá avaliação de impacto antes da execução de qualquer alteração operacional decorrente.
+
+A avaliação deverá considerar, no mínimo:
+
+- situação atual da amostra e sua localização/responsabilidade;
+- ensaios iniciados, em andamento ou concluídos;
+- laudos emitidos ou ainda não emitidos;
+- registros e evidências já vinculados;
+- necessidade de bloqueio cautelar, revisão técnica ou outra providência institucional.
+
+A retificação não excluirá automaticamente a AmostraOperacional, não apagará ensaios ou laudos e não desfará vínculos históricos. As providências sobre amostra, ensaios e laudos deverão seguir procedimento institucional aplicável, com registros e autorizações próprios.
+
+### 21.5 Eventos e controles de auditoria
+
+Toda retificação deverá gerar evento específico e preservar, no mínimo:
+
+- identificador do registro e do item/ObjetoCustodia afetado;
+- tipo e motivo da retificação;
+- valor/conteúdo anterior e valor/conteúdo novo;
+- referência ao evento ou decisão original;
+- justificativa e evidências;
+- solicitante da retificação e coordenador que a autorizou;
+- atores, papéis/permissões e datas/horas reais;
+- assinatura eletrônica exigida pela EST07;
+- avaliação de impacto e providências subsequentes, quando houver AmostraOperacional.
+
+O sistema deverá impedir a exclusão ou sobrescrita dos eventos originais e deverá manter a sequência cronológica e os vínculos entre registro original, solicitação de retificação, autorização e novo registro.
+
+### Efeito sobre EST08
+
+EST08 fica **resolvida funcionalmente**. Retificações excepcionais são permitidas sob controles formais, sem sobrescrita do histórico, com justificativa, evidência e validação da coordenação. A entrega posterior de material não caracteriza erro retroativo. Quando já houver AmostraOperacional, será obrigatória avaliação de impacto, sem exclusão automática de amostras, ensaios ou laudos.
+
+A decisão não autoriza implementação nem define, por si só, todos os procedimentos técnicos de bloqueio, revisão ou retificação de ensaios e laudos; esses deverão ser detalhados na etapa própria e conforme a governança institucional.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.0 | 2026-11-10 | Registro da decisão EST08: retificação excepcional de item NAO_APRESENTADO e de decisões formalizadas, com preservação do original, validação da coordenação, assinatura eletrônica e avaliação de impacto quando houver amostra. |
