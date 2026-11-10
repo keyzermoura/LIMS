@@ -144,9 +144,11 @@ Pendência aceita como risco residual exige justificativa, impacto, controle com
 
 ## 10. Limites da avaliação desta versão
 
-Esta versão foi elaborada a partir dos documentos de decisão, auditoria, revisão multidisciplinar, cenários operacionais, máquina de estados e modelo conceitual identificados abaixo. A avaliação confirma o conteúdo documental disponível, mas não constitui auditoria independente do código-fonte, execução de testes, inspeção do ambiente PostgreSQL, infraestrutura, CI ou entrevistas com usuários do SEFI.
+Esta versão combina a revisão documental anterior com inspeção estática direta de arquivos versionados na branch `main`. Foram consultados README, configurações, modelos, rotas, serviços, testes, migrações, Dockerfiles, Compose, workflow CI e script smoke.
 
-A pesquisa de arquivos de código pelo conector GitHub nesta etapa não retornou resultados utilizáveis. Portanto, **não se conclui que código, testes ou pipelines inexistam**; sua presença, estado, cobertura e execução deverão ser inventariados diretamente na próxima revisão técnica. Status marcados como “Não verificado” ou “não comprovado” devem permanecer assim até inspeção direta.
+A inspeção **não executou** testes, build, containers, migrações, comandos Alembic, nem conexão com banco de dados. Também não realizou pentest, análise dinâmica, revisão independente completa, teste de backup/restauração ou entrevistas/homologação com usuários SEFI. Resultados numéricos declarados no README foram tratados como declaração documental, não como execução independente.
+
+A busca de código pelo índice GitHub não estava disponível para este repositório (metadado de indexação retornou `is_code_search_indexed=false`); por isso, a inspeção foi feita por leitura direta de arquivos identificados e caminhos conhecidos. Não se afirma inventário exaustivo de todos os arquivos. Status “não comprovado” ou “não verificado” permanecem nessa condição até obtenção da evidência de execução correspondente.
 
 ## 11. Fontes documentais examinadas
 
