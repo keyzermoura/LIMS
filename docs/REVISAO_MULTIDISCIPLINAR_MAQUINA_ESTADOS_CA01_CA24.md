@@ -4,7 +4,7 @@
 **Versão:** 1.0  
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
-**Base documental:** EST-REC-001 v1.4; MOD-DOM-001 v0.4; AUD-LIMS-001 v1.0; avaliação multidisciplinar compartilhada em 2026-11-09/10.  
+**Base documental:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; AUD-LIMS-001 v1.1; avaliação multidisciplinar compartilhada em 2026-11-09/10.  
 **Situação:** revisão documental concluída nesta rodada; complementos propostos registrados; Gate G0 não aprovado; implementação não autorizada.
 
 ---
