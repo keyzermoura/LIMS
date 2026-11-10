@@ -1,10 +1,10 @@
 # Simulação de Mesa — Cenários Operacionais do Recebimento SEFI no LIMS
 
 **Identificador:** SIM-SEFI-REC-001  
-**Versão:** 1.1
+**Versão:** 1.2
 **Data:** 2026-11-10  
 **Base:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; CA01–CA37; revisão REV-MD-LIMS-002 v1.0.  
-**Situação:** simulação documental de mesa; não substitui validação com operadores SEFI nem teste de software. Não autoriza implementação.
+**Situação:** decisões D01–D20 ratificadas institucionalmente; SIM01–SIM12 permanecem simulação documental, sem validação operacional com usuários do SEFI nem teste de software. Não autoriza implementação.
 
 ---
 
