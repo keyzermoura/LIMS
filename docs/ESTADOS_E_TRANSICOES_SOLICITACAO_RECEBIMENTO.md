@@ -1,11 +1,11 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 1.3  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST01 a EST10 aprovadas funcionalmente; não aprovada para implementação  
+**Versão:** 1.4  
+**Situação:** Proposta consolidada após auditoria de consistência EST01–EST10 e alinhamento ao M0.2; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
-**Data:** 2026-11-09
+**Data:** 2026-11-10
 
 ---
 
@@ -70,28 +70,54 @@ NAO_APRESENTADO é estado de apresentação, não resultado de conferência ou d
 
 Cada resposta de checklist terá resultado próprio: CONFORME, NAO_CONFORME ou NAO_APLICAVEL, com justificativa obrigatória quando aplicável. A classificação do critério (impeditivo, saneável ou informativo) deve vir de checklist versionado.
 
-### 3.5 Regularização
+### 3.5 Regularização / Pendências
+
+Cada Pendência possui ciclo próprio, vinculado ao ItemRecebimento e, quando a irregularidade atingir material discriminado, ao ObjetoCustodia correspondente. A situação da pendência não deve ser confundida com a decisão técnica do item/objeto nem com o estado agregado do recebimento.
+
+| Estado/condição | Significado | Natureza |
+|---|---|---|
+| PENDENTE | Providência requerida; aguardando início ou atendimento. | Aberto |
+| EM_REGULARIZACAO | Providência em andamento. | Aberto |
+| AGUARDANDO_REAVALIACAO | Evidência ou resposta recebida; aguarda avaliação técnica. | Aberto |
+| REGULARIZADA | Providência avaliada e considerada satisfatória por responsável autorizado. | Encerrado por regularização |
+| PRAZO_VENCIDO | Prazo expirou sem regularização validada. | Indicador de controle; permanece aberto |
+| NAO_REGULARIZAVEL | Há decisão formal fundamentada de que a condição não pode ser sanada no fluxo. | Desfecho da pendência; não equivale automaticamente à recusa do material |
+| CANCELADA | Pendência cancelada por erro ou perda justificada do objeto, com autorização e histórico. | Encerrado por cancelamento justificado |
+
+Regras obrigatórias:
+
+1. A contagem do prazo começa somente após comunicação formal comprovável ao responsável pela regularização.
+2. Prazos, antecedências de alertas e canais são parametrizáveis e dependem de aprovação institucional.
+3. PRAZO_VENCIDO não encerra a pendência, não produz recusa automática e não encerra custódia.
+4. A recepção de evidência não encerra a pendência; é necessária reavaliação favorável, registrada por responsável autorizado.
+5. NAO_REGULARIZAVEL exige decisão formal fundamentada e autoridade competente; quando afetar aceite/recusa, aplica-se EST03, EST06 e EST10. Não é sinônimo de RECUSADA e não substitui a decisão final do objeto/item.
+6. REGULARIZADA exige evidência, reavaliação, ator, data/hora e resultado.
+7. A pendência original e todas as comunicações, prorrogações e avaliações permanecem no histórico.
+8. O encerramento da pendência não encerra automaticamente a custódia nem concede aceite técnico.
+
+### 3.6 Decisão do item ou ObjetoCustodia
+
+A decisão será registrada no menor nível em que aceite, recusa, rastreabilidade ou destinação possam divergir:
+
+- **ObjetoCustodia:** nível decisório preferencial quando o ItemRecebimento originar um ou mais objetos com avaliação, resultado ou destino potencialmente independente.
+- **ItemRecebimento:** poderá receber decisão diretamente quando não houver discriminação adicional necessária e a decisão for efetivamente única para todo o material apresentado.
+- **ItemRecebimento com múltiplos objetos:** sua situação será consolidada a partir das decisões dos objetos; não poderá ocultar decisões divergentes.
 
 | Estado | Significado |
 |---|---|
-| NAO_HA_PENDENCIA | Não há pendência aberta. |
-| PENDENTE | Há providência necessária antes da decisão final. |
-| EM_REGULARIZACAO | Providência está sendo tratada. |
-| REGULARIZADA | Evidência/providência foi recebida e reavaliada. |
-| NAO_REGULARIZAVEL | A condição não pode ser sanada no fluxo; encaminhar para decisão de recusa ou outra destinação autorizada. |
+| NAO_DECIDIDA | Ainda não há decisão formal no nível aplicável. |
+| ACEITA | Requisitos atendidos, pendências impeditivas resolvidas e validações obrigatórias concluídas. |
+| PENDENTE | Decisão final bloqueada por regularização, evidência, avaliação ou validação ainda pendente. |
+| RECUSADA | Material não admitido, com fundamento e evidências aplicáveis, submetido à validação da coordenação quando exigida. |
+| PARCIALMENTE_DECIDIDO | Estado agregado do ItemRecebimento quando houver objetos com decisões diferentes ou ainda incompletas. |
 
-A regularização não apaga a pendência original. Deve criar novo evento, registrar evidência e preservar quem reavaliou.
+Regras:
 
-### 3.6 Decisão do item
-
-| Estado | Significado |
-|---|---|
-| NAO_DECIDIDA | Ainda não há decisão formal. |
-| ACEITA | Requisitos de admissão atendidos e validações obrigatórias concluídas. |
-| PENDENTE | Não é possível concluir enquanto houver condição a regularizar ou revisar. |
-| RECUSADA | Item não admitido, com fundamento e evidência quando aplicável. |
-
-Decisão PENDENTE não equivale a encerramento. Uma decisão anterior deve permanecer no histórico quando substituída por nova decisão autorizada.
+1. A decisão de um ObjetoCustodia não altera automaticamente a decisão dos demais objetos do mesmo item.
+2. O item só pode ser consolidado como integralmente ACEITO quando todos os objetos apresentados estiverem aceitos e todas as validações obrigatórias concluídas.
+3. Um objeto recusado permanece sob custódia até destinação efetiva; a recusa não encerra a custódia.
+4. A decisão original nunca é sobrescrita; retificação gera novo ato vinculado ao anterior, conforme EST08.
+5. Item NAO_APRESENTADO não recebe decisão de aceite/recusa nem gera objeto ou amostra.
 
 ### 3.7 Validação da coordenação
 
@@ -109,13 +135,17 @@ A coordenação não pode converter critério impeditivo não conforme em confor
 
 | Estado | Significado |
 |---|---|
-| NAO_INICIADA | Material não foi apresentado; não existe custódia física registrada. |
-| SOB_GUARDA | Material apresentado sob responsabilidade institucional. |
-| TRANSFERENCIA_PENDENTE | Transferência iniciada, mas ainda não confirmada pelo recebedor de destino. |
-| SOB_NOVA_RESPONSABILIDADE | Transferência concluída e aceita pelo novo responsável. |
-| ENCERRADA | Custódia encerrada por destinação formalmente registrada. |
+| NAO_INICIADA | Não há material apresentado nem custódia iniciada. |
+| SOB_GUARDA | Objeto sob responsabilidade institucional confirmada. |
+| TRANSFERENCIA_PENDENTE | Transferência solicitada, mas ainda não confirmada pelo destinatário. |
+| SOB_NOVA_RESPONSABILIDADE | Transferência confirmada; novo responsável e localização passam a ser vigentes. |
+| ENCERRADA | Entrega/devolução ou destinação autorizada efetivamente concluída e formalizada. |
 
-Custódia inicia na chegada física do material apresentado, independentemente do aceite. Material recusado também exige registro de sua guarda e da destinação/devolução até a entrega efetiva ao responsável externo.
+A custódia é controlada por ObjetoCustodia. O estado atual e o responsável/localização atuais são uma visão derivada do último evento confirmado; o histórico de eventos de guarda e transferência é imutável e não deve ser substituído pelo estado atual.
+
+Durante TRANSFERENCIA_PENDENTE, a responsabilidade permanece com o custodiante de origem até a confirmação do recebedor de destino. Solicitação de transferência, por si só, não transfere a responsabilidade.
+
+A custódia começa na chegada física, independentemente de aceite. Recusa, vencimento/cancelamento de pendência ou conclusão administrativa do recebimento não encerram custódia. O encerramento exige destinação efetiva, destinatário/unidade, responsável pela entrega, data/hora reais e evidência/comprovante quando aplicável, conforme EST04 e EST07.
 
 ## 4. Transições permitidas — proposta
 
@@ -133,58 +163,95 @@ Após registro de chegada física, cancelamento não pode apagar o recebimento n
 
 ### 4.2 Recebimento
 
-| Origem | Destino | Quem pode executar | Pré-condições |
-|---|---|---|---|
-| inexistente | REGISTRADO | Recebedor autorizado | Solicitação submetida; registrar chegada efetiva, recebedor físico e dados gerais; unicidade de solicitação garantida no banco. |
-| REGISTRADO | EM_CONFERENCIA | Conferente autorizado | Itens apresentados identificados; checklist aplicável disponível. |
-| EM_CONFERENCIA | AGUARDANDO_REGULARIZACAO | Sistema/conferente | Uma ou mais pendências abertas. |
-| EM_CONFERENCIA | AGUARDANDO_COORDENACAO | Sistema/conferente | Regra versionada exige revisão da coordenação. |
-| EM_CONFERENCIA | PARCIALMENTE_DECIDIDO | Sistema | Ao menos um item decidido e outros ainda em tratamento. |
-| EM_CONFERENCIA | CONCLUIDO | Sistema | Todos os itens encerrados; sem ação obrigatória pendente. |
-| AGUARDANDO_REGULARIZACAO | EM_CONFERENCIA | Sistema/conferente | Pendência regularizada e reavaliada, ou encaminhada a outro desfecho permitido. |
-| AGUARDANDO_COORDENACAO | EM_CONFERENCIA | Sistema | Coordenação aprovou/devolveu/rejeitou e a ação subsequente foi registrada. |
-| PARCIALMENTE_DECIDIDO | CONCLUIDO | Sistema | Todos os itens encerrados e todas as condições de fechamento atendidas. |
+O estado do Recebimento é agregado e derivado dos estados dos ItemRecebimento, das Pendências, das validações obrigatórias e dos ObjetosCustodia. Não deve ser usado para substituir os estados individuais.
 
-Os estados agregados são informativos e devem ser calculados a partir dos estados dos itens. O sistema deve impedir fechamento se houver item apresentado sem decisão ou material sob custódia sem destinação definida.
+| Origem | Destino | Responsável | Pré-condições e bloqueios |
+|---|---|---|---|
+| inexistente | REGISTRADO | Recepção autorizada | Solicitação submetida; registrar chegada efetiva e responsável; garantir unicidade do recebimento principal. |
+| REGISTRADO | EM_CONFERENCIA | Sistema/conferente autorizado | Ao menos um item apresentado apto a iniciar conferência; checklist aplicável e versionado disponível. |
+| EM_CONFERENCIA | AGUARDANDO_REGULARIZACAO | Sistema | Existe Pendência aberta que impede decisão final. |
+| EM_CONFERENCIA | AGUARDANDO_COORDENACAO | Sistema | Existe decisão/exceção submetida à validação obrigatória. |
+| EM_CONFERENCIA | PARCIALMENTE_DECIDIDO | Sistema | Há desfechos formalizados para parte dos objetos/itens e outros ainda em tratamento. |
+| AGUARDANDO_REGULARIZACAO | EM_CONFERENCIA | Sistema/conferente | Pendência regularizada e reavaliada, ou outro encaminhamento formal válido registrado. |
+| AGUARDANDO_COORDENACAO | EM_CONFERENCIA | Sistema | Coordenação aprovou, devolveu ou rejeitou; ação subsequente registrada. |
+| PARCIALMENTE_DECIDIDO | CONCLUIDO | Sistema | Todos os itens apresentados possuem desfecho formal permitido; itens ausentes estão formalmente registrados; nenhuma pendência/validação obrigatória aberta; nenhum objeto sob custódia sem destino. |
+| EM_CONFERENCIA | CONCLUIDO | Sistema | Mesmas condições de fechamento acima, inclusive quando houver itens NAO_APRESENTADO. |
+
+Regras de fechamento (EST05):
+
+1. A conclusão administrativa pode ocorrer com itens NAO_APRESENTADO, desde que a ausência tenha sido registrada na chegada com ator e data/hora reais e permaneça visível.
+2. Item não apresentado não gera ObjetoCustodia, decisão técnica, AmostraOperacional ou aceite presumido.
+3. Todos os itens apresentados devem ter desfecho formal compatível; nenhum objeto pode permanecer sem decisão quando a decisão for exigida.
+4. Não pode haver pendência obrigatória aberta, validação de coordenação pendente ou objeto sob custódia sem destinação definida.
+5. O estado CONCLUIDO é administrativo e não significa que todos os materiais foram aceitos.
+6. Entrega posterior não altera retroativamente o recebimento original; exige nova solicitação ou exceção institucional formal, com data/hora efetiva.
+
+Os estados agregados devem ser calculados de modo determinístico. A existência de objetos com decisões divergentes deve ser refletida como PARCIALMENTE_DECIDIDO no item/recebimento, sem perda da decisão individual.
 
 ### 4.3 Item de recebimento
 
-| Origem | Destino | Quem pode executar | Pré-condições |
+| Origem | Destino | Responsável | Pré-condições e bloqueios |
 |---|---|---|---|
-| AGUARDANDO_CHEGADA | APRESENTADO | Recebedor autorizado | Material fisicamente presente; quantidade/identificação efetiva registradas. |
-| AGUARDANDO_CHEGADA | NAO_APRESENTADO | Recebedor autorizado | Ausência confirmada e registrada na chegada. |
-| APRESENTADO | conferência EM_ANDAMENTO | Conferente autorizado | Material sob custódia e checklist carregado. |
-| EM_ANDAMENTO | conferência CONCLUIDA | Conferente autorizado | Todos os critérios obrigatórios respondidos; justificativas e evidências requeridas presentes. |
+| AGUARDANDO_CHEGADA | APRESENTADO | Recepção autorizada | Material fisicamente presente; quantidade, identificação, data/hora e recebedor efetivos registrados. |
+| AGUARDANDO_CHEGADA | NAO_APRESENTADO | Recepção autorizada | Ausência confirmada e registrada no momento da chegada, com ator e data/hora reais. |
+| APRESENTADO | conferência EM_ANDAMENTO | Conferente autorizado | ObjetoCustodia criado e sob guarda; checklist vigente carregado; permissão de conferência verificada. |
+| EM_ANDAMENTO | conferência CONCLUIDA | Conferente autorizado | Critérios obrigatórios respondidos; justificativas/evidências exigidas presentes; versão do checklist preservada. |
 
-Depois de registrado como NAO_APRESENTADO, o item não pode ser alterado para APRESENTADO como se tivesse chegado na data original. Entrega posterior exige nova solicitação ou exceção institucional formal, com evento e data/hora reais.
+O ItemRecebimento existe para cada ItemDeclarado, inclusive quando não apresentado. A apresentação não é decisão técnica. A custódia começa para o material apresentado e é representada por um ou mais ObjetosCustodia, conforme granularidade aprovada no M0.2.
+
+Após NAO_APRESENTADO, não se permite alterar o estado como se o material tivesse chegado na data original. Erro comprovado exige retificação formal conforme EST08; entrega posterior exige nova solicitação ou exceção institucional formal, sem retroatividade.
 
 ### 4.4 Decisão e validação
 
-| Evento | Resultado | Regra |
+A decisão deve ser registrada por ObjetoCustodia quando existir possibilidade de avaliação, resultado, aceite, recusa ou destino independente. A decisão diretamente no ItemRecebimento somente se aplica quando o desfecho for único e não houver objetos que precisem de desfechos separados.
+
+| Ato/transição | Resultado | Condições |
 |---|---|---|
-| Formalizar aceite | ACEITA | Checklist concluído; nenhum impeditivo não conforme; pendências resolvidas; validação da coordenação concluída quando exigida. |
-| Formalizar pendência | PENDENTE | Há requisito saneável ou informação faltante que impede conclusão. Deve indicar providência e responsável/prazo quando aplicável. |
-| Formalizar recusa | RECUSADA | Fundamento documentado; critérios e evidências aplicáveis registrados; destinação do material sob custódia definida. |
-| Encaminhar coordenação | AGUARDANDO | Exceção/regra exige validação; pacote de evidências e decisão do conferente completos. |
-| Coordenador aprova | APROVADA | Dentro da competência e sem dispensar bloqueios impeditivos. |
-| Coordenador devolve | DEVOLVIDA | Justificativa e complementação requerida registradas. |
-| Coordenador rejeita | REJEITADA | Justificativa formal; item retorna ao fluxo definido ou segue para recusa, conforme regra aprovada. |
+| Formalizar aceite | ACEITA | Checklist concluído; nenhum critério E não conforme; pendências impeditivas regularizadas; validações obrigatórias concluídas; assinatura formal conforme EST07. |
+| Registrar pendência | PENDENTE | Requisito saneável ou informação necessária impede decisão final; providência, responsável e prazo configurável registrados. |
+| Formalizar recusa | RECUSADA | Fundamento e evidências registrados; validação prévia da coordenação obrigatória conforme EST03; assinatura formal conforme EST07. |
+| Encaminhar à coordenação | AGUARDANDO | Exceção, recusa, retificação ou caso especial sujeito à revisão; decisão e pacote de evidências identificados. |
+| Coordenador aprova | APROVADA | Validador competente e independente do autor/executor da decisão; fundamento e limites EST03 respeitados; assinatura formal. |
+| Coordenador devolve | DEVOLVIDA | Complementação/correção requerida e justificativa registradas; decisão final permanece bloqueada. |
+| Coordenador rejeita | REJEITADA | Justificativa formal; decisão retorna ao fluxo competente, sem conversão automática em recusa. |
 
-## 5. Matriz de permissões — proposta inicial
+A validação independente é um controle distinto da assinatura eletrônica. Assinatura formal comprova autoria e vinculação ao ato/conteúdo; não substitui a revisão independente quando esta for obrigatória. O mesmo usuário não pode validar a própria decisão quando EST03/EST10 exigirem independência. A indisponibilidade de validador não dispensa o controle.
 
-| Ação | Operador/Recebedor | Conferente/Técnico | Coordenador | Administrador |
-|---|---:|---:|---:|---:|
-| Cadastrar solicitação | Sim, se autorizado | Sim, se autorizado | Sim, se autorizado | Configurável |
-| Registrar chegada física | Sim | Sim, se designado | Sim, se designado | Não por privilégio automático |
-| Marcar item apresentado/não apresentado | Sim, no ato da chegada | Sim, se designado | Não por padrão | Não por privilégio automático |
-| Preencher checklist | Não por padrão | Sim | Apenas quando formalmente designado | Não por privilégio automático |
-| Registrar pendência | Não por padrão | Sim | Sim, na revisão | Não por privilégio automático |
-| Formalizar decisão do conferente | Não por padrão | Sim, se autorizado | Conforme segregação aprovada | Não por privilégio automático |
-| Validar decisão encaminhada | Não | Não | Sim, se designado | Não por privilégio automático |
-| Corrigir registro concluído | Não | Apenas com permissão específica, justificativa e histórico | Conforme permissão específica | Não deve editar conteúdo técnico por padrão |
-| Configurar checklists e regras | Não | Não | Conforme governança | Administrador técnico com aprovação de conteúdo pelo responsável competente |
+A coordenação não pode dispensar critério impeditivo nem transformar resultado não conforme em conforme sem fundamento normativo/institucional válido e previamente formalizado. A validação deve referenciar o objeto/item e a decisão específica.
 
-Esta matriz não mapeia automaticamente os perfis existentes do software. O inventário identificou perfis como ADMIN, FISCAL, TECNICO, CUSTODIANTE e AUDITOR, mas sua equivalência com funções operacionais precisa ser avaliada. A segregação de funções e a possibilidade de autoaprovação devem ser decididas institucionalmente.
+## 5. Matriz de permissões — consolidada conforme EST01 e EST10
+
+Os perfis são funcionais e não equivalem automaticamente a cargos, unidades ou pessoas. As permissões são atribuídas explicitamente por usuário e verificadas no momento de cada operação. O perfil ADMINISTRADOR não concede autoridade técnica implícita.
+
+| Ação | SOLICITANTE | RECEPÇÃO | CONFERENTE | COORDENAÇÃO | ADMINISTRADOR |
+|---|---|---|---|---|---|
+| Cadastrar/acompanhar solicitação própria | Sim, conforme canal/autorização | Não por padrão | Não por padrão | Conforme designação | Não por privilégio automático |
+| Complementar informação de solicitação própria | Sim, quando solicitado | Não por padrão | Não por padrão | Conforme designação | Não por privilégio automático |
+| Registrar chegada física | Não | Sim | Sim, se também autorizado (EST02) | Sim, se designado | Não por privilégio automático |
+| Marcar item apresentado/não apresentado | Não | Sim | Sim, se também autorizado | Conforme designação formal | Não por privilégio automático |
+| Criar/registrar ObjetoCustodia e início da guarda | Não | Sim, no ato de recebimento e conforme permissão | Sim, se designado | Conforme competência | Não por privilégio automático |
+| Registrar movimentação/transferência de custódia | Não | Sim, se custodiante/designado | Sim, se custodiante/designado | Conforme competência | Não por privilégio automático |
+| Conferir e preencher checklist | Não | Sim, se também autorizado | Sim | Somente se formalmente designado e competente | Não por privilégio automático |
+| Registrar pendência/evidência | Complementar documento próprio, quando solicitado | Registro operacional se autorizado | Sim | Sim, na revisão e dentro da competência | Não por privilégio automático |
+| Avaliar regularização | Não | Não por padrão | Sim, se competente e autorizado | Conforme competência; independente quando exigido | Não por privilégio automático |
+| Propor decisão técnica | Não | Não por padrão | Sim, dentro da competência | Conforme competência formal | Não |
+| Validar decisão/exceção/recusa | Não | Não | Não para decisão própria quando revisão independente exigida | Sim, se competente e independente | Não |
+| Autorizar retificação excepcional | Não | Não | Pode solicitar/instruir, não autorizar a própria retificação | Sim, com independência e fundamento | Não |
+| Assinar aceite final | Não | Não por padrão | Sim, se formalmente competente | Conforme competência formal | Não |
+| Assinar encerramento de custódia | Não | Sim, se formalmente competente e após entrega efetiva | Sim, se formalmente competente e após entrega efetiva | Conforme competência formal | Não |
+| Gerenciar usuários/perfis/permissões | Não | Não | Não | Conforme governança, sem autoelevação | Sim, dentro da autorização administrativa |
+| Configurar parâmetros técnicos | Não | Não | Não | Aprova conteúdo/regras quando competente | Executa configuração autorizada; não aprova conteúdo técnico por privilégio |
+| Alterar/apagar eventos de auditoria ou registros técnicos formalizados | Não | Não | Não | Não por rotina; retificação formal não apaga original | Não |
+
+### 5.1 Regras de interpretação
+
+1. A tabela define limites funcionais; a concessão efetiva depende da matriz institucional de competências e de permissões específicas.
+2. A acumulação RECEPÇÃO + CONFERENTE é permitida conforme EST02, mas não concede autoaprovação em atos sujeitos à validação independente.
+3. A COORDENAÇÃO não valida decisão de que seja autora/executora quando a independência for obrigatória.
+4. A assinatura eletrônica formal da EST07 e a validação independente da EST10 são controles diferentes. Nem toda assinatura exige segundo signatário; toda validação independente exige validador distinto do autor/executor.
+5. ADMINISTRADOR gerencia acessos e parâmetros técnicos autorizados, mas não pode conceder/elevar permissões para si próprio, aprovar conteúdo técnico por privilégio ou apagar trilha de auditoria.
+6. SOLICITANTE identifica o papel de negócio. A forma de autenticação/acesso externo não é presumida nesta proposta; a primeira entrega pode manter cadastro por usuário interno em nome do solicitante, preservando o ator interno real.
+7. A correspondência entre perfis, cargos, unidades, servidores e substitutos deve ser formalizada institucionalmente antes da operação.
 
 ## 6. Eventos mínimos de auditoria
 
@@ -259,7 +326,7 @@ O desenho de estados e transições estará pronto para detalhamento técnico qu
 
 ## 10. Próximo passo
 
-Consolidar as decisões funcionais EST01–EST10 na máquina de estados e produzir os critérios de aceite verificáveis para a Etapa 1. As dez questões estão resolvidas funcionalmente; permanecem pendentes a formalização institucional de cargos, responsáveis, substituições e parâmetros operacionais. A implementação permanece bloqueada até conclusão da Fase 0, aprovação do portão G0 e autorização específica.
+A auditoria de consistência EST01–EST10 foi consolidada na versão 1.4 e seus achados estão rastreados em `docs/AUDITORIA_CONSISTENCIA_EST01_EST10.md`. A próxima atividade é detalhar a máquina de estados completa e os critérios de aceite verificáveis, mantendo pendentes a formalização institucional de cargos, responsáveis, substituições, checklists e parâmetros operacionais. A implementação permanece bloqueada até conclusão da Fase 0, aprovação do portão G0 e autorização específica.
 
 ## 12. Recomendações adicionais para custódia e granularidade
 
@@ -976,3 +1043,75 @@ Esta decisão não autoriza implementação. A implementação permanece condici
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.3 | 2026-11-10 | Registro da decisão EST01: cinco perfis funcionais, permissões explícitas, acumulação autorizada e governança de acessos, com formalização institucional da matriz de competências. |
+
+
+## 25. Consolidação normativa após auditoria de consistência EST01–EST10
+
+**Data:** 2026-11-10  
+**Versão:** 1.4  
+**Escopo:** consolidação das regras já aprovadas; não cria nova decisão funcional e não autoriza implementação.
+
+Esta seção consolida a interpretação normativa do documento. Em caso de divergência entre descrições preliminares das seções 1–14 e decisões funcionais posteriores das seções 15–24, prevalecem as decisões EST01–EST10 e as regras consolidadas nas seções 3–8 e nesta seção 25. O histórico de decisões anteriores é preservado.
+
+### 25.1 Hierarquia de granularidade e decisão
+
+1. Solicitação contém ItemDeclarado; cada ItemDeclarado possui um ItemRecebimento correspondente.
+2. ItemRecebimento pode originar zero, um ou vários ObjetosCustodia, conforme o material apresentado e a granularidade tecnicamente justificada.
+3. Item não apresentado não gera ObjetoCustodia, custódia, decisão técnica de aceite/recusa ou AmostraOperacional.
+4. Quando houver ObjetosCustodia, a decisão será registrada no objeto sempre que aceite, recusa, resultado, rastreabilidade ou destinação puderem divergir.
+5. Decisão diretamente no ItemRecebimento somente é admitida quando o desfecho for único para todo o material e não houver discriminação decisória necessária.
+6. A situação agregada do ItemRecebimento não substitui nem oculta decisões por ObjetoCustodia. Decisões divergentes devem produzir situação agregada PARCIALMENTE_DECIDIDO ou equivalente.
+7. Um objeto recusado não determina automaticamente a recusa dos demais objetos do item.
+8. O item só é integralmente ACEITO quando todos os objetos apresentados tiverem aceite final e validações obrigatórias concluídas.
+
+### 25.2 Matriz de independência, autorização e assinatura
+
+| Controle | Finalidade | Regra |
+|---|---|---|
+| Autenticação individual | Identificar quem executa a operação | Obrigatória em todas as operações autenticadas; contas compartilhadas vedadas. |
+| Permissão funcional | Autorizar uma operação específica | Verificada no momento da operação; um perfil não concede automaticamente permissões de outro. |
+| Competência institucional | Demonstrar que a pessoa/cargo pode exercer a função | Deve ser formalizada na matriz institucional de competências. |
+| Validação independente | Revisar ato/decisão de outro responsável | Obrigatória nos casos EST03/EST08 e demais casos formalmente previstos; autor/executor não pode validar a própria decisão. |
+| Assinatura eletrônica formal | Vincular signatário, ato e conteúdo exato | Obrigatória para aceite final, validação da coordenação, encerramento da custódia e retificações excepcionais. |
+| Trilha de auditoria | Reconstruir eventos e alterações | Deve preservar ator, papel/permissão, data/hora, conteúdo, justificativa e vínculo com eventos anteriores. |
+
+Assinatura não substitui competência, permissão ou validação independente. Validação independente não é automaticamente exigida para toda operação assinada; aplica-se quando EST03, EST08, EST10 ou regra institucional assim determinar. O nível jurídico e a tecnologia da assinatura permanecem para especificação própria.
+
+### 25.3 Consolidação de Pendências (EST09)
+
+A máquina de estados da Pendência é independente dos estados do item, recebimento e custódia. PRAZO_VENCIDO é indicador de controle/escalonamento e mantém a pendência aberta. NAO_REGULARIZAVEL é desfecho formal da pendência, não recusa automática do material. A decisão de aceite/recusa permanece no nível decisório adequado e observa EST03, EST06 e EST10. A custódia permanece ativa até destinação efetiva.
+
+### 25.4 Custódia: estado atual versus histórico
+
+1. O estado atual de custódia é uma projeção do último evento válido/confirmado.
+2. Cada evento de custódia preserva origem, destino, responsável anterior, responsável novo, localização anterior/nova, ator, data/hora real, justificativa e evidência aplicável.
+3. Transferência solicitada sem confirmação mantém a responsabilidade com o custodiante de origem.
+4. A confirmação pelo destinatário efetiva a transferência e atualiza a projeção do responsável/localização atuais.
+5. ENCERRADA exige entrega/devolução ou destinação autorizada efetivamente realizada; não é consequência automática de recusa, pendência vencida ou conclusão administrativa do recebimento.
+
+### 25.5 Criação e continuidade da AmostraOperacional
+
+1. AmostraOperacional só pode ser criada para ObjetoCustodia com decisão ACEITA, checklist concluído e pendências/validações obrigatórias resolvidas.
+2. A relação ObjetoCustodia → AmostraOperacional é 1:0..1, conforme M0.2.
+3. A criação e atribuição do identificador institucional devem ser atômicas e idempotentes, com proteção contra reenvio e concorrência.
+4. A amostra mantém vínculo inequívoco com ObjetoCustodia e recebimento de origem.
+5. A criação da amostra não reinicia nem apaga a custódia. A passagem à guarda laboratorial é novo evento de transferência/continuidade.
+6. A amostra não equivale a corpo de prova; um ensaio pode demandar corpos de prova/execuções conforme método, sem alterar a cardinalidade aprovada.
+
+### 25.6 Retificação excepcional (EST08)
+
+Retificação é novo ato vinculado ao registro original, nunca edição destrutiva. Deve preservar valor anterior e novo, justificativa, evidências, solicitante, autorizador independente, ator, permissões, data/hora reais e assinatura formal. Quando já existir AmostraOperacional, a avaliação de impacto antecede providências operacionais e considera amostra, localização, ensaios e laudos. Nenhum desses registros é excluído automaticamente.
+
+### 25.7 Regras de conclusão administrativa do Recebimento (EST05)
+
+O recebimento pode ser CONCLUIDO com itens NAO_APRESENTADO somente quando a ausência estiver registrada na chegada com data/hora reais, não houver objeto/material sob custódia relativo ao item ausente, todos os itens apresentados tiverem desfecho formal, não houver pendência obrigatória nem validação pendente e nenhum objeto permanecer sob custódia sem destino. CONCLUIDO não significa aceite universal.
+
+### 25.8 Identificação dos achados da auditoria
+
+Os achados AUD01–AUD12, suas ações corretivas e evidências de fechamento estão documentados em `docs/AUDITORIA_CONSISTENCIA_EST01_EST10.md`. A conclusão documental da auditoria não substitui aprovação institucional nem o Gate G0.
+
+### 25.9 Histórico da consolidação
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.4 | 2026-11-10 | Consolidação documental após auditoria EST01–EST10: atualização da matriz de permissões, granularidade decisória, estados de pendência, regras de custódia, independência/assinatura, transições e critérios de bloqueio. |
