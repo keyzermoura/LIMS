@@ -1,7 +1,7 @@
 # Proposta consolidada de fechamento do Pacote 1 — Governança, autorização e responsabilidade
 
 **Identificador:** PROP-LIMS-GOV-002  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-10  
 **Branch:** main  
 **Estado:** proposta para revisão do responsável pelo projeto; não validada integralmente; aprovação institucional pendente; implementação bloqueada.
@@ -338,9 +338,17 @@ Esta proposta é exclusivamente documental. Não altera código, banco, migraç�
 
 **Situação:** Pacote 1 aberto. **Implementação bloqueada.**
 
+
+## 15. Proposta específica para assinatura eletrônica — GOV-P05/GOV-P06
+
+Em 2026-11-10, foi elaborada a proposta complementar PROP-LIMS-GOV-SIG-001 (docs/PROPOSTA_FECHAMENTO_GOV_P05_P06_ASSINATURA.md), que detalha a matriz de assinatura por natureza do ato e as invariantes de competência na emissão/consumo, snapshot, integridade, atomicidade, revogação e replay idempotente.
+
+A proposta específica não valida GOV-P05 ou GOV-P06. Ambas permanecem pendentes de manifestação do responsável pelo projeto e de aprovação institucional aplicável. A modalidade de assinatura, signatários por ato, retenção e demais definições institucionais não foram presumidas.
+
 ## 14. Histórico
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-10 | Proposta consolidada de fechamento com modelo de autorização, concessões, segregação, assinatura, autoria, auditoria e exceções, derivada da inspeção REV-LIMS-GOV-001. |
 | 0.2 | 2026-11-10 | Registro da validação em revisão de GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação); definições institucionais específicas e demais decisões permanecem pendentes. |
+| 0.3 | 2026-11-10 | Referência à proposta complementar PROP-LIMS-GOV-SIG-001 para GOV-P05/GOV-P06; decisões de assinatura permanecem pendentes de validação e aprovação institucional. |
