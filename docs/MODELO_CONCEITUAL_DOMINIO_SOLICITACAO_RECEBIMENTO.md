@@ -368,3 +368,42 @@ Esta seção 15 consolida a interpretação atual do modelo aprovado em M0.2. Se
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.4 | 2026-11-10 | Consolidação do domínio após auditoria EST01–EST10; padronização de ObjetoCustodia, granularidade decisória, custódia, amostra, perfis e pendências, sem alteração das cardinalidades M0.2. |
+
+
+## 16. Complementos do domínio identificados na revisão multidisciplinar
+
+**Versão:** 0.5  
+**Data:** 2026-11-10  
+**Situação:** complementação conceitual proposta para revisão; cardinalidades M0.2 preservadas; não aprovada para implementação.
+
+### 16.1 Quantidades e apresentação
+
+ItemDeclarado deverá preservar a quantidade e unidade informadas na solicitação. ItemRecebimento deverá representar os dados observados na chegada, distinguindo quantidade apresentada e unidade efetivamente observada. ObjetoCustodia deverá registrar a quantidade/unidade que representa para guarda e decisão, podendo representar unidade individual ou agrupamento homogêneo tecnicamente justificado. Essas dimensões não devem ser confundidas nem sobrescritas. A relação ItemRecebimento 1:0..N ObjetoCustodia permanece inalterada.
+
+### 16.2 Eventos e tempos
+
+EventoCustodia deverá distinguir tipo de evento, instante do fato (`occurred_at`), instante de registro no sistema (`recorded_at`) e autor do registro (`recorded_by`). O tipo de evento deverá distinguir RECEIPT, TRANSFER, LOCATION_CHANGE, RETURN, DISPOSITION, CLOSURE e CORRECTION. O estado atual de custódia/localização será uma projeção derivada dos eventos válidos e confirmados; o histórico permanece preservado. Esta definição não cria entidade física adicional nem altera cardinalidades aprovadas.
+
+### 16.3 Identificadores
+
+Protocolo SEFI, accession laboratorial e QR Code possuem finalidades distintas. Protocolo identifica o processo institucional conforme regra a aprovar; accession identifica a amostra operacional no contexto laboratorial; QR é representação de identificador/URI e não identidade primária. ReferenciaExterna poderá registrar identificadores de outros sistemas, mas não substituirá os identificadores institucionais. Regras de numeração, unicidade, atribuição e conteúdo do QR permanecem pendentes de decisão institucional/técnica.
+
+### 16.4 Acesso e segregação de dados
+
+O vínculo do SOLICITANTE a uma solicitação deverá ser explícito e verificável no servidor para leitura, listagem, alteração e acesso a evidências. A autorização por perfil não basta sem verificação do escopo do registro. A habilitação de contas externas e o modelo de identidade serão definidos em etapa de arquitetura e segurança.
+
+### 16.5 Integridade operacional
+
+Operações críticas deverão preservar atomicidade e idempotência. Alterações concorrentes deverão detectar versão obsoleta e rejeitar sobrescrita silenciosa. As regras de chave de idempotência, versão esperada, retenção, códigos de conflito e recuperação deverão ser detalhadas no contrato técnico. A cardinalidade ObjetoCustodia 1:0..1 AmostraOperacional continua sendo uma restrição conceitual e não substitui os controles transacionais.
+
+### 16.6 Evidências e legado
+
+Evidências binárias exigem metadados de integridade, autoria, vínculo, acesso e retenção, com armazenamento adequado e independente do conteúdo relacional. Dados legados somente serão associados ao novo domínio quando houver evidência suficiente; migração aditiva, reconciliação e tratamento de não associados serão especificados na arquitetura. Nenhuma relação histórica deverá ser presumida.
+
+### 16.7 Prevalência e histórico
+
+Esta seção complementa a consolidação da seção 15 e não altera as cardinalidades aprovadas em M0.2. Em caso de conflito, decisões formais aprovadas no M0.2 permanecem prevalentes; os complementos desta seção só se tornam normativos após validação funcional e institucional.
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.5 | 2026-11-10 | Complementação conceitual após revisão multidisciplinar: quantidades, eventos/tempos, identificadores, escopo de acesso, integridade operacional, evidências e legado. |
