@@ -1,10 +1,10 @@
 # Proposta consolidada de fechamento do Pacote 1 — Governança, autorização e responsabilidade
 
 **Identificador:** PROP-LIMS-GOV-002  
-**Versão:** 0.7  
+**Versão:** 0.8  
 **Data:** 2026-11-10  
 **Branch:** main  
-**Estado:** proposta para revisão do responsável pelo projeto; não validada integralmente; aprovação institucional pendente; implementação bloqueada.
+**Estado:** proposta parcialmente validada em revisão pelo responsável pelo projeto; decisões institucionais e fechamento técnico pendentes; implementação bloqueada.
 
 ## 1. Objetivo e escopo
 
@@ -351,7 +351,7 @@ A proposta complementar PROP-LIMS-GOV-AUD-001 v0.2 (docs/PROPOSTA_FECHAMENTO_GOV
 
 ## 17. Proposta específica para integridade operacional e acesso à auditoria — GOV-P09/GOV-P11
 
-Foi elaborada a proposta complementar PROP-LIMS-GOV-SEC-001 v0.1 (docs/PROPOSTA_FECHAMENTO_GOV_P09_P11_INTEGRIDADE_ACESSO_AUDITORIA.md), com recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 para revisão. Essas recomendações ainda não foram validadas. A proposta não comprova configuração operacional de banco, chaves, backups ou controles de acesso e não autoriza implementação.
+Foi elaborada a proposta complementar PROP-LIMS-GOV-SEC-001 v0.2 (docs/PROPOSTA_FECHAMENTO_GOV_P09_P11_INTEGRIDADE_ACESSO_AUDITORIA.md). Em 2026-11-10, AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 foram validadas em revisão pelo responsável pelo projeto, nos limites e ressalvas registrados na proposta. A validação orienta o desenho, mas não comprova configuração operacional de banco, chaves, backups ou controles de acesso, não substitui aprovação institucional e não autoriza implementação. GOV-P09/GOV-P11 permanecem abertas até formalização institucional, fechamento técnico e comprovação operacional.
 
 ## 14. Histórico
 
@@ -363,3 +363,5 @@ Foi elaborada a proposta complementar PROP-LIMS-GOV-SEC-001 v0.1 (docs/PROPOSTA_
 | 0.4 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; GOV-P05/GOV-P06 seguem pendentes de formalização institucional, fechamento técnico e autorização de implementação. |
 | 0.5 | 2026-11-10 | Registro da validação em revisão de AUD-P07/AUD-P08; políticas institucionais e fechamento técnico permanecem pendentes. |
 | 0.6 | 2026-11-10 | Inclusão da proposta complementar GOV-P09/GOV-P11; recomendações ainda não validadas e Pacote 1 permanece aberto. |
+| 0.7 | 2026-11-10 | Consolidação das validações em revisão de GOV-P07/GOV-P08 e atualização dos vínculos com as propostas específicas de autoria, timestamps e auditoria. |
+| 0.8 | 2026-11-10 | Registro da validação em revisão de AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09; políticas institucionais, comprovação operacional e fechamento técnico permanecem pendentes; implementação bloqueada. |
