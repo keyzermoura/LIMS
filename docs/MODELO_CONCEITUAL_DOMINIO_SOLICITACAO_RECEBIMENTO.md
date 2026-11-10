@@ -1,8 +1,8 @@
 # Modelo Conceitual do Domínio — Solicitação e Recebimento
 
 **Identificador:** MOD-DOM-001  
-**Versão:** 0.6
-**Situação:** Modelo conceitual M0.2 aprovado funcionalmente, complementado na versão 0.5 após revisão multidisciplinar; não aprovado para implementação  
+**Versão:** 0.7
+**Situação:** Modelo conceitual M0.2 aprovado funcionalmente; decisões D01–D20 ratificadas institucionalmente pelo responsável designado; validação operacional e complementos técnicos pendentes; não aprovado para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
