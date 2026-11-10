@@ -1,10 +1,10 @@
 # Proposta de fechamento GOV-P09 e GOV-P11 — Integridade operacional e acesso à auditoria
 
 **Identificador:** PROP-LIMS-GOV-SEC-001  
-**Versão:** 0.2  
+**Versão:** 0.3  
 **Data:** 2026-11-10  
 **Branch:** `main`  
-**Estado:** recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 validadas em revisão pelo responsável pelo projeto em 2026-11-10; aprovação institucional, fechamento técnico e comprovação operacional pendentes; implementação bloqueada.
+**Estado:** as 18 recomendações (AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09) foram integralmente validadas em revisão pelo responsável pelo projeto em 2026-11-10; não há recomendação desse conjunto aguardando validação do responsável pelo projeto. Aprovação institucional, fechamento técnico e comprovação operacional permanecem pendentes; implementação bloqueada.
 
 ## 1. Objetivo e limites
 
@@ -41,7 +41,7 @@ Portanto, os itens abaixo são controles a especificar e comprovar, não afirma�
 - Rotação de chave deve preservar verificabilidade histórica por identificador/versão da chave, sem reescrever hashes anteriores.
 - Falha de append ou de integridade em operação crítica deve produzir bloqueio/contingência formal, nunca sucesso silencioso.
 
-### 3.2 Recomendações para validação
+### 3.2 Recomendações validadas em revisão
 
 | ID | Recomendação | Limite / decisão institucional pendente |
 |---|---|---|
@@ -84,7 +84,7 @@ Não tratar “acesso à auditoria” como uma permissão única. Recomenda-se s
 
 Esses identificadores são nomes conceituais para discussão; não são permissões já implementadas nem nomes finais de código.
 
-### 4.2 Recomendações para validação
+### 4.2 Recomendações validadas em revisão
 
 | ID | Recomendação | Limite / decisão institucional pendente |
 |---|---|---|
@@ -114,7 +114,7 @@ ADMIN técnico não recebe automaticamente acesso irrestrito ao conteúdo de aud
 
 ## 6. Decisões para manifestação do responsável pelo projeto
 
-Em 2026-11-10, o responsável pelo projeto validou em revisão AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09, considerando os limites e ressalvas de cada recomendação. A validação confirma as diretrizes propostas para orientar o desenho, mas não escolhe fornecedores, não define políticas institucionais nem comprova controles implantados.
+Em 2026-11-10, o responsável pelo projeto validou integralmente em revisão as 18 recomendações: AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09, consideradas as ressalvas e os limites expressamente registrados em cada item. Não há recomendação desse conjunto aguardando validação do responsável pelo projeto. A validação confirma integralmente as diretrizes propostas para orientar o desenho, mas não escolhe fornecedores, não define políticas institucionais nem comprova controles implantados.
 
 A validação em revisão do projeto não substitui aprovação institucional, não comprova implantação dos controles e não autoriza implementação.
 
@@ -137,7 +137,7 @@ GOV-P09/GOV-P11 somente poderão ser considerados fechados quando:
 
 **Não realizado:** alteração de código, modelos, banco, migrações, serviços, rotas, frontend, OpenAPI, secrets, triggers, grants, infraestrutura, testes, build, CI ou configuração de produção. Não houve acesso a banco, cofre de segredos, backups ou ambiente operacional.
 
-**Estado:** AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 validadas em revisão pelo responsável pelo projeto em 2026-11-10. GOV-P09/GOV-P11 permanecem abertas até formalização institucional, fechamento técnico e comprovação operacional; autorização específica de implementação continua pendente.
+**Estado:** as 18 recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 foram integralmente validadas em revisão pelo responsável pelo projeto em 2026-11-10. GOV-P09/GOV-P11 permanecem abertas até formalização institucional, fechamento técnico e comprovação operacional; autorização específica de implementação continua pendente.
 
 ## 9. Histórico
 
@@ -145,3 +145,4 @@ GOV-P09/GOV-P11 somente poderão ser considerados fechados quando:
 |---|---|---|
 | 0.1 | 2026-11-10 | Criação da proposta para revisão de integridade operacional, gestão de chaves e segregação de acesso à auditoria. |
 | 0.2 | 2026-11-10 | Registro da validação em revisão de AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09; políticas institucionais, comprovação operacional, fechamento técnico e autorização de implementação permanecem pendentes. |
+| 0.3 | 2026-11-10 | Esclarecimento expresso de que as 18 recomendações AUD-P09/AUD-P11 foram integralmente validadas em revisão pelo responsável pelo projeto; não restam recomendações desse conjunto aguardando validação, sem prejuízo das pendências institucionais, técnicas e operacionais. |
