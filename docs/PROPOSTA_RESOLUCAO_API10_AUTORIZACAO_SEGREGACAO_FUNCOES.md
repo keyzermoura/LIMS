@@ -1,7 +1,7 @@
 # Proposta de Resolução da Decisão API10 — Autorização e Segregação de Funções
 
 **Identificador:** PROP-LIMS-API10-001  
-**Versão:** 0.7  
+**Versão:** 0.8  
 **Data:** 2026-11-10  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
@@ -171,6 +171,18 @@ O responsável pelo projeto concordou, em revisão, com a seguinte diretriz para
 
 A validação acima é uma diretriz do projeto em revisão, não aprovação institucional da política de custódia, dos perfis ou da modalidade de confirmação dos participantes, nem autorização para implementação. Permanecem pendentes a definição institucional dos papéis, escopos, forma de confirmação da entrega/recebimento, exceções operacionais e compatibilização técnica com API04, API05, API06, API07 e o modelo de custódia.
 
+### 5.7 Regra validada em revisão — administração de permissões
+
+O responsável pelo projeto concordou, em revisão, com a seguinte diretriz para a administração de permissões:
+
+- A administração técnica do sistema deverá ser separada da concessão, alteração e revogação de competências funcionais.
+- O administrador técnico poderá gerenciar aspectos técnicos das contas e do funcionamento do sistema, mas não receberá automaticamente competências para formalizar recebimentos, conferir materiais, regularizar pendências, decidir aceite/recusa, validar recebimentos ou transferir custódia.
+- A concessão e a revogação de permissões funcionais deverão decorrer de autoridade e procedimento institucionalmente definidos, com escopo compatível e aplicação do princípio do menor privilégio.
+- Toda concessão, alteração ou revogação deverá manter registro de auditoria com, no mínimo, quem autorizou/realizou a alteração, usuário afetado, permissões e escopos envolvidos, data/hora e justificativa ou referência à autorização.
+- A administração técnica não poderá conceder a si própria competências funcionais sem autorização independente e formalmente rastreável.
+
+A validação acima é uma diretriz do projeto em revisão, não aprovação institucional da matriz de autoridades, nem autorização para implementação. Permanecem pendentes a definição institucional das autoridades concedentes, dos fluxos de solicitação/aprovação, da revisão periódica e revogação de acessos, dos controles emergenciais e da compatibilização técnica com autenticação, autorização e auditoria.
+
 ## 6. Segregação de funções e autoaprovação
 
 ### 6.1 Regra de desenho
@@ -319,11 +331,11 @@ A proposta somente poderá ser considerada fechada após:
 
 ## 15. Encaminhamento e controle de execução
 
-**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; (ii) da conferência por servidor autorizado, sem competência automática para decidir aceite/recusa; e (iii) do registro da regularização pelo executor, com validação independente por outro servidor autorizado quando exigida; e (iv) da decisão de aceite/recusa como atribuição específica, independente das permissões de conferência e regularização, sem dispensa de critérios impeditivos; e (v) da validação da coordenação como etapa condicional, exigida somente nos casos definidos institucionalmente e sem substituir o decisor ou dispensar critérios impeditivos; e (vi) da transferência de custódia por usuário com permissão específica, identificando expressamente quem entrega e quem recebe e mantendo registro rastreável.
+**Atividade realizada:** elaboração da proposta API10 e registro das validações, em revisão do projeto, (i) da formalização da chegada por servidor especificamente autorizado, distinto do recebedor físico, preservando `recorded_by` e `received_by`; (ii) da conferência por servidor autorizado, sem competência automática para decidir aceite/recusa; e (iii) do registro da regularização pelo executor, com validação independente por outro servidor autorizado quando exigida; e (iv) da decisão de aceite/recusa como atribuição específica, independente das permissões de conferência e regularização, sem dispensa de critérios impeditivos; e (v) da validação da coordenação como etapa condicional, exigida somente nos casos definidos institucionalmente e sem substituir o decisor ou dispensar critérios impeditivos; e (vi) da transferência de custódia por usuário com permissão específica, identificando expressamente quem entrega e quem recebe e mantendo registro rastreável; e (vii) da separação entre administração técnica do sistema e concessão de competências funcionais, sujeita a autoridade institucional e auditoria.
 
 **Não realizado:** alterações em código, banco de dados, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura.
 
-**Estado:** regras gerais das Operações 1 (formalização da chegada física), 2 (conferência dos materiais), 3 (regularização de pendências), 4 (decisão de aceite/recusa), 5 (validação condicional pela coordenação) e 6 (transferência de custódia com identificação dos responsáveis pela entrega e pelo recebimento) validadas pelo responsável pelo projeto em revisão. Definição institucional dos casos e critérios de validação obrigatória, demais operações, perfis e autoridades institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
+**Estado:** regras gerais das Operações 1 (formalização da chegada física), 2 (conferência dos materiais), 3 (regularização de pendências), 4 (decisão de aceite/recusa), 5 (validação condicional pela coordenação), 6 (transferência de custódia com identificação dos responsáveis pela entrega e pelo recebimento) e 7 (separação entre administração técnica e concessão de competências funcionais) validadas pelo responsável pelo projeto em revisão. Definição institucional dos casos e critérios de validação obrigatória, demais operações, perfis e autoridades institucionais, escopos, segregação, revisão técnica e aprovação institucional permanecem pendentes. Implementação bloqueada até fechamento documental, aprovações aplicáveis e autorização específica.
 
 ## 16. Histórico de alterações
 
@@ -336,3 +348,4 @@ A proposta somente poderá ser considerada fechada após:
 | 0.5 | 2026-11-10 | Registro da validação em revisão da decisão de aceite/recusa como atribuição específica, independente da conferência e regularização, sem dispensa de critérios impeditivos. |
 | 0.6 | 2026-11-10 | Registro da validação em revisão da validação condicional pela coordenação, exigida somente nos casos definidos institucionalmente e sem substituir o decisor ou dispensar critérios impeditivos. |
 | 0.7 | 2026-11-10 | Registro da validação em revisão da transferência de custódia com permissão específica, identificação expressa dos responsáveis pela entrega e pelo recebimento e histórico rastreável. |
+| 0.8 | 2026-11-10 | Registro da validação em revisão da separação entre administração técnica e concessão de competências funcionais, com autoridade institucional e auditoria. |
