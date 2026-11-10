@@ -240,10 +240,11 @@ Após a aprovação, atualizar coordenadamente a especificação HTTP, o OpenAPI
 
 **Não realizado:** alteração da especificação API existente, OpenAPI, modelo relacional, matriz DEC, código, banco de dados, migrações, endpoints, frontend, testes, build ou CI.
 
-**Estado:** API03 permanece pendente de validação técnica/funcional e aprovação institucional. Esta proposta não altera o status de DEC05 e não autoriza implementação.
+**Estado:** as regras gerais de quantidade, agrupamento, individualização, reconciliação e ausência de tabela universal obrigatória de UnidadeFisica foram validadas pelo responsável pelo projeto em revisão em 2026-11-10. O fechamento integral de API03 permanece pendente: categorias autorizadas, catálogo e precisão de unidades de medida, preservação de identificadores em agrupamentos, embalagem sem contagem verificável, fracionamento/saldo e necessidade de validação da coordenação ainda exigem definição pelos responsáveis técnicos e funcionais. A validação não equivale a aprovação institucional nem autoriza implementação.
 
 ## 15. Histórico de alterações
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-09 | Criação da proposta de regra de quantidade, agrupamento, individualização, reconciliação e fracionamento para API03. |
+| 0.2 | 2026-11-10 | Registro da validação das regras gerais pelo responsável pelo projeto em revisão; detalhes operacionais e aprovação institucional permanecem pendentes. |
