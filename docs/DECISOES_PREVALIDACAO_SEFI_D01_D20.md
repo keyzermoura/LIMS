@@ -1,7 +1,7 @@
 # Registro de Validação Institucional das Decisões SEFI — D01 a D20
 
 **Identificador:** DEC-SEFI-001  
-**Versão:** 1.6  
+**Versão:** 1.7  
 **Data:** 2026-11-10  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch:** `main`  
@@ -187,6 +187,26 @@ A aprovação deste bloco ratifica os processos e diretrizes de especificação.
 **Situação do Gate G0:** permanece **NÃO APROVADO** até a conclusão das definições, atividades e evidências de validação requeridas.
 **Implementação:** permanece **NÃO AUTORIZADA** por este registro.
 
+## 15. Decisões institucionais do Gate G0 — bloco G0-P26 a G0-P30
+
+Em 2026-11-10, o responsável pela Validação Institucional do LIMS – SEFI aprovou integralmente, sem ressalvas, as cinco propostas do sexto bloco de pendências do Gate G0:
+
+| ID | Tema | Decisão | Limites e detalhamentos pendentes |
+|---|---|---|---|
+| G0-P26 | Regras de agrupamento, fracionamento e amostragem por categoria | **Aprovada integralmente** | Aprovado o processo de elaboração de matriz técnica por categoria, com critérios de agrupamento, fracionamento, quantidade recebida/representada/encaminhada, identificação de unidades, lotes e amostras, justificativas e aprovação técnica. Quantidades e critérios específicos por dispositivo permanecem pendentes de elaboração e aprovação. |
+| G0-P27 | Avaliação de impacto das retificações sobre ensaios e laudos | **Aprovada integralmente** | Aprovada a elaboração de metodologia institucional de avaliação de impacto conforme a etapa do fluxo, contemplando amostra, ensaio, resultados, laudos, responsáveis, evidências, autorizações e comunicação. A metodologia detalhada e os critérios aplicáveis a cada situação permanecem pendentes. |
+| G0-P28 | Consulta histórica, paginação e exportação de registros | **Aprovada integralmente** | Aprovada a elaboração de requisitos de filtros, ordenação determinística, paginação estável, formatos/campos de exportação, preservação de vínculos, limites e rastreabilidade das exportações. Parâmetros e solução técnica permanecem pendentes de especificação. |
+| G0-P29 | Proteção contra abuso de acesso e autenticação reforçada | **Aprovada integralmente** | Aprovada a avaliação de risco e definição de política para MFA/SSO, limites de tentativas, recuperação de acesso, proteção contra requisições excessivas, monitoramento, alertas, bloqueios e desbloqueio. A adoção de controles específicos, ferramentas e parâmetros permanece pendente de avaliação e decisão. |
+| G0-P30 | Política de classificação, retenção e destinação das informações | **Aprovada integralmente** | Aprovado o processo de inventário e classificação das informações, definição de prazos de guarda, arquivamento, bloqueios legais/administrativos, eliminação autorizada e responsabilidades, com avaliação documental, jurídica e institucional. Prazos concretos, regras finais e aprovações competentes permanecem pendentes. |
+
+Não foram apresentadas observações ou ressalvas pelo responsável pela Validação Institucional.
+
+A aprovação deste bloco ratifica os processos de elaboração e as diretrizes propostas. Não significa que matrizes técnicas por categoria, metodologia de impacto, requisitos finais de exportação, política de autenticação ou tabela de retenção estejam concluídos, publicados ou implementados.
+
+**Resultado do bloco:** 5 de 5 propostas aprovadas integralmente, sem ressalvas.
+**Situação do Gate G0:** permanece **NÃO APROVADO** até a conclusão das definições, atividades e evidências de validação requeridas.
+**Implementação:** permanece **NÃO AUTORIZADA** por este registro.
+
 ## 12. Histórico
 
 | Versão | Data | Descrição |
@@ -198,3 +218,4 @@ A aprovação deste bloco ratifica os processos e diretrizes de especificação.
 | 1.4 | 2026-11-10 | Registro da aprovação integral das propostas G0-P11 a G0-P15, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
 | 1.5 | 2026-11-10 | Registro da aprovação integral das propostas G0-P16 a G0-P20, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
 | 1.6 | 2026-11-10 | Registro da aprovação integral das propostas G0-P21 a G0-P25, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
+| 1.7 | 2026-11-10 | Registro da aprovação integral das propostas G0-P26 a G0-P30, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
