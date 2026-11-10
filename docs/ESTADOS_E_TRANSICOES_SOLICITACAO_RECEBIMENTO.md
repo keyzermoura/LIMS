@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 1.0  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST08 aprovadas; não aprovada para implementação  
+**Versão:** 1.1  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST09 aprovadas; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -241,7 +241,7 @@ Eventos sugeridos:
 | EST06 | Quais critérios são impeditivos, saneáveis ou informativos por categoria? | P0 — resolvida funcionalmente |
 | EST07 | Quais ações exigem assinatura eletrônica, além de autenticação e trilha de auditoria? | P1 — resolvida funcionalmente |
 | EST08 | Como tratar correção excepcional de item marcado como não apresentado ou de decisão já formalizada? | P1 — resolvida funcionalmente |
-| EST09 | Qual regra de prazo e encerramento de pendências? | P1 |
+| EST09 | Qual regra de prazo e encerramento de pendências? | P1 — resolvida funcionalmente |
 | EST10 | Qual a política de segregação de funções e autoaprovação? | P0 |
 
 ## 9. Critérios de aceite do desenho
@@ -375,7 +375,7 @@ As questões EST01–EST10 continuam abertas. Para evitar decisões implícitas,
 - **EST06 — critérios:** classificação e controle de versão aprovados e registrados na seção 19; a definição concreta dos critérios por categoria deverá ser formalizada nos checklists institucionais;
 - **EST07 — assinatura:** regra aprovada e registrada na seção 20; assinatura formal restrita aos atos decisórios e de encerramento definidos;
 - **EST08 — correções:** regra aprovada e registrada na seção 21; retificação excepcional sem sobrescrita, com validação da coordenação e avaliação de impacto quando houver amostra;
-- **EST09 — prazos:** prazos de regularização, alertas, escalonamento e encerramento por decurso de prazo.
+- **EST09 — prazos:** regra aprovada e registrada na seção 22; prazos configuráveis, alertas, escalonamento e encerramento formal sem recusa automática por vencimento.
 
 ### 14.7 Histórico
 
@@ -713,3 +713,93 @@ A decisão não autoriza implementação nem define, por si só, todos os proced
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-10 | Registro da decisão EST08: retificação excepcional de item NAO_APRESENTADO e de decisões formalizadas, com preservação do original, validação da coordenação, assinatura eletrônica e avaliação de impacto quando houver amostra. |
+
+
+## 22. Registro de decisão funcional — EST09
+
+**Decisão:** APROVADA — estabelecer prazos configuráveis para regularização de pendências, com comunicação formal, alertas, escalonamento, prorrogação autorizada e encerramento mediante regularização validada ou decisão formal fundamentada.  
+**Data:** 2026-11-10  
+**Escopo:** gestão de prazos, acompanhamento e encerramento das pendências identificadas durante a conferência e o recebimento.
+
+### 22.1 Definição e início da contagem do prazo
+
+1. Cada pendência deverá possuir prazo definido conforme seu tipo, criticidade e procedimento institucional aplicável.
+2. Os prazos deverão ser configuráveis e aprovados pela autoridade institucional competente; esta decisão funcional não fixa uma quantidade universal de dias.
+3. O registro da pendência deverá conter, no mínimo: descrição da irregularidade, providência requerida, responsável pela regularização, data/hora de abertura, prazo concedido, data/hora da comunicação formal e situação atual.
+4. A contagem do prazo terá início a partir da comunicação formal da pendência ao responsável pela regularização, com registro da data/hora, destinatário e meio de comunicação.
+5. Se a comunicação não puder ser comprovada, o sistema não deverá presumir que o prazo começou a correr.
+
+### 22.2 Alertas e escalonamento
+
+O sistema deverá permitir configurar alertas relacionados ao prazo da pendência, incluindo:
+
+- comunicação inicial da pendência e do prazo;
+- aviso de proximidade do vencimento;
+- notificação de vencimento ao responsável e encaminhamento para avaliação da coordenação.
+
+A antecedência e os canais de notificação deverão ser parametrizáveis conforme procedimento institucional. O sistema deverá registrar os avisos enviados, seus destinatários, datas/horas e resultados técnicos disponíveis, sem tratar a simples tentativa de envio como comprovação de ciência.
+
+### 22.3 Tratamento do prazo vencido
+
+1. O vencimento sem regularização deverá gerar situação ou indicador PRAZO_VENCIDO e evento de auditoria próprio.
+2. O vencimento deverá notificar o responsável e encaminhar o caso à coordenação para avaliação.
+3. O vencimento, por si só, não produzirá aceite, recusa, encerramento automático da pendência ou encerramento da custódia.
+4. A coordenação deverá avaliar e registrar a providência adotada, que poderá incluir concessão de prorrogação, solicitação de complementação ou encaminhamento para decisão formal de não regularizável, conforme regra institucional.
+5. Enquanto não houver decisão válida, a pendência permanecerá aberta e deverá continuar visível nos controles do recebimento.
+
+### 22.4 Prorrogação
+
+A prorrogação será permitida mediante justificativa e autorização da coordenação ou autoridade competente, conforme governança institucional. Cada prorrogação deverá registrar:
+
+- justificativa;
+- prazo original e novo prazo;
+- solicitante, autorizador e respectivas permissões;
+- data/hora da solicitação e da autorização;
+- comunicação ao responsável pela regularização.
+
+O prazo original e todas as prorrogações deverão permanecer preservados no histórico. Não será permitida alteração silenciosa ou retroativa do prazo originalmente concedido.
+
+### 22.5 Estados e encerramento da pendência
+
+A gestão deverá contemplar, no mínimo, os seguintes estados ou condições:
+
+| Estado | Significado |
+|---|---|
+| PENDENTE | Providência requerida, aguardando início ou atendimento. |
+| EM_REGULARIZACAO | Providência em andamento. |
+| AGUARDANDO_REAVALIACAO | Evidência ou resposta recebida, aguardando avaliação técnica. |
+| REGULARIZADA | Evidência avaliada e providência considerada satisfatória por responsável autorizado. |
+| PRAZO_VENCIDO | Prazo expirado sem regularização validada; a pendência permanece aberta até decisão subsequente. |
+| NAO_REGULARIZAVEL | Pendência encerrada por decisão formal, fundamentada e autorizada. |
+| CANCELADA | Pendência cancelada por erro ou perda justificada de objeto, com motivo e histórico preservados. |
+
+O recebimento de documentos ou evidências não encerra, por si só, a pendência. A transição para REGULARIZADA exige reavaliação favorável, com identificação do avaliador, data/hora, resultado e evidências relacionadas.
+
+A transição para NAO_REGULARIZAVEL exige decisão formal fundamentada e autorização conforme a matriz de competências e as regras institucionais. Quando a decisão afetar o aceite, deverá respeitar os critérios E/S/I definidos na EST06 e a validação da coordenação prevista na EST03.
+
+A situação PRAZO_VENCIDO é uma condição de controle e escalonamento, não um desfecho final. A pendência não deverá ser considerada encerrada enquanto não houver regularização validada, decisão formal de não regularizável ou cancelamento devidamente justificado e autorizado.
+
+### 22.6 Relação com a custódia e o aceite
+
+1. O vencimento ou encerramento de uma pendência não encerra automaticamente a custódia do material.
+2. Material sob responsabilidade institucional permanecerá sob guarda até que sua devolução ou outra destinação autorizada seja efetivamente realizada e registrada, conforme EST04.
+3. O encerramento administrativo da pendência não equivale a aceite técnico do item ou ObjetoCustodia.
+4. A decisão de aceite ou recusa deverá observar os critérios de conferência, as validações obrigatórias e as assinaturas previstas nas EST03, EST06 e EST07.
+
+### 22.7 Eventos e auditoria
+
+O sistema deverá registrar eventos próprios para abertura, comunicação, início da contagem, alertas, vencimento, prorrogação, recebimento de evidência, reavaliação, regularização, decisão de não regularizável e cancelamento.
+
+Cada evento deverá preservar, conforme aplicável: identificador da pendência e do item/ObjetoCustodia, estado anterior e novo, ator e permissões, data/hora, prazo vigente e histórico de prorrogações, destinatários e registros de comunicação, justificativas, evidências e referência à decisão autorizadora.
+
+### Efeito sobre EST09
+
+EST09 fica **resolvida funcionalmente** quanto à configuração de prazos, comunicação formal, alertas, escalonamento, prorrogação e encerramento controlado das pendências. Os valores concretos dos prazos, as antecedências dos alertas, os canais de comunicação e as autoridades institucionais responsáveis deverão ser definidos em procedimentos e configurações aprovados, antes da utilização operacional.
+
+Esta decisão não autoriza implementação e não estabelece recusa automática pelo decurso do prazo.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.1 | 2026-11-10 | Registro da decisão EST09: prazos configuráveis a partir da comunicação formal, alertas, escalonamento, prorrogação autorizada e encerramento controlado sem recusa automática por vencimento. |
