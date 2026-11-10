@@ -27,6 +27,7 @@ As decisões deverão ser confirmadas pelos responsáveis funcionais, técnicos 
 - `ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md` — EST01–EST10.
 - `ANALISE_COMPATIBILIDADE_CADEIA_CUSTODIA_DEC04.md` — ANL-LIMS-CUST-001 v0.2.
 - `CONTRATO_HISTORICO_UNIFICADO_E_ACEITE.md` — CTR-LIMS-CUST-001 v0.1.
+- `PROPOSTA_RESOLUCAO_API01_NOMES_RECURSOS_ROTAS.md` — PROP-LIMS-API01-001 v0.1.
 
 ## 3. Estados utilizados
 
@@ -44,7 +45,7 @@ As decisões deverão ser confirmadas pelos responsáveis funcionais, técnicos 
 
 | ID | Decisão a resolver | Documentos afetados | Impacto no domínio | Impacto relacional | Impacto HTTP/OpenAPI | Risco principal | Responsável pela decisão | Estado |
 |---|---|---|---|---|---|---|---|---|
-| API01 | Nomes finais de recursos e rotas | API-LIMS-REC-CUST-001; OpenAPI; UI-LIMS-001; matriz de compatibilidade | Define a linguagem pública dos recursos e a separação entre solicitação, recebimento, item e objeto de custódia. | Em regra, não altera cardinalidades; pode exigir alinhamento dos nomes lógicos e físicos. | Padronizar paths, operações, parâmetros, códigos de erro e tags. | Divergência entre interface, documentação e endpoints; breaking change por renomeação posterior. | Arquitetura/API e responsável funcional. | Proposta técnica |
+| API01 | Nomes finais de recursos e rotas | API-LIMS-REC-CUST-001; OpenAPI; UI-LIMS-001; matriz de compatibilidade; PROP-LIMS-API01-001 | Define a linguagem pública dos recursos e a separação entre solicitação, recebimento, item e objeto de custódia. | Em regra, não altera cardinalidades; nomes lógicos devem permanecer alinhados sem espelhar mecanicamente tabelas. | Padroniza paths, operações, parâmetros, operationId, tags e códigos de erro; preserva contratos legados. | Divergência entre interface, documentação e endpoints; breaking change por renomeação posterior. | Arquitetura/API e responsável funcional. | Proposta técnica elaborada; validação pendente — bloqueadora |
 | API02 | Recebimento formal em comando único ou rascunho + confirmação | API-LIMS-REC-CUST-001; OpenAPI; UI-LIMS-001; estados e transições; MOD-REL-001; PROP-LIMS-API02-001 | Define quando a chegada se torna registro oficial e quando começa a custódia; distingue preparação de formalização. | Comando único favorece transação integral. Rascunho persistente exige estado, autoria, versionamento, expiração e distinção entre dados provisórios e eventos efetivos. | Recomenda comando único para formalizar chegada e salvamento progressivo posterior de conferência, evidências, pendências e decisões; nomes finais e contratos dependem de API01 e decisões relacionadas. | Recebimento parcial/inconsistente, custódia iniciada antes da formalização ou perda de informação de chegada. | Responsável funcional do recebimento, responsável técnico/laboratorial e arquitetura. | Proposta técnica elaborada; validação pendente — bloqueadora |
 | API03 | Regra de quantidade, agrupamento e cardinalidade de CustodyObjects | API-LIMS-REC-CUST-001; OpenAPI; MOD-REL-001; DEC05; REV-LIMS-API-REL-001; PROP-LIMS-API03-001 | Define quando material homogêneo pode ser agrupado e quando unidades exigem decisões, resultados ou destinações independentes. | Define quantity, unidade, vínculos com ReceiptItem e regra de zero a vários objetos; deve preservar DEC05 (ItemRecebimento → 0..N ObjetosCustodia; objeto → no máximo uma DeviceSample). | Validação condicional de PRESENTED/NOT_PRESENTED, soma de quantidades e conteúdo de cada objeto; quantidade persistida não nula. | Perda de rastreabilidade individual ou criação de amostras em granularidade incompatível com o ensaio. | Responsável técnico/laboratorial, responsável funcional e arquitetura de dados. | Proposta técnica elaborada; validação pendente — bloqueadora |
 | API04 | Catálogo de eventos, autoria e semântica temporal da custódia | API-LIMS-REC-CUST-001; OpenAPI; MOD-REL-001; ANL-LIMS-CUST-001; CTR-LIMS-CUST-001; REV-LIMS-API-REL-001; PROP-LIMS-API04-001 | Define evento de chegada, transferência, mudança de localização, retificação, devolução e encerramento; distingue ator registrador de custodiante. | Avalia extensão da ChainOfCustody existente para event_type, recorded_by_id e timestamps sem criar tabela paralela; mantém alvo XOR legado/novo conforme proposta. | Define campos obrigatórios e enums para eventos, além da representação de occurred_at, recorded_at, from/to custodian e localizações. | Evento inicial atribuído ao usuário do aceite, cronologia falsa, autoria não auditável ou ruptura de histórico legado. | Responsável técnico/laboratorial, segurança/auditoria e arquitetura. | Proposta técnica elaborada; validação pendente — bloqueadora |
@@ -65,7 +66,7 @@ A ordem abaixo minimiza retrabalho e respeita as dependências de domínio:
 |---|---|---|---|
 | 1 | API03 | A granularidade dos objetos condiciona o recebimento, a custódia e a criação de amostras. | Regra de quantidade, agrupamento, individualização e exemplos por material. |
 | 2 | API04 + API12 | O evento inicial e a política temporal devem ser definidos conjuntamente para preservar chegada, autoria e cronologia. | Catálogo de eventos e contrato temporal/autoria. |
-| 3 | API02 + API01 | Com a semântica da chegada definida, fechar comando de formalização e nomes públicos. | Fluxo HTTP de recebimento e nomenclatura estável. |
+| 3 | API02 + API01 | Com a semântica da chegada definida, fechar comando de formalização e nomes públicos. | Fluxo HTTP de recebimento e nomenclatura estável. (PROP-LIMS-API01-001 elaborada; validação pendente.) |
 | 4 | API06 + API07 + API09 | Concorrência, idempotência e repetição de aceite formam um conjunto de confiabilidade transacional. | Política de versão, chave idempotente e respostas de replay/conflito. |
 | 5 | API08 | O payload da amostra depende da identidade e granularidade de material definidas. | Schemas e regras condicionais por classe de dispositivo. |
 | 6 | API05 + API10 | Assinatura, autorização e segregação devem ser coerentes por ato e perfil. | Matriz operação × perfil × assinatura × validação. |
@@ -112,7 +113,7 @@ A classificação **Implementável** exige, adicionalmente, revisão técnica, a
 
 ## 9. Controle de execução
 
-**Atividade realizada:** consolidação documental das decisões API01–API12 e de seus impactos e dependências.
+**Atividade realizada:** consolidação documental das decisões API01–API12 e de seus impactos e dependências; elaboração da proposta API01 para nomenclatura de recursos e rotas HTTP.
 
 **Não realizado:** alterações em código, modelos, banco de dados, migrações, endpoints, frontend, OpenAPI existente, testes, build, CI ou infraestrutura.
 
@@ -123,3 +124,4 @@ A classificação **Implementável** exige, adicionalmente, revisão técnica, a
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-09 | Criação da matriz de resolução API01–API12, com impactos, riscos, responsáveis, estados e sequência recomendada. |
+| 0.2 | 2026-11-10 | Inclusão da proposta PROP-LIMS-API01-001 e atualização do estado documental da decisão API01. |
