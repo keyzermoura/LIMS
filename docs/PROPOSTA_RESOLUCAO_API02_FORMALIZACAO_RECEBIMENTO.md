@@ -314,10 +314,11 @@ API02 somente poderá ser marcada como resolvida após:
 
 **Não realizado:** alteração da especificação HTTP existente, OpenAPI, modelo relacional, estados, interface, código, modelos ORM, banco, migrações, endpoints, frontend, testes, build ou CI.
 
-**Estado:** API02 permanece pendente de validação técnica/funcional e aprovação institucional. A recomendação da Alternativa C não equivale a decisão institucional nem autoriza implementação.
+**Estado:** a Alternativa C foi validada pelo responsável pelo projeto em revisão em 2026-11-10: formalização única da chegada física, seguida de salvamento progressivo da conferência, evidências, pendências e decisões. A validação não fecha integralmente API02: permanecem pendentes a confirmação dos dados mínimos, o alinhamento com API03/API04/API06/API07, a revisão da interface/estados e a aprovação institucional do procedimento. Não há autorização de implementação.
 
 ## 15. Histórico de alterações
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-09 | Criação da proposta de formalização única da chegada com salvamento progressivo de conferência e decisões. |
+| 0.2 | 2026-11-10 | Registro da validação da Alternativa C pelo responsável pelo projeto em revisão; dependências contratuais e aprovação institucional permanecem pendentes. |
