@@ -1,7 +1,7 @@
 # Proposta consolidada de fechamento do Pacote 1 — Governança, autorização e responsabilidade
 
 **Identificador:** PROP-LIMS-GOV-002  
-**Versão:** 0.2  
+**Versão:** 0.3  
 **Data:** 2026-11-10  
 **Branch:** main  
 **Estado:** proposta para revisão do responsável pelo projeto; não validada integralmente; aprovação institucional pendente; implementação bloqueada.
