@@ -85,9 +85,29 @@ Antes de propor aprovação do Gate G0, ainda obter:
 **Implementação: NÃO AUTORIZADA por este registro.**  
 **Escopo desta consolidação: documentação exclusivamente.**
 
-## 6. Histórico
+
+## 7. Decisões institucionais do Gate G0 — bloco G0-P01 a G0-P05
+
+Em 2026-11-10, o responsável pela Validação Institucional do LIMS – SEFI aprovou integralmente, sem ressalvas, as cinco propostas do primeiro bloco de pendências do Gate G0:
+
+| ID | Tema | Decisão | Limites e detalhamentos pendentes |
+|---|---|---|---|
+| G0-P01 | Matriz de competências e autoridades | **Aprovada integralmente** | Aprovado o modelo de matriz com atividades, titular, substituto, limites de autoridade e validação independente quando exigida. Designações nominais e formais permanecem pendentes. |
+| G0-P02 | Checklists técnicos e critérios E/S/I | **Aprovada integralmente** | Aprovada a estrutura e governança de checklists controlados por versão, categoria, critérios, classe E/S/I, fundamentação, evidência, aceitação, responsáveis e vigência. Critérios técnicos específicos devem ser definidos por categoria, sem presumir valores. |
+| G0-P03 | Prazos e comunicações | **Aprovada integralmente** | Aprovado o modelo de prazos por tipo de ocorrência, comunicação formal como marco inicial, dias úteis como padrão salvo regra específica, prorrogação justificada/autorizada, alerta de vencimento e encerramento apenas por decisão formal. Valores numéricos e canais institucionais permanecem pendentes. |
+| G0-P04 | Devolução e destinação | **Aprovada integralmente** | Aprovado o procedimento com rastreabilidade da custódia, motivo/decisão, representante autorizado, responsáveis pela entrega, data/hora, quantidade/condição, confirmação e comprovante. Formulário e designações institucionais permanecem para detalhamento. |
+| G0-P05 | Assinatura eletrônica | **Aprovada integralmente** | Aprovados os requisitos funcionais de identificação individual, autenticação proporcional ao risco, intenção explícita, vínculo ao conteúdo/versão, data/hora, integridade, prevenção de reutilização indevida e trilha de auditoria. Modalidade jurídica e tecnologia permanecem sujeitas à avaliação institucional competente. |
+
+A aprovação deste bloco ratifica os modelos, requisitos e diretrizes acima, mas não declara concluídas as dependências e definições explicitamente indicadas na última coluna.
+
+**Resultado do bloco:** 5 de 5 propostas aprovadas integralmente, sem ressalvas.  
+**Situação do Gate G0:** permanece **NÃO APROVADO** até a conclusão das demais pendências e evidências de validação requeridas.  
+**Implementação:** permanece **NÃO AUTORIZADA**.
+
+## 8. Histórico
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-10 | Consolidação inicial das decisões D01–D20 pré-validadas. |
 | 1.1 | 2026-11-10 | Atualização do status após ratificação institucional integral de D01–D20 pelo responsável designado; mantidos Gate G0 não aprovado e implementação não autorizada. |
+| 1.2 | 2026-11-10 | Registro da aprovação integral das propostas G0-P01 a G0-P05, sem ressalvas; mantidos Gate G0 não aprovado e implementação não autorizada. |
