@@ -415,8 +415,9 @@ A matriz completa está em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. Para o 
 
 Não criar automaticamente novas entidades físicas além das já aprovadas em M0.2 sem revisão explícita do modelo. Tecnologia de assinatura, backup, armazenamento de anexos e autenticação permanecem decisões de arquitetura/instituição, não cardinalidades aprovadas.
 
-**Situação:** pré-validação funcional do usuário; validação institucional pendente; Gate G0 não aprovado.
+**Situação:** decisões D01–D20 ratificadas institucionalmente pelo responsável designado em 2026-11-10; validação operacional, parametrizações institucionais e complementos técnicos pendentes; Gate G0 não aprovado.
 
 ### Histórico de versões
 
-| 0.6 | 2026-11-10 | Adendo de rastreabilidade às decisões pré-validadas D01–D20. |
+| 0.6 | 2026-11-10 | Adendo de rastreabilidade às decisões D01–D20 pré-validadas. |
+| 0.7 | 2026-11-10 | Atualização do status após ratificação institucional integral de D01–D20; mantidas pendências técnicas e operacionais. |
