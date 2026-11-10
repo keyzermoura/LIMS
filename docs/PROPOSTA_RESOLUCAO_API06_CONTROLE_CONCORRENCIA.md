@@ -1,8 +1,8 @@
 # Proposta de Resolução API06 — Controle de Concorrência
 
 **Identificador:** PROP-LIMS-API06-001  
-**Versão:** 0.1  
-**Situação:** Proposta técnica para revisão; validação arquitetural/funcional pendente — bloqueadora  
+**Versão:** 0.2  
+**Situação:** Estratégia geral validada pelo responsável pelo projeto em revisão (2026-11-10); fechamento técnico e institucional pendente — implementação bloqueada  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-10
@@ -286,14 +286,17 @@ Preservar os contratos legados sem alteração nesta decisão.
 
 ## 12. Controle de execução
 
-**Realizado:** recuperação da decisão API06 na matriz vigente; inspeção estática do mixin de versão, schemas e serviços legados; comparação com o OpenAPI proposto; elaboração desta proposta documental.
+**Realizado:** recuperação da decisão API06 na matriz vigente; inspeção estática do mixin de versão, schemas e serviços legados; comparação com o OpenAPI proposto; elaboração da proposta e registro da validação da estratégia geral pelo responsável pelo projeto em revisão em 2026-11-10.
 
 **Não realizado:** alterações em código, modelos, banco, migrações, endpoints, frontend ou OpenAPI; testes, build, CI, validação automática ou consulta ao banco em execução.
 
-**Situação:** proposta técnica elaborada; validação arquitetural/funcional e eventual aprovação institucional pendentes. Não há autorização de implementação.
+**Pendências:** fechamento técnico dos agregados e versões persistidas; confirmação de migrações/schema no banco-alvo; compatibilidade runtime; coordenação com API07 (idempotência), API03, API04 e API09; revisão e aprovação institucional aplicável.
+
+**Situação:** estratégia geral validada em revisão do projeto; fechamento técnico e institucional pendente. Não há autorização de implementação.
 
 ## 13. Histórico de alterações
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-10 | Primeira proposta de padronização do controle de concorrência para comandos novos e preservação do contrato legado. |
+| 0.2 | 2026-11-10 | Registro da validação da estratégia geral pelo responsável pelo projeto em revisão; detalhamento técnico, compatibilidade runtime e aprovação institucional permanecem pendentes. |
