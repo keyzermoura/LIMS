@@ -1305,7 +1305,7 @@ Todo evento relevante deverá distinguir conceitualmente:
 - `recorded_at`: quando o evento foi registrado no sistema;
 - `recorded_by`: identidade de quem registrou.
 
-Os campos não são intercambiáveis. O horário efetivo da chegada física deverá ser capturado no evento de recebimento; o horário de gravação deverá ser gerado pelo sistema. Registro tardio exige justificativa e preserva ambos os tempos. Não se admite retroagir `recorded_at` nem inventar `occurred_at`. Datas/horas devem possuir fuso/offset inequívoco e fonte temporal controlada. Correções são novos eventos CORRECTION vinculados ao evento original.
+Os campos não são intercambiáveis. O campo conceitual `Recebimento.received_at` deverá corresponder ao instante efetivo do evento RECEIPT (`occurred_at`) e não ao instante em que o usuário concluiu a gravação. O evento deverá preservar também `recorded_at` (gerado pelo sistema) e `recorded_by` (usuário que registrou), além de `received_by` (pessoa que recebeu fisicamente) e custodiante inicial/localização, quando aplicável. Registro tardio exige justificativa e preserva ambos os tempos; nunca se deve retroagir `recorded_at` nem inventar `occurred_at`. Não se admite retroagir `recorded_at` nem inventar `occurred_at`. Datas/horas devem possuir fuso/offset inequívoco e fonte temporal controlada. Correções são novos eventos CORRECTION vinculados ao evento original.
 
 ### 28.3 Taxonomia mínima dos eventos de custódia
 
