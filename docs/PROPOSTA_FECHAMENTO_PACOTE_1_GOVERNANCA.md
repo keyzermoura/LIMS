@@ -1,7 +1,7 @@
 # Proposta consolidada de fechamento do Pacote 1 — Governança, autorização e responsabilidade
 
 **Identificador:** PROP-LIMS-GOV-002  
-**Versão:** 0.5  
+**Versão:** 0.6  
 **Data:** 2026-11-10  
 **Branch:** main  
 **Estado:** proposta para revisão do responsável pelo projeto; não validada integralmente; aprovação institucional pendente; implementação bloqueada.
@@ -301,15 +301,15 @@ Regras:
 | GOV-P04 | Segregação | Aplicar independência obrigatória executor/validador quando exigida; manter demais acumulações conforme política | **Validada em revisão pelo responsável pelo projeto (2026-11-10)** quanto ao princípio geral, em coerência com GOV01 e GOV03. Incompatibilidades adicionais entre conferente, decisor, coordenação, signatário, custodiante e administrador dependem de definição institucional. |
 | GOV-P05 | Matriz de assinatura | Aceite/recusa, validação independente formal, retificação formal, exceção e concessão/revogação com aprovação exigem assinatura formal; outros atos condicionais conforme procedimento | Aprovar matriz por operação e modalidade/nível de garantia. |
 | GOV-P06 | Assinatura e competência | Competência verificada na emissão e novamente no consumo; snapshot obrigatório para atos assinados | Confirmar política, validade, revogação e retenção. |
-| GOV-P07 | Autoria e tempo | Separar participantes e `occurred_at`/`recorded_at`/`signed_at` | Confirmar política de timestamps, fuso e lançamento tardio. |
-| GOV-P08 | Auditoria | Registrar eventos de acesso, governança, exceção e atos críticos na cadeia existente | Aprovar cobertura, acesso, retenção, monitoramento e revisão. |
+| GOV-P07 | Autoria e tempo | Separar participantes e `occurred_at`/`recorded_at`/`signed_at` | **Recomendações AUD-P07-01 a AUD-P07-06 validadas em revisão (2026-11-10)**; política institucional de fuso, lançamento tardio, retificação e participantes permanece pendente. |
+| GOV-P08 | Auditoria | Registrar eventos de acesso, governança, exceção e atos críticos na cadeia existente | **Recomendações AUD-P08-01 a AUD-P08-07 validadas em revisão (2026-11-10)**; cobertura por operação, acesso, retenção, monitoramento e comprovação técnica permanecem pendentes. |
 | GOV-P09 | Chaves e imutabilidade | Segregar chave HMAC, restringir privilégios e verificar trigger/backup/rotação | Definir responsável institucional e controles de infraestrutura. |
 | GOV-P10 | Exceções | Autorização formal, escopo mínimo, prazo/condição, controles compensatórios e revisão posterior | Definir autoridades, hipóteses admissíveis e prazos. |
 | GOV-P11 | Administração de auditoria | Separar consulta, exportação, verificação e administração técnica; acesso mínimo e auditado | Definir perfis, unidades, finalidade e mascaramento. |
 
 ## 11. Dependências e sequência de fechamento
 
-1. GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) foram validadas pelo responsável pelo projeto em revisão em 2026-11-10. Permanecem para validação as recomendações GOV-P05, GOV-P06, GOV-P07, GOV-P08 e GOV-P10.
+1. GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação) foram validadas pelo responsável pelo projeto em revisão em 2026-11-10. GOV-P07/GOV-P08 foram validadas em revisão. Permanecem para validação GOV-P05/GOV-P06 quanto à formalização institucional e fechamento técnico, GOV-P09, GOV-P10 e GOV-P11.
 2. Obter da instituição as definições de autoridade, delegação, cargos/funções, modalidade de assinatura, prazos, retenção, exceções e escopos.
 3. Consolidar catálogo de capacidades e matriz de acesso por operação, rota, recurso, estado e escopo.
 4. Confrontar a matriz com runtime de todas as rotas e serviços, incluindo as operações API10 1–7 e contratos legados.
@@ -334,7 +334,7 @@ O Pacote 1 só poderá ser marcado como fechado quando:
 
 ## 13. Controle e limitações
 
-Esta proposta é exclusivamente documental. Não altera código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não foi executada validação de runtime, banco ou produção. As recomendações GOV-P01 e GOV-P04 foram validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites descritos na seção 10. As recomendações GOV-P05 e GOV-P06 (SIG-P01–SIG-P06) foram validadas em revisão pelo responsável pelo projeto em 2026-11-10, nos limites do documento complementar PROP-LIMS-GOV-SIG-001. GOV-P02, GOV-P03 e GOV-P09–GOV-P11 permanecem sem validação pelo responsável do projeto. GOV-P07 e GOV-P08 foram validadas em revisão, nos limites da proposta complementar PROP-LIMS-GOV-AUD-001 v0.2. Nenhuma dessas validações equivale a aprovação institucional.
+Esta proposta é exclusivamente documental. Não altera código, banco, migrações, endpoints, frontend, OpenAPI, testes, build, CI ou infraestrutura. Não foi executada validação de runtime, banco ou produção. As recomendações GOV-P01 e GOV-P04 foram validadas pelo responsável pelo projeto em revisão em 2026-11-10, nos limites descritos na seção 10. As recomendações GOV-P05 e GOV-P06 (SIG-P01–SIG-P06) tiveram suas recomendações validadas em revisão, nos limites do documento complementar PROP-LIMS-GOV-SIG-001, mas dependem de formalização institucional e fechamento técnico. GOV-P02, GOV-P03, GOV-P09, GOV-P10 e GOV-P11 permanecem sem validação pelo responsável do projeto. GOV-P07 e GOV-P08 tiveram as recomendações AUD-P07/AUD-P08 validadas em revisão, nos limites da proposta complementar PROP-LIMS-GOV-AUD-001 v0.2. Nenhuma dessas validações equivale a aprovação institucional.
 
 **Situação:** Pacote 1 aberto. **Implementação bloqueada.**
 
@@ -349,11 +349,11 @@ As recomendações SIG-P01–SIG-P06 da proposta específica foram validadas em 
 
 A proposta complementar PROP-LIMS-GOV-AUD-001 v0.2 (docs/PROPOSTA_FECHAMENTO_GOV_P07_P08_AUTORIA_AUDITORIA.md) teve as recomendações AUD-P07-01 a AUD-P07-06 e AUD-P08-01 a AUD-P08-07 validadas em revisão pelo responsável pelo projeto em 2026-11-10. A validação preserva os limites do documento: não define fuso institucional, política de lançamento tardio/retificação, retenção, acesso, infraestrutura ou prova de implantação dos controles. GOV-P07/GOV-P08 permanecem pendentes de formalização institucional e fechamento técnico; não há autorização de implementação. A modalidade de assinatura, signatários por ato, retenção e demais definições institucionais não foram presumidas.
 
-## 14. Histórico
+## 17. Proposta específica para integridade operacional e acesso à auditoria — GOV-P09/GOV-P11\n\nFoi elaborada a proposta complementar PROP-LIMS-GOV-SEC-001 v0.1 (docs/PROPOSTA_FECHAMENTO_GOV_P09_P11_INTEGRIDADE_ACESSO_AUDITORIA.md), com recomendações AUD-P09-01 a AUD-P09-09 e AUD-P11-01 a AUD-P11-09 para revisão. Essas recomendações ainda não foram validadas. A proposta não comprova configuração operacional de banco, chaves, backups ou controles de acesso e não autoriza implementação.\n\n## 14. Histórico
 
 | Versão | Data | Alteração |
 |---|---|---|
 | 0.1 | 2026-11-10 | Proposta consolidada de fechamento com modelo de autorização, concessões, segregação, assinatura, autoria, auditoria e exceções, derivada da inspeção REV-LIMS-GOV-001. |
 | 0.2 | 2026-11-10 | Registro da validação em revisão de GOV-P01 (modelo de autorização) e GOV-P04 (princípio geral de segregação); definições institucionais específicas e demais decisões permanecem pendentes. |
 | 0.3 | 2026-11-10 | Referência à proposta complementar PROP-LIMS-GOV-SIG-001 para GOV-P05/GOV-P06; decisões de assinatura permanecem pendentes de validação e aprovação institucional. |
-| 0.4 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; GOV-P05/GOV-P08 seguem pendentes de formalização institucional, fechamento técnico e autorização de implementação. |
+| 0.4 | 2026-11-10 | Registro da validação em revisão de SIG-P01–SIG-P06; GOV-P05/GOV-P06 seguem pendentes de formalização institucional, fechamento técnico e autorização de implementação. |
