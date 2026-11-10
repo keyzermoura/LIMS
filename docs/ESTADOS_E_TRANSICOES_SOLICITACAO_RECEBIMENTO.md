@@ -1,8 +1,8 @@
 # Estados e Transições — Solicitação e Recebimento
 
 **Identificador:** EST-REC-001  
-**Versão:** 1.2  
-**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST02 a EST10 aprovadas; EST01 pendente; não aprovada para implementação  
+**Versão:** 1.3  
+**Situação:** Proposta para revisão funcional alinhada ao modelo M0.2 aprovado; EST01 a EST10 aprovadas funcionalmente; não aprovada para implementação  
 **Repositório:** keyzermoura/LIMS  
 **Branch:** main  
 **Data:** 2026-11-09
@@ -233,7 +233,7 @@ Eventos sugeridos:
 
 | ID | Questão | Prioridade |
 |---|---|---|
-| EST01 | Quais perfis institucionais podem cadastrar solicitação, receber material e conferir? | P0 |
+| EST01 | Quais perfis institucionais podem cadastrar solicitação, receber material e conferir? | P0 — resolvida funcionalmente |
 | EST02 | Conferente pode ser o mesmo usuário que registrou a chegada? | P0 |
 | EST03 | Coordenação é obrigatória para quais tipos de exceção e decisões? | P0 — resolvida funcionalmente |
 | EST04 | Qual destino e fluxo de custódia se aplicam a item recusado? | P0 — resolvida funcionalmente |
@@ -259,7 +259,7 @@ O desenho de estados e transições estará pronto para detalhamento técnico qu
 
 ## 10. Próximo passo
 
-Concluir a decisão funcional remanescente EST01 e, em seguida, consolidar a máquina de estados e produzir os critérios de aceite verificáveis para a Etapa 1. As decisões EST02–EST10 estão registradas. A implementação permanece bloqueada até conclusão da Fase 0, aprovação do portão G0 e autorização específica.
+Consolidar as decisões funcionais EST01–EST10 na máquina de estados e produzir os critérios de aceite verificáveis para a Etapa 1. As dez questões estão resolvidas funcionalmente; permanecem pendentes a formalização institucional de cargos, responsáveis, substituições e parâmetros operacionais. A implementação permanece bloqueada até conclusão da Fase 0, aprovação do portão G0 e autorização específica.
 
 ## 12. Recomendações adicionais para custódia e granularidade
 
@@ -366,7 +366,7 @@ A decisão RECUSADA não é evento de encerramento da custódia. A custódia só
 
 ### 14.6 Pontos que permanecem para decisão funcional
 
-A EST01 permanece aberta. As decisões EST02 e EST10 já definem, respectivamente, a possibilidade de acumular recebimento e conferência e os controles gerais de segregação e autoaprovação. A próxima revisão deverá definir os perfis institucionais autorizados a cadastrar solicitações, registrar chegadas e realizar conferências;
+A EST01 foi resolvida funcionalmente na seção 24, com definição dos perfis SOLICITANTE, RECEPÇÃO, CONFERENTE, COORDENAÇÃO e ADMINISTRADOR. A associação desses perfis aos cargos, unidades e servidores da instituição deverá ser formalizada na matriz institucional de competências;
 - **EST03 — coordenação:** regra aprovada e registrada na seção 16; eventuais detalhamentos operacionais devem respeitar seus limites;
 - **EST04 — recusados:** destinos e controles aprovados e registrados na seção 17; eventuais procedimentos operacionais devem respeitar essa regra;
 - **EST05 — ausentes:** regra de conclusão administrativa aprovada e registrada na seção 18; itens não apresentados permanecem sem aceite técnico;
@@ -399,7 +399,7 @@ A EST01 permanece aberta. As decisões EST02 e EST10 já definem, respectivament
 
 ### Efeito sobre EST02
 
-EST02 fica **resolvida funcionalmente**. A matriz de permissões deverá permitir a acumulação dos papéis de recebedor e conferente, condicionada à atribuição explícita das permissões correspondentes. A definição dos perfis institucionais autorizados permanece pendente em EST01. A segregação e a autoaprovação são tratadas na EST10.
+EST02 fica **resolvida funcionalmente**. A matriz de permissões deverá permitir a acumulação dos papéis de recebedor e conferente, condicionada à atribuição explícita das permissões correspondentes. A definição dos perfis funcionais foi aprovada na EST01, registrada na seção 24. A associação dos perfis aos cargos e servidores institucionais deverá observar a matriz de competências. A segregação e a autoaprovação são tratadas na EST10.
 
 ### Histórico
 
@@ -865,7 +865,7 @@ A falta de validador independente deverá ser tratada como impedimento temporár
 
 ### Efeito sobre EST10
 
-EST10 fica **resolvida funcionalmente** quanto ao acúmulo de atividades operacionais, à proibição de autoaprovação nas decisões sujeitas à validação independente e ao tratamento da indisponibilidade de validador. A definição nominal dos perfis institucionais, dos cargos e das substituições autorizadas permanece vinculada à EST01 e à matriz de competências institucional, a serem formalizadas antes da utilização operacional.
+EST10 fica **resolvida funcionalmente** quanto ao acúmulo de atividades operacionais, à proibição de autoaprovação nas decisões sujeitas à validação independente e ao tratamento da indisponibilidade de validador. A associação dos perfis funcionais aos cargos, unidades, servidores e substituições autorizadas deverá ser formalizada na matriz institucional de competências antes da utilização operacional.
 
 Esta decisão não autoriza implementação. A implementação permanece condicionada à conclusão da Fase 0, aprovação do portão G0 e autorização específica.
 
@@ -874,3 +874,105 @@ Esta decisão não autoriza implementação. A implementação permanece condici
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.2 | 2026-11-10 | Registro da decisão EST10: acúmulo de atividades operacionais permitido conforme permissões; autoaprovação vedada quando houver validação independente; indisponibilidade não dispensa validação. |
+
+
+## 24. Registro de decisão funcional — EST01
+
+**Decisão:** APROVADA — adotar cinco perfis funcionais, com permissões específicas, atribuição explícita e possibilidade de acumulação autorizada, respeitadas as regras de segregação e prevenção de autoaprovação da EST10.  
+**Data:** 2026-11-10  
+**Escopo:** identificação dos perfis funcionais e governança das permissões de acesso às atividades de solicitação, recebimento, conferência, coordenação e administração do sistema.
+
+### 24.1 Perfis funcionais
+
+| Perfil | Responsabilidades | Permissões principais |
+|---|---|---|
+| SOLICITANTE | Registrar e acompanhar solicitações de ensaio. | Cadastrar solicitações próprias, consultar seu andamento e complementar informações quando solicitado; não altera decisões técnicas nem acessa solicitações de terceiros sem autorização. |
+| RECEPÇÃO | Registrar a chegada física dos materiais. | Registrar chegada, data/hora, responsável e informações do recebimento físico; o registro de chegada não representa aceite técnico. |
+| CONFERENTE | Realizar a conferência técnica. | Conferir itens, quantidades e documentos; registrar conformidades, não conformidades, pendências e evidências; propor decisões dentro de suas atribuições, sem dispensar critérios impeditivos. |
+| COORDENAÇÃO | Supervisionar e validar decisões específicas. | Validar exceções, recusas, retificações e demais decisões previstas nas regras funcionais e na matriz institucional de competências. |
+| ADMINISTRADOR | Administrar usuários, perfis, permissões e parâmetros técnicos do sistema. | Gerenciar acessos e configurações autorizadas; não recebe, por esse perfil isoladamente, autoridade técnica para aceitar materiais ou validar decisões da coordenação. |
+
+Os nomes acima são perfis funcionais do sistema e não representam, por si só, cargos ou unidades administrativas da instituição.
+
+### 24.2 Atribuição e acumulação de perfis
+
+1. Um usuário poderá receber um ou mais perfis, desde que a acumulação seja compatível com suas atribuições institucionais e autorizada pela autoridade competente.
+2. A atribuição de um perfil não concederá automaticamente permissões pertencentes a outro perfil. As permissões deverão ser explícitas e verificadas individualmente.
+3. A acumulação RECEPÇÃO + CONFERENTE é permitida, em coerência com a EST02, desde que o usuário possua ambas as permissões.
+4. A acumulação envolvendo COORDENAÇÃO deverá respeitar a independência exigida pela EST10: o usuário não poderá validar a própria decisão quando a validação independente for obrigatória.
+5. O perfil ADMINISTRADOR não concede privilégios técnicos implícitos, nem permite alterar ou apagar registros técnicos formalizados ou eventos de auditoria fora de procedimento autorizado.
+6. A acumulação de perfis não poderá ser utilizada para contornar restrições de segregação, competência, assinatura ou validação.
+
+### 24.3 Regras de acesso por perfil
+
+**SOLICITANTE**
+- Consulta as solicitações às quais está vinculado.
+- Pode complementar informações quando solicitado e conforme permissões.
+- Não altera registros de conferência, decisões técnicas, validações ou registros de custódia.
+
+**RECEPÇÃO**
+- Registra a chegada física e os dados correspondentes.
+- Não realiza aceite técnico apenas em razão do registro de chegada.
+- Não altera decisões de conferência formalizadas.
+
+**CONFERENTE**
+- Registra a avaliação técnica, conformidades, não conformidades, pendências e evidências.
+- Não dispensa critérios impeditivos.
+- Não realiza validação independente de decisão própria quando essa validação for obrigatória.
+
+**COORDENAÇÃO**
+- Atua nos casos previstos nas decisões funcionais e na matriz institucional de competências.
+- Não dispensa critérios impeditivos sem fundamento normativo ou institucional válido.
+- Não valida decisão própria quando houver exigência de independência.
+
+**ADMINISTRADOR**
+- Gerencia usuários, perfis e permissões dentro de sua competência.
+- Não altera silenciosamente registros técnicos formalizados.
+- Não apaga eventos de auditoria.
+- Não recebe autorização automática para aceite, recusa, retificação ou encerramento de custódia.
+
+### 24.4 Governança das permissões
+
+1. Cada usuário deverá possuir identificação individual e não compartilhada.
+2. As permissões deverão ser concedidas por usuário autorizado, conforme matriz institucional de competências.
+3. Nenhum usuário poderá conceder ou elevar permissões para si próprio.
+4. Toda concessão, alteração, suspensão ou revogação de acesso deverá gerar evento de auditoria com ator, autorização, data/hora, usuário afetado e permissões envolvidas.
+5. O sistema deverá verificar as permissões no momento de cada operação.
+6. A instituição deverá estabelecer procedimento para revisão periódica dos acessos e para tratamento de afastamento, mudança de função ou desligamento de usuários.
+7. O sistema deverá permitir consulta e auditoria do histórico de perfis e permissões.
+
+### 24.5 Matriz funcional resumida
+
+| Atividade | Perfil funcional principal | Observações |
+|---|---|---|
+| Cadastrar solicitação | SOLICITANTE | Acesso às próprias solicitações, conforme autorização. |
+| Registrar chegada física | RECEPÇÃO | Não equivale a aceite técnico. |
+| Realizar conferência | CONFERENTE | Pode acumular com RECEPÇÃO conforme EST02. |
+| Registrar e avaliar pendências | CONFERENTE | Avaliação conforme competência e regras EST03/EST06/EST09. |
+| Validar exceções e decisões críticas | COORDENAÇÃO | Independência obrigatória quando aplicável, conforme EST03 e EST10. |
+| Autorizar retificação excepcional | COORDENAÇÃO | Autorização independente conforme EST08 e EST10. |
+| Gerenciar usuários e permissões | ADMINISTRADOR | Sem autoridade técnica implícita. |
+| Aceite final e encerramento de custódia | Responsável formalmente competente | Observa assinaturas, competências e validações das EST03, EST07 e EST10. |
+
+### 24.6 Formalização institucional pendente
+
+A aprovação desta decisão define os perfis funcionais do sistema, mas não nomeia servidores nem estabelece, por si só, a correspondência definitiva com cargos, setores ou unidades administrativas.
+
+Antes da utilização operacional, a instituição deverá aprovar uma matriz de competências que identifique:
+- cargos ou funções institucionais autorizados a exercer cada perfil;
+- autoridade responsável por conceder, revisar e revogar permissões;
+- substitutos formalmente autorizados para cada função;
+- regras de acumulação compatíveis com a EST10;
+- procedimento de revisão periódica dos acessos.
+
+### Efeito sobre EST01
+
+EST01 fica **resolvida funcionalmente** quanto aos cinco perfis, suas responsabilidades gerais, regras de acumulação e governança de permissões. A correspondência entre os perfis e os cargos, unidades e servidores da instituição permanece como formalização institucional necessária antes da operação.
+
+Esta decisão não autoriza implementação. A implementação permanece condicionada à conclusão da Fase 0, aprovação do portão G0 e autorização específica.
+
+### Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.3 | 2026-11-10 | Registro da decisão EST01: cinco perfis funcionais, permissões explícitas, acumulação autorizada e governança de acessos, com formalização institucional da matriz de competências. |
