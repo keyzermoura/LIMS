@@ -184,10 +184,11 @@ A avaliação anterior descreve pontos fortes do código existente e riscos arqu
 
 ## Adendo — consistência com D01–D20
 
-A matriz aprovada nesta rodada de pré-validação está em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. As decisões complementam EST01–EST10 sem reabri-las automaticamente. Pontos que exigem validação cruzada antes do Gate G0: independência e autoridade de validação (D10, EST03/EST10); governança/versionamento de checklists (D11–D12, EST06); integridade de anexos e trilha de auditoria (D13–D14); permissões e assinatura (D15–D16, EST01/EST07); política de continuidade (D17); protocolo/acession e QR (D18); chegada posterior (D19, EST05); e pré-condições de admissão da amostra (D20).
+A matriz de decisões D01–D20 ratificadas institucionalmente pelo responsável designado em 2026-11-10 está em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. As decisões complementam EST01–EST10 sem reabri-las automaticamente. Pontos que exigem validação cruzada antes do Gate G0: independência e autoridade de validação (D10, EST03/EST10); governança/versionamento de checklists (D11–D12, EST06); integridade de anexos e trilha de auditoria (D13–D14); permissões e assinatura (D15–D16, EST01/EST07); política de continuidade (D17); protocolo/acession e QR (D18); chegada posterior (D19, EST05); e pré-condições de admissão da amostra (D20).
 
-A aprovação pelo usuário não equivale a aprovação institucional. Lacunas de parametrização, autoridade, tecnologia e evidência de testes permanecem abertas. Gate G0 não aprovado; implementação não autorizada.
+A ratificação institucional de D01–D20 está concluída, mas não equivale à homologação operacional nem à aprovação do Gate G0. Lacunas de parametrização, autoridade, tecnologia e evidência de testes permanecem abertas. Gate G0 não aprovado; implementação não autorizada.
 
 ### Histórico de versões
 
-| 1.2 | 2026-11-10 | Adendo de consistência e rastreabilidade às decisões D01–D20. |
+| 1.2 | 2026-11-10 | Adendo de consistência e rastreabilidade às decisões D01–D20 pré-validadas. |
+| 1.3 | 2026-11-10 | Atualização do status após ratificação institucional integral de D01–D20; preservadas as pendências para Gate G0. |
