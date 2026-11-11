@@ -103,7 +103,7 @@ A aprovação de um pacote documental não modifica automaticamente decisões an
 | PT-01 — Inventário | **Parcial** | Doze fontes recuperadas e registradas; inventário ainda não exaustivo porque a árvore completa do repositório não foi enumerada |
 | PT-02 — Baseline de decisões | **Consolidado documentalmente** | SRC-01 preservado e referenciado; D01–D20 ratificadas e G0-P01–P30 aprovadas, com limites mantidos |
 | PT-03 — Integração do domínio | **Parcial** | Comparação M0.2 × M0.3 criada; cardinalidades canônicas preservadas; nomenclatura e refinamentos M03 pendentes |
-| PT-04 — Integração dos processos | **Em aberto** | EST-REC-001 e SIM-SEFI-REC-001 recuperados; consolidação detalhada dos fluxos e exceções ainda não realizada |
+| PT-04 — Integração dos processos | **Primeira versão elaborada** | Mapa PROC-01–PROC-16 criado a partir de EST-REC-001 e SIM-SEFI-REC-001; validação operacional e detalhamento de exceções pendentes |
 | PT-05 — Especificação funcional | **Primeira versão elaborada** | RF-001–RF-020 derivados de D01–D20 |
 | PT-06 — Requisitos transversais | **Primeira versão elaborada** | RT-001–RT-017 derivados de D01–D20/G0-P01–P30 |
 | PT-07 — Arquitetura-alvo | **Não iniciada** | Depende da consolidação de domínio/processos e de decisões técnicas/institucionais |
