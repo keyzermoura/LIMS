@@ -25,6 +25,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | [Revisão Multidisciplinar](../REVISAO_MULTIDISCIPLINAR_MAQUINA_ESTADOS_CA01_CA24.md) | Parecer multidisciplinar e revisão de critérios | Revisão documental concluída; dependências e validação operacional pendentes |
 | [Simulação de Mesa SIM01–SIM12](../VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md) | Cenários operacionais e relação com CA | Simulação documental; não é homologação nem teste de software |
 | [Modelo Lógico M0.3](../MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md) | Modelo lógico proposto para revisão | Elaborado; aguarda revisão/validação |
+| [Comparação M0.2 × M0.3](../02_DOMINIO/COMPARACAO_M0_2_M0_3.md) | Preservação de cardinalidades, refinamentos e divergências de nomenclatura | Análise documental inicial; não validada |
 | [Catálogo Mestre](CATALOGO_MESTRE_DOCUMENTAL.md) | Inventário, versões, fontes e limitações | Inventário ampliado; ainda não exaustivo |
 | [Plano de Integração](PLANO_DE_INTEGRACAO_DOCUMENTAL.md) | Escopo, pacotes, governança e critérios de execução | Plano de trabalho documental |
 
@@ -86,7 +87,7 @@ A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RAS
 - Validação operacional SIM01–SIM12.
 - Especificação, execução e evidências dos CA01–CA37.
 
-## 7. Estado formal
+## 8. Estado formal
 
 - Especificação integrada: **ESTRUTURA INICIAL — EM ELABORAÇÃO**.
 - D01–D20: **RATIFICADAS**, sem alteração.
