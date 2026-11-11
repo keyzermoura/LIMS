@@ -81,7 +81,7 @@ Os seguintes documentos foram criados nesta linha de trabalho, sem modificar as 
 | Artefato | Caminho | Finalidade | Status |
 |---|---|---|---|
 | Catálogo Mestre | `docs/00_GOVERNANCA/CATALOGO_MESTRE_DOCUMENTAL.md` | Inventário e precedência documental | v0.3; inicial, não exaustivo |
-| Plano de Integração | `docs/00_GOVERNANCA/PLANO_DE_INTEGRACAO_DOCUMENTAL.md` | Pacotes de trabalho e governança | v0.1 |
+| Plano de Integração | `docs/00_GOVERNANCA/PLANO_DE_INTEGRACAO_DOCUMENTAL.md` | Pacotes de trabalho e governança | v0.2; progresso registrado |
 | Especificação Integrada | `docs/00_GOVERNANCA/ESPECIFICACAO_INTEGRADA_LIMS_SEFI.md` | Documento integrador e índice | v0.1; estrutura inicial |
 | Comparação M0.2 × M0.3 | `docs/02_DOMINIO/COMPARACAO_M0_2_M0_3.md` | Preservação das cardinalidades e divergências | v0.1; análise inicial |
 | Matriz D01–D20 | `docs/05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md` | Relação D × domínio × CA × SIM | v0.3; não validada |
