@@ -1,7 +1,7 @@
 # Especificação Integrada do LIMS-SEFI
 
 **Identificador:** ESP-INT-LIMS-SEFI-001  
-**Versão:** 0.1 — estrutura inicial  
+**Versão:** 0.2 — estrutura integrada ampliada  
 **Data:** 2026-11-11  
 **Branch de trabalho:** `docs/integracao-especificacao-sefi`  
 **Status:** documento integrador em elaboração; não aprovado.
@@ -25,6 +25,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | [Revisão Multidisciplinar](../REVISAO_MULTIDISCIPLINAR_MAQUINA_ESTADOS_CA01_CA24.md) | Parecer multidisciplinar e revisão de critérios | Revisão documental concluída; dependências e validação operacional pendentes |
 | [Simulação de Mesa SIM01–SIM12](../VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md) | Cenários operacionais e relação com CA | Simulação documental; não é homologação nem teste de software |
 | [Modelo Lógico M0.3](../MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md) | Modelo lógico proposto para revisão | Elaborado; aguarda revisão/validação |
+| [Baseline Consolidada de Domínio e Processos](../02_DOMINIO/BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md) | Referência integrada que preserva cardinalidades e separa regras aprovadas de refinamentos pendentes | v0.1; proposta documental não validada |
 | [Comparação M0.2 × M0.3](../02_DOMINIO/COMPARACAO_M0_2_M0_3.md) | Preservação de cardinalidades, refinamentos e divergências de nomenclatura | Análise documental inicial; não validada |
 | [Requisitos Funcionais RF-001–RF-020](../03_ESPECIFICACAO_FUNCIONAL/REQUISITOS_FUNCIONAIS_SEFI_RF001_RF020.md) | Decomposição de D01–D20 em requisitos funcionais | Versão inicial derivada de decisões ratificadas; detalhamento/testes pendentes |
 | [Catálogo Mestre](CATALOGO_MESTRE_DOCUMENTAL.md) | Inventário, versões, fontes e limitações | Inventário ampliado; ainda não exaustivo |
@@ -45,9 +46,9 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 |---|---|---|---|
 | 1 | Objetivo, escopo, atores e glossário | Decisões, EST-REC-001, documentos institucionais | Em elaboração |
 | 2 | Governança, papéis, competências e segregação | D10, D12, D15, G0-P01, P16 | Diretrizes aprovadas; designações pendentes |
-| 3 | Processos ponta a ponta | EST-REC-001, SIM-SEFI-REC-001, D01–D20 | Fontes recuperadas; mapa PROC-01–PROC-16 elaborado; validação operacional pendente |
+| 3 | Processos ponta a ponta | EST-REC-001, SIM-SEFI-REC-001, D01–D20 | Baseline de domínio/processos v0.1 e mapa PROC-01–PROC-17 v0.2 elaborados; validação operacional pendente |
 | 4 | Requisitos funcionais | D01–D20, G0-P01–P30, critérios CA | RF-001–RF-020 elaborados; decomposição detalhada e validação pendentes |
-| 5 | Modelo de domínio | M0.1/M0.2/M0.3 e fontes relacionadas | M0.3 aguarda validação |
+| 5 | Modelo de domínio | M0.1/M0.2/M0.3 e fontes relacionadas | Baseline consolidada v0.1 elaborada; M0.3 e refinamentos aguardam validação |
 | 6 | Estados, transições e eventos | EST-REC-001, M0.3 | Fontes recuperadas; diferenças de nomenclatura e refinamentos pendentes |
 | 7 | Regras de negócio e invariantes | D01–D20, M0.3 | Parcial; M03-01 a M03-16 em aberto |
 | 8 | Checklists, critérios e evidências | D11–D13, G0-P02/P09/P17/P24 | Estrutura aprovada; conteúdo específico pendente |
@@ -67,7 +68,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 
 ## 5. Processos e requisitos funcionais
 
-O [Mapa de Processos Operacionais PROC-01–PROC-16](../02_DOMINIO/MAPA_PROCESSOS_OPERACIONAIS_SEFI_PROC01_PROC16.md) organiza os fluxos de solicitação, chegada, apresentação, custódia, conferência, pendência, decisão, validação, admissão, movimentação, destinação, retificação, chegada posterior, evidências e consulta. O mapa é documental e ainda depende de validação operacional.
+A [Baseline Consolidada de Domínio e Processos](../02_DOMINIO/BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md) estabelece a referência integrada de entidades, cardinalidades, dimensões de estado, eventos, invariantes, processos e pendências, preservando as fontes aprovadas e identificando refinamentos ainda não validados. O [Mapa de Processos Operacionais PROC-01–PROC-17](../02_DOMINIO/MAPA_PROCESSOS_OPERACIONAIS_SEFI_PROC01_PROC16.md) organiza os fluxos de solicitação, chegada, apresentação, custódia, conferência, pendência, decisão, validação, admissão, movimentação, destinação, retificação, chegada posterior, evidências e consulta. O mapa é documental e ainda depende de validação operacional.
 
 ## 5.1 Requisitos funcionais e matriz de rastreabilidade
 
