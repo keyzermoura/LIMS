@@ -1,0 +1,106 @@
+# Catálogo Mestre Documental — LIMS-SEFI
+
+**Identificador:** CAT-DOC-LIMS-SEFI-001  
+**Versão:** 0.1  
+**Data de elaboração:** 2026-11-11  
+**Branch de trabalho:** `docs/integracao-especificacao-sefi`  
+**Branch de referência:** `main`  
+**Commit de referência identificado:** `e52e4d74374d5339b622b55a1ebdae7b53056824`  
+**Situação:** inventário inicial verificado; levantamento exaustivo da árvore do repositório ainda pendente.
+
+## 1. Finalidade
+
+Este catálogo inicia a organização integrada do patrimônio documental do LIMS-SEFI. Seu objetivo é identificar fontes, registrar sua situação conhecida, estabelecer precedência e impedir que documentos aprovados sejam substituídos, reescritos ou reinterpretados silenciosamente.
+
+Este catálogo não aprova conteúdo novo, não altera decisões ratificadas e não constitui aprovação do Gate G0.
+
+## 2. Regras de preservação e classificação
+
+1. Documentos-fonte permanecem preservados em seus caminhos e históricos originais.
+2. A especificação integrada referencia as fontes; não as substitui.
+3. Decisões D01–D20 e G0-P01–G0-P30 permanecem ratificadas conforme seus registros, incluindo limites e dependências.
+4. Conteúdo proposto em M0.3 continua proposta até validação explícita.
+5. Status de aprovação de uma diretriz não significa que seus parâmetros, procedimentos, testes ou evidências estejam concluídos.
+6. Divergências serão registradas como achados, sem harmonização unilateral.
+7. Código e infraestrutura ficam fora do escopo desta reorganização documental.
+
+Classificações utilizadas:
+- **Ratificado/aprovado:** decisão expressamente registrada como tal na fonte.
+- **Documento elaborado — validar:** artefato existente que aguarda validação.
+- **Diagnóstico:** análise de situação; não equivale a especificação aprovada.
+- **Referência técnica:** descrição do estado/arquitetura do software; não é baseline funcional SEFI.
+- **Referenciado, não localizado no caminho testado:** citado por outra fonte, mas não recuperado no caminho nominal tentado. Não significa inexistência no repositório.
+
+## 3. Fontes recuperadas e verificadas em `main`
+
+| ID | Documento | Caminho | Versão/situação registrada | SHA do blob | Uso na integração |
+|---|---|---|---|---|---|
+| SRC-01 | Registro de Validação Institucional das Decisões SEFI — D01 a D20 | `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md` | v1.7; D01–D20 ratificadas; G0-P01–P30 aprovadas integralmente, com limites/dependências preservados | `f6140132035363c0ef2b4af5ef4d5c94b9c2d22e` | Fonte primária das decisões ratificadas e aprovadas |
+| SRC-02 | Matriz Consolidada de Prontidão — Gate G0 | `docs/MATRIZ_PRONTIDAO_GATE_G0.md` | v0.3; Gate G0 não aprovado; bloqueadores e evidências pendentes | `4953116324ab820581c324c1b087c9edc6f3cb51` | Fonte de gestão de entregáveis, evidências e prontidão |
+| SRC-03 | Matriz de Aderência — Domínio Existente × Domínio SEFI Aprovado | `docs/MATRIZ_ADERENCIA_DOMINIO_SEFI.md` | v1.1; diagnóstico de aderência parcial/insuficiente para admissão SEFI | `607ead785c7d01b8f2eaa821d825cbd0083627ee` | Fonte de diagnóstico entre software existente e domínio SEFI |
+| SRC-04 | Modelo Lógico Revisado do Domínio SEFI — M0.3 | `docs/MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md` | v0.1; elaborado, aguardando revisão/validação; contém propostas M03-01 a M03-16 | `2044edf92d2e6d34c5a2645e476e5903216dee51` | Modelo lógico de trabalho; propostas não são promovidas a decisões aprovadas |
+| SRC-05 | README do LIMS | `README.md` | Documento técnico descritivo; sem versão formal de aprovação identificada | SHA não registrado neste catálogo inicial | Referência para stack, arquitetura e fluxos atualmente descritos no produto |
+
+### 3.1 Referências de histórico verificadas
+
+| Commit | Alteração identificada | Arquivo |
+|---|---|---|
+| `ef571403f6f1bb279fb2f57649ab11fc46660369` | Correção dos limites e status da inspeção técnica G0 | `docs/MATRIZ_PRONTIDAO_GATE_G0.md` |
+| `99a5ed06aa21e0410048f885c8d3b2445843ece1` | Consolidação da auditoria cruzada do Gate G0 | `docs/MATRIZ_PRONTIDAO_GATE_G0.md` |
+| `7fc72d133f855341318e85a487bd66c263a315db` | Criação da matriz de aderência | `docs/MATRIZ_ADERENCIA_DOMINIO_SEFI.md` |
+| `4cbcabc91da82f0239a1b3d5a87b9765e8b0ad3f` | Atualização da matriz de aderência com auditoria cruzada | `docs/MATRIZ_ADERENCIA_DOMINIO_SEFI.md` |
+| `e52e4d74374d5339b622b55a1ebdae7b53056824` | Criação do modelo lógico revisado M0.3 | `docs/MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md` |
+
+O commit `e52e4d74374d5339b622b55a1ebdae7b53056824` foi o commit mais recente retornado pela consulta de histórico realizada em 2026-11-11 e é usado como referência de partida da branch documental. A consulta não substitui uma enumeração completa de todos os objetos do repositório.
+
+## 4. Documentos citados por outras fontes, ainda não localizados
+
+M0.3 e/ou o registro de decisões citam os seguintes identificadores como fontes ou artefatos relacionados:
+
+- `EST-REC-001`
+- `MOD-DOM-001`
+- `MOD-REL-001`
+- `AUD-EST-001`
+- `REV-MD-LIMS-002`
+- `SIM-SEFI-REC-001`
+- `CTR-LIMS-CUST-001`
+
+Foram testados os caminhos nominais `docs/<IDENTIFICADOR>.md` para esses sete identificadores, e a API de conteúdo retornou 404 para esses caminhos exatos. **Isso não prova que os documentos não existam**: podem estar em outra pasta, ter extensão/nome diferente, estar em arquivos anexos ou em outra superfície documental. A localização deverá ser retomada quando houver acesso à árvore completa e aos demais artefatos.
+
+## 5. Lacunas do inventário
+
+O inventário é inicial, não exaustivo. O conector GitHub utilizado nesta etapa permitiu recuperar arquivos por caminho conhecido, metadados de repositório, commits e branches, mas não forneceu uma listagem completa da árvore de diretórios. Portanto, ainda não se declara que todos os documentos do repositório foram localizados.
+
+Também precisam ser conferidos:
+- demais documentos em `docs/` e subdiretórios;
+- artefatos de simulação, critérios CA01–CA37 e cenários SIM01–SIM12;
+- documentos de arquitetura, segurança, contratos e auditorias;
+- evidências de aprovação/validação que estejam fora do repositório;
+- arquivos e registros de conversas anteriores que ainda não estejam representados em `main`.
+
+## 6. Precedência documental provisória
+
+Para evitar conflitos durante a integração:
+
+1. Para o conteúdo de D01–D20 e G0-P01–G0-P30, prevalece o registro SRC-01, respeitando os limites e dependências nele expressos.
+2. Para situação de prontidão, entregáveis, bloqueadores e evidências G0, prevalece SRC-02 como matriz de acompanhamento.
+3. Para diagnóstico de aderência do software atual, SRC-03 é a referência diagnóstica recuperada.
+4. Para estrutura lógica proposta, SRC-04 é fonte de trabalho sujeita a validação; não altera SRC-01.
+5. README e código descrevem o produto existente; não prevalecem sobre decisões de domínio ratificadas.
+6. Havendo conflito entre fontes de mesmo nível ou falta de fonte, registrar a divergência e encaminhar para decisão; não inferir aprovação.
+
+## 7. Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 0.1 | 2026-11-11 | Inventário inicial de cinco fontes recuperadas, histórico de commits conhecido, referências citadas não localizadas nos caminhos nominais e limitações do levantamento registradas. |
+
+## 8. Situação formal
+
+- Inventário documental: **INICIAL — NÃO EXAUSTIVO**.
+- Decisões D01–D20: **RATIFICADAS**, conforme SRC-01.
+- Decisões G0-P01–G0-P30: **APROVADAS**, conforme SRC-01, com detalhamentos ainda pendentes.
+- M0.3: **ELABORADO — AGUARDANDO REVISÃO/VALIDAÇÃO**.
+- Gate G0: **NÃO APROVADO**.
+- Implementação: **NÃO AUTORIZADA**.
+- Alterações de código, banco, API, frontend, CI e infraestrutura: **NENHUMA**.
