@@ -1,7 +1,7 @@
 # Plano de Integração Documental — LIMS-SEFI
 
 **Identificador:** PLN-INT-LIMS-SEFI-001  
-**Versão:** 0.5  
+**Versão:** 0.6  
 **Data:** 2026-11-11  
 **Branch:** `docs/integracao-especificacao-sefi`  
 **Natureza:** plano de organização documental; não constitui aprovação funcional, institucional ou técnica.
