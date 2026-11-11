@@ -1,7 +1,7 @@
 # Catálogo Mestre Documental — LIMS-SEFI
 
 **Identificador:** CAT-DOC-LIMS-SEFI-001  
-**Versão:** 0.3  
+**Versão:** 0.4  
 **Data de elaboração:** 2026-11-11  
 **Branch de trabalho:** `docs/integracao-especificacao-sefi`  
 **Branch de referência:** `main`  
@@ -85,6 +85,7 @@ Os seguintes documentos foram criados nesta linha de trabalho, sem modificar as 
 | Especificação Integrada | `docs/00_GOVERNANCA/ESPECIFICACAO_INTEGRADA_LIMS_SEFI.md` | Documento integrador e índice | v0.1; estrutura inicial |
 | Comparação M0.2 × M0.3 | `docs/02_DOMINIO/COMPARACAO_M0_2_M0_3.md` | Preservação das cardinalidades e divergências | v0.1; análise inicial |
 | Baseline Consolidada de Domínio e Processos | `docs/02_DOMINIO/BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md` | Referência integrada de entidades, cardinalidades, estados, eventos, processos e pendências | v0.1; proposta para revisão, não validada |
+| Matriz de Harmonização de Estados/Eventos | `docs/02_DOMINIO/MATRIZ_HARMONIZACAO_ESTADOS_TRANSICOES_EVENTOS_SEFI.md` | Correspondência EST-REC-001 × M0.3 e questões HARM-01–HARM-07 | v0.1; analítica, não validada |
 | Mapa de Processos PROC-01–PROC-17 | `docs/02_DOMINIO/MAPA_PROCESSOS_OPERACIONAIS_SEFI_PROC01_PROC16.md` | Fluxos de negócio e controle transversal de continuidade | v0.2; mapeamento inicial ampliado |
 | Matriz G0-P01–P30 | `docs/05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_G0_P01_P30.md` | Relação das decisões G0 com RF, RT e artefatos | v0.1; analítica, não validada |
 | Matriz D01–D20 | `docs/05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md` | Relação D × domínio × CA × SIM | v0.3; não validada |
@@ -121,6 +122,7 @@ Para evitar conflitos durante a integração:
 | 0.1 | 2026-11-11 | Inventário ampliado para doze fontes recuperadas, incluindo M0.2, estados/transições, modelo relacional e contrato de histórico/aceite; inclui auditoria, revisão multidisciplinar e simulação documental; a enumeração integral da árvore do repositório continua pendente; limitações do levantamento registradas. |
 | 0.2 | 2026-11-11 | Atualiza o catálogo de artefatos integradores, matrizes e requisitos elaborados na branch documental. |
 | 0.3 | 2026-11-11 | Registra a baseline consolidada de domínio/processos v0.1 e o mapa PROC-01–PROC-17 v0.2, preservando o inventário como não exaustivo. |
+| 0.4 | 2026-11-11 | Acrescenta a matriz analítica de harmonização de estados, transições e eventos entre EST-REC-001 e M0.3. |
 
 ## 9. Situação formal
 
