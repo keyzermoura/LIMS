@@ -1,7 +1,7 @@
 # Comparação de Domínio — M0.2 aprovado × M0.3 proposto
 
 **Identificador:** CMP-DOM-SEFI-M02-M03-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-11  
 **Natureza:** análise comparativa documental; não altera nem reabre decisões aprovadas.  
 **Status:** análise inicial; divergências de nomenclatura e refinamentos sujeitos a validação.
@@ -122,7 +122,15 @@ Nenhuma dessas questões é declarada resolvida por este relatório.
 5. O M0.2 deve permanecer preservado como referência aprovada; M0.3 não o substitui até validação explícita.
 6. O modelo relacional preliminar e o contrato de histórico/aceite permanecem propostas técnicas, não decisões de implementação.
 
-## 10. Encaminhamento
+## 10. Integração com a baseline consolidada
+
+A [Baseline Consolidada do Domínio e dos Processos do LIMS-SEFI](BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md) v0.1 passa a ser a referência de leitura integrada para as relações canônicas, dimensões de estado, eventos, processos e pendências. Ela não substitui M0.2, EST-REC-001 ou M0.3.
+
+A baseline adota, para interpretação funcional, a separação entre: (a) situação de custódia física; (b) resultado/fluxo da decisão; (c) etapa de conferência/validação; e (d) localização/custodiante. Assim, rótulos como ACEITO/RECUSADO não são tratados como estados de custódia. SOB_GUARDA/ENCERRADA são usados como rótulos funcionais de custódia na proposta integrada, enquanto SOB_CUSTODIA/ENCERRADO permanecem mapeamentos de M0.3 ainda sujeitos à revisão.
+
+Para D19, a baseline preserva a regra aprovada de novo fato de apresentação, sem retroatividade, e não impõe a entidade EventoApresentacao como solução canônica antes da resolução de M03-01. A relação aprovada ItemRecebimento 1:0..N ObjetoCustodia permanece a relação canônica; a linhagem por ocorrência específica continua pendente.
+
+## 11. Encaminhamento
 
 - Manter M0.2 v0.7 como baseline conceitual aprovada.
 - Manter M0.3 v0.1 como proposta lógica para revisão.
@@ -132,10 +140,11 @@ Nenhuma dessas questões é declarada resolvida por este relatório.
 - Só depois revisar o modelo relacional e contratos técnicos.
 - Não alterar código, banco, API, frontend, CI ou infraestrutura.
 
-## 11. Situação formal
+## 12. Situação formal
 
 - Comparação M0.2 × M0.3: **ANÁLISE DOCUMENTAL INICIAL**.
 - M0.2: **APROVADO FUNCIONALMENTE**, conforme fonte.
 - M0.3: **AGUARDANDO REVISÃO/VALIDAÇÃO**.
 - Gate G0: **NÃO APROVADO**.
+- Baseline consolidada: **v0.1 — proposta para revisão, não validada**.
 - Implementação: **NÃO AUTORIZADA**.
