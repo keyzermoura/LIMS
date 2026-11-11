@@ -1,7 +1,7 @@
 # Catálogo Mestre Documental — LIMS-SEFI
 
 **Identificador:** CAT-DOC-LIMS-SEFI-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data de elaboração:** 2026-11-11  
 **Branch de trabalho:** `docs/integracao-especificacao-sefi`  
 **Branch de referência:** `main`  
@@ -39,7 +39,7 @@ Classificações utilizadas:
 | SRC-02 | Matriz Consolidada de Prontidão — Gate G0 | `docs/MATRIZ_PRONTIDAO_GATE_G0.md` | v0.3; Gate G0 não aprovado; bloqueadores e evidências pendentes | `4953116324ab820581c324c1b087c9edc6f3cb51` | Fonte de gestão de entregáveis, evidências e prontidão |
 | SRC-03 | Matriz de Aderência — Domínio Existente × Domínio SEFI Aprovado | `docs/MATRIZ_ADERENCIA_DOMINIO_SEFI.md` | v1.1; diagnóstico de aderência parcial/insuficiente para admissão SEFI | `607ead785c7d01b8f2eaa821d825cbd0083627ee` | Fonte de diagnóstico entre software existente e domínio SEFI |
 | SRC-04 | Modelo Lógico Revisado do Domínio SEFI — M0.3 | `docs/MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md` | v0.1; elaborado, aguardando revisão/validação; contém propostas M03-01 a M03-16 | `2044edf92d2e6d34c5a2645e476e5903216dee51` | Modelo lógico de trabalho; propostas não são promovidas a decisões aprovadas |
-| SRC-05 | README do LIMS | `README.md` | Documento técnico descritivo; sem versão formal de aprovação identificada | SHA não registrado neste catálogo inicial | Referência para stack, arquitetura e fluxos atualmente descritos no produto |
+| SRC-05 | README do LIMS | `README.md` | Documento técnico descritivo; sem versão formal de aprovação identificada | `0bc0deedcf804edeac8146f0041410ce4c265a13` | Referência para stack, arquitetura e fluxos atualmente descritos no produto |
 | SRC-06 | Modelo Conceitual do Domínio — Solicitação e Recebimento (M0.2) | `docs/MODELO_CONCEITUAL_DOMINIO_SOLICITACAO_RECEBIMENTO.md` | v0.7; M0.2 aprovado funcionalmente; validação operacional e complementos técnicos pendentes; não aprovado para implementação | `937ad0327016a01c49f514b280d32a047d7e0031` | Fonte conceitual aprovada para cardinalidades e conceitos; prevalência formal conforme seções 14–16 |
 | SRC-07 | Estados e Transições — Solicitação e Recebimento | `docs/ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md` | v1.7; proposta documental consolidada; validação operacional pendente; não aprovada para implementação | `fb8ea208deb2e63d9d76572b35fdc6a6ba31e3d2` | Fonte de estados, transições e critérios funcionais CA01–CA37; propostas e limites devem ser preservados |
 | SRC-08 | Modelo Relacional Preliminar do LIMS | `docs/MODELO_RELACIONAL_PRELIMINAR_LIMS.md` | v0.3; proposta técnica preliminar; revisão arquitetural/institucional e autorização de implementação pendentes | `ba6b0592e977056dbc2b87c0c2f2026a390f0bea` | Referência técnica de compatibilidade, não esquema aprovado |
@@ -60,17 +60,33 @@ Classificações utilizadas:
 
 O commit `e52e4d74374d5339b622b55a1ebdae7b53056824` foi o commit mais recente retornado pela consulta de histórico realizada em 2026-11-11 e é usado como referência de partida da branch documental. A consulta não substitui uma enumeração completa de todos os objetos do repositório.
 
-## 4. Documentos citados por outras fontes, ainda não localizados
+## 4. Referências citadas e identificadores harmonizados
 
-Após a recuperação das fontes citadas literalmente por M0.3, os três artefatos abaixo foram localizados por seus caminhos reais. Não há, neste momento, outros documentos identificados como não recuperados neste grupo:
+As fontes consultadas utilizam identificadores documentais e nomes de arquivo descritivos que nem sempre coincidem. Foram confirmadas as seguintes correspondências:
 
-- `AUD-EST-001` é identificado na documentação como `AUD-LIMS-001` e foi recuperado em `docs/AUDITORIA_CONSISTENCIA_EST01_EST10.md`;
-- `REV-MD-LIMS-002` foi recuperado em `docs/REVISAO_MULTIDISCIPLINAR_MAQUINA_ESTADOS_CA01_CA24.md`;
-- `SIM-SEFI-REC-001` foi recuperado em `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md`.
+- `EST-REC-001` → `docs/ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md`;
+- `MOD-DOM-001` → `docs/MODELO_CONCEITUAL_DOMINIO_SOLICITACAO_RECEBIMENTO.md`;
+- `MOD-REL-001` → `docs/MODELO_RELACIONAL_PRELIMINAR_LIMS.md`;
+- `CTR-LIMS-CUST-001` → `docs/CONTRATO_HISTORICO_UNIFICADO_E_ACEITE.md`;
+- `AUD-LIMS-001` (referido como auditoria de consistência EST01–EST10) → `docs/AUDITORIA_CONSISTENCIA_EST01_EST10.md`;
+- `REV-MD-LIMS-002` → `docs/REVISAO_MULTIDISCIPLINAR_MAQUINA_ESTADOS_CA01_CA24.md`;
+- `SIM-SEFI-REC-001` → `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md`.
 
-Os caminhos nominais `docs/<IDENTIFICADOR>.md` foram testados para esses identificadores e não foram localizados nesses caminhos exatos. **Isso não prova que os documentos não existam**: podem estar em outra pasta, ter extensão/nome diferente, estar em arquivos anexos ou em outra superfície documental. A localização deverá ser retomada quando houver acesso à árvore completa e aos demais artefatos.
+Os caminhos curtos `docs/<IDENTIFICADOR>.md` não existem para vários desses identificadores; os arquivos foram localizados pelos nomes descritivos acima. A enumeração integral do repositório continua pendente, portanto esta lista não declara que todos os documentos foram identificados.
 
-## 5. Lacunas do inventário
+## 5. Artefatos integradores produzidos nesta branch
+
+Os seguintes documentos foram criados nesta linha de trabalho, sem modificar as fontes em `main`:
+
+| Artefato | Caminho | Finalidade | Status |
+|---|---|---|---|
+| Catálogo Mestre | `docs/00_GOVERNANCA/CATALOGO_MESTRE_DOCUMENTAL.md` | Inventário e precedência documental | v0.2; inicial, não exaustivo |
+| Plano de Integração | `docs/00_GOVERNANCA/PLANO_DE_INTEGRACAO_DOCUMENTAL.md` | Pacotes de trabalho e governança | v0.1 |
+| Especificação Integrada | `docs/00_GOVERNANCA/ESPECIFICACAO_INTEGRADA_LIMS_SEFI.md` | Documento integrador e índice | v0.1; estrutura inicial |
+| Comparação M0.2 × M0.3 | `docs/02_DOMINIO/COMPARACAO_M0_2_M0_3.md` | Preservação das cardinalidades e divergências | v0.1; análise inicial |
+| Matriz D01–D20 | `docs/05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md` | Relação D × domínio × CA × SIM | v0.3; não validada |
+
+## 6. Lacunas do inventário
 
 O inventário é inicial, não exaustivo. O conector GitHub utilizado nesta etapa permitiu recuperar arquivos por caminho conhecido, metadados de repositório, commits e branches, mas não forneceu uma listagem completa da árvore de diretórios. Portanto, ainda não se declara que todos os documentos do repositório foram localizados.
 
@@ -81,7 +97,7 @@ Também precisam ser conferidos:
 - evidências de aprovação/validação que estejam fora do repositório;
 - arquivos e registros de conversas anteriores que ainda não estejam representados em `main`.
 
-## 6. Precedência documental provisória
+## 7. Precedência documental provisória
 
 Para evitar conflitos durante a integração:
 
@@ -92,13 +108,13 @@ Para evitar conflitos durante a integração:
 5. README e código descrevem o produto existente; não prevalecem sobre decisões de domínio ratificadas.
 6. Havendo conflito entre fontes de mesmo nível ou falta de fonte, registrar a divergência e encaminhar para decisão; não inferir aprovação.
 
-## 7. Histórico
+## 8. Histórico
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-11 | Inventário ampliado para doze fontes recuperadas, incluindo M0.2, estados/transições, modelo relacional e contrato de histórico/aceite; inclui auditoria, revisão multidisciplinar e simulação documental; a enumeração integral da árvore do repositório continua pendente; limitações do levantamento registradas. |
 
-## 8. Situação formal
+## 9. Situação formal
 
 - Inventário documental: **INICIAL — NÃO EXAUSTIVO**.
 - Decisões D01–D20: **RATIFICADAS**, conforme SRC-01.
