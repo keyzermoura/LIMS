@@ -1,7 +1,7 @@
 # Especificação Integrada do LIMS-SEFI
 
 **Identificador:** ESP-INT-LIMS-SEFI-001  
-**Versão:** 0.3 — baseline de domínio/processos integrada  
+**Versão:** 0.4 — harmonização documental ampliada  
 **Data:** 2026-11-11  
 **Branch de trabalho:** `docs/integracao-especificacao-sefi`  
 **Status:** documento integrador em elaboração; não aprovado.
@@ -26,6 +26,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | [Simulação de Mesa SIM01–SIM12](../VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md) | Cenários operacionais e relação com CA | Simulação documental; não é homologação nem teste de software |
 | [Modelo Lógico M0.3](../MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md) | Modelo lógico proposto para revisão | Elaborado; aguarda revisão/validação |
 | [Baseline Consolidada de Domínio e Processos](../02_DOMINIO/BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md) | Referência integrada que preserva cardinalidades e separa regras aprovadas de refinamentos pendentes | v0.1; proposta documental não validada |
+| [Matriz de Harmonização de Estados/Eventos](../02_DOMINIO/MATRIZ_HARMONIZACAO_ESTADOS_TRANSICOES_EVENTOS_SEFI.md) | Correspondência EST-REC-001 × M0.3, com estados, eventos, projeções e questões em aberto | v0.1; analítica, não validada |
 | [Comparação M0.2 × M0.3](../02_DOMINIO/COMPARACAO_M0_2_M0_3.md) | Preservação de cardinalidades, refinamentos e divergências de nomenclatura | Análise documental inicial; não validada |
 | [Requisitos Funcionais RF-001–RF-020](../03_ESPECIFICACAO_FUNCIONAL/REQUISITOS_FUNCIONAIS_SEFI_RF001_RF020.md) | Decomposição de D01–D20 em requisitos funcionais | Versão inicial derivada de decisões ratificadas; detalhamento/testes pendentes |
 | [Catálogo Mestre](CATALOGO_MESTRE_DOCUMENTAL.md) | Inventário, versões, fontes e limitações | Inventário ampliado; ainda não exaustivo |
@@ -68,7 +69,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 
 ## 5. Processos e requisitos funcionais
 
-A [Baseline Consolidada de Domínio e Processos](../02_DOMINIO/BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md) estabelece a referência integrada de entidades, cardinalidades, dimensões de estado, eventos, invariantes, processos e pendências, preservando as fontes aprovadas e identificando refinamentos ainda não validados. O [Mapa de Processos Operacionais PROC-01–PROC-17](../02_DOMINIO/MAPA_PROCESSOS_OPERACIONAIS_SEFI_PROC01_PROC16.md) organiza os fluxos de solicitação, chegada, apresentação, custódia, conferência, pendência, decisão, validação, admissão, movimentação, destinação, retificação, chegada posterior, evidências e consulta; PROC-17 trata continuidade/backup/recuperação como controle transversal. O mapa é documental e ainda depende de validação operacional.
+A [Baseline Consolidada de Domínio e Processos](../02_DOMINIO/BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md) estabelece a referência integrada de entidades, cardinalidades, dimensões de estado, eventos, invariantes, processos e pendências, preservando as fontes aprovadas e identificando refinamentos ainda não validados. A [Matriz de Harmonização de Estados, Transições e Eventos](../02_DOMINIO/MATRIZ_HARMONIZACAO_ESTADOS_TRANSICOES_EVENTOS_SEFI.md) explicita o vocabulário e as projeções, sem converter mapeamentos analíticos em estados aprovados. O [Mapa de Processos Operacionais PROC-01–PROC-17](../02_DOMINIO/MAPA_PROCESSOS_OPERACIONAIS_SEFI_PROC01_PROC16.md) organiza os fluxos de solicitação, chegada, apresentação, custódia, conferência, pendência, decisão, validação, admissão, movimentação, destinação, retificação, chegada posterior, evidências e consulta; PROC-17 trata continuidade/backup/recuperação como controle transversal. O mapa é documental e ainda depende de validação operacional.
 
 ## 5.1 Requisitos funcionais e matriz de rastreabilidade
 
@@ -116,6 +117,7 @@ O [Plano Preliminar de Casos de Teste CA01–CA37](../06_VALIDACAO/PLANO_CASOS_T
 | 0.1 | 2026-11-11 | Estrutura inicial da especificação integrada. |
 | 0.2 | 2026-11-11 | Integra mapa de processos e matrizes de rastreabilidade. |
 | 0.3 | 2026-11-11 | Incorpora baseline consolidada de domínio/processos e atualiza o mapa para PROC-01–PROC-17. |
+| 0.4 | 2026-11-11 | Incorpora a matriz de harmonização de estados, transições e eventos. |
 
 
 - Especificação integrada: **EM ELABORAÇÃO — baseline de domínio/processos v0.1 incorporada**.
