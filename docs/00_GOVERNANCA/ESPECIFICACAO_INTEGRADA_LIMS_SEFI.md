@@ -60,7 +60,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | 15 | Dados, integrações e migração | D18, G0-P07/P22/P23 | Especificação e reconciliação pendentes |
 | 16 | Continuidade, backup e retenção | D17, G0-P06/P30 | Diretrizes aprovadas; parâmetros e evidências pendentes |
 | 17 | Arquitetura-alvo | Diagnóstico, requisitos e decisões técnicas | Não iniciada |
-| 18 | Critérios de aceitação e testes | CA01–CA37, SIM01–SIM12, G0-P11–P15 | Fontes detalhadas a recuperar; execução não comprovada |
+| 18 | Critérios de aceitação e testes | CA01–CA37, SIM01–SIM12, G0-P11–P15 | Fontes recuperadas; casos preliminares elaborados; execução não comprovada |
 | 19 | Rastreabilidade integral | Todas as fontes anteriores | Em elaboração |
 | 19.1 | Matriz D01–D20 × domínio × CA × SIM × evidência | D01–D20, M0.3, EST-REC-001 e registros SIM | Primeira versão documental criada; associação CA em consolidação; SIM pendente |
 | 20 | Pendências, decisões e histórico | Catálogo Mestre e registros de validação | Em elaboração |
@@ -73,7 +73,11 @@ O [Catálogo de Requisitos Funcionais RF-001–RF-020](../03_ESPECIFICACAO_FUNCI
 
 A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) foi criada na branch documental. Ela relaciona decisões às entidades, estados, eventos e invariantes propostos em M0.3. A associação analítica aos critérios CA01–CA37 foi iniciada a partir de EST-REC-001. Os cenários SIM01–SIM12 foram recuperados e estão relacionados a decisões/CA na própria fonte; permanecem simulação documental, sem validação operacional ou teste de software.
 
-## 6. Registro de questões que não podem ser presumidas como resolvidas
+## 6. Plano preliminar de testes
+
+O [Plano Preliminar de Casos de Teste CA01–CA37](../06_VALIDACAO/PLANO_CASOS_TESTE_CA01_CA37.md) foi elaborado a partir de EST-REC-001 v1.7. Ele especifica pré-condições genéricas, ações, resultados esperados e evidências sugeridas. Todos os casos permanecem não executados; CA25–CA37 continuam identificados como complementos propostos.
+
+## 7. Registro de questões que não podem ser presumidas como resolvidas
 
 - M03-01 a M03-16, conforme M0.3.
 - Designações nominais de competências e substitutos.
@@ -92,7 +96,7 @@ A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RAS
 - Validação operacional SIM01–SIM12.
 - Especificação, execução e evidências dos CA01–CA37.
 
-## 7. Estado formal
+## 8. Estado formal
 
 - Especificação integrada: **ESTRUTURA INICIAL — EM ELABORAÇÃO**.
 - D01–D20: **RATIFICADAS**, sem alteração.
