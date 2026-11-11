@@ -44,6 +44,9 @@ Classificações utilizadas:
 | SRC-07 | Estados e Transições — Solicitação e Recebimento | `docs/ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md` | v1.7; proposta documental consolidada; validação operacional pendente; não aprovada para implementação | `fb8ea208deb2e63d9d76572b35fdc6a6ba31e3d2` | Fonte de estados, transições e critérios funcionais CA01–CA37; propostas e limites devem ser preservados |
 | SRC-08 | Modelo Relacional Preliminar do LIMS | `docs/MODELO_RELACIONAL_PRELIMINAR_LIMS.md` | v0.3; proposta técnica preliminar; revisão arquitetural/institucional e autorização de implementação pendentes | `ba6b0592e977056dbc2b87c0c2f2026a390f0bea` | Referência técnica de compatibilidade, não esquema aprovado |
 | SRC-09 | Contrato do Histórico Unificado e da Transação de Aceite | `docs/CONTRATO_HISTORICO_UNIFICADO_E_ACEITE.md` | v0.1; proposta técnica para revisão funcional e arquitetural; não aprovada para implementação | `b81e786de482639394a40b601df0fec5a2a3f0a1` | Proposta de contrato histórico/transacional; não equivale a decisão aprovada |
+| SRC-10 | Auditoria de Consistência das Decisões EST01–EST10 | `docs/AUDITORIA_CONSISTENCIA_EST01_EST10.md` | v1.3; achados AUD01–AUD22 tratados documentalmente; validação operacional e dependências técnicas pendentes | `27576bb201503dc586ce8530e0f0a9eb661b67f5` | Fonte de auditoria funcional/documental e achados residuais |
+| SRC-11 | Revisão Multidisciplinar — Máquina de Estados e Critérios de Aceitação | `docs/REVISAO_MULTIDISCIPLINAR_MAQUINA_ESTADOS_CA01_CA24.md` | v1.2; revisão documental concluída; dependências e validação operacional pendentes | `f72581d3d386422a8663f22507b42c77671f0c23` | Parecer multidisciplinar, revisão CA01–CA24 e propostas CA25–CA37 |
+| SRC-12 | Simulação de Mesa — Cenários Operacionais do Recebimento SEFI | `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md` | v1.2; SIM01–SIM12 simulados documentalmente; sem validação operacional com usuários e sem teste de software | `c0a079d9a520e029339e35555ea9e48afd471679` | Fonte dos cenários e sua relação declarada com CA e D01–D20 |
 
 ### 3.1 Referências de histórico verificadas
 
@@ -59,11 +62,11 @@ O commit `e52e4d74374d5339b622b55a1ebdae7b53056824` foi o commit mais recente re
 
 ## 4. Documentos citados por outras fontes, ainda não localizados
 
-Após a recuperação das fontes citadas literalmente por M0.3, permanecem sem recuperação confirmada nesta etapa:
+Após a recuperação das fontes citadas literalmente por M0.3, os três artefatos abaixo foram localizados por seus caminhos reais. Não há, neste momento, outros documentos identificados como não recuperados neste grupo:
 
-- `AUD-EST-001` — auditoria de consistência EST01–EST10;
-- `REV-MD-LIMS-002` — revisão multidisciplinar;
-- `SIM-SEFI-REC-001` — cenários SIM01–SIM12.
+- `AUD-EST-001` é identificado na documentação como `AUD-LIMS-001` e foi recuperado em `docs/AUDITORIA_CONSISTENCIA_EST01_EST10.md`;
+- `REV-MD-LIMS-002` foi recuperado em `docs/REVISAO_MULTIDISCIPLINAR_MAQUINA_ESTADOS_CA01_CA24.md`;
+- `SIM-SEFI-REC-001` foi recuperado em `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md`.
 
 Os caminhos nominais `docs/<IDENTIFICADOR>.md` foram testados para esses identificadores e não foram localizados nesses caminhos exatos. **Isso não prova que os documentos não existam**: podem estar em outra pasta, ter extensão/nome diferente, estar em arquivos anexos ou em outra superfície documental. A localização deverá ser retomada quando houver acesso à árvore completa e aos demais artefatos.
 
@@ -93,7 +96,7 @@ Para evitar conflitos durante a integração:
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 0.1 | 2026-11-11 | Inventário ampliado para nove fontes recuperadas, incluindo M0.2, estados/transições, modelo relacional e contrato de histórico/aceite; referências AUD-EST-001, REV-MD-LIMS-002 e SIM-SEFI-REC-001 ainda não recuperadas; limitações do levantamento registradas. |
+| 0.1 | 2026-11-11 | Inventário ampliado para doze fontes recuperadas, incluindo M0.2, estados/transições, modelo relacional e contrato de histórico/aceite; inclui auditoria, revisão multidisciplinar e simulação documental; a enumeração integral da árvore do repositório continua pendente; limitações do levantamento registradas. |
 
 ## 8. Situação formal
 
