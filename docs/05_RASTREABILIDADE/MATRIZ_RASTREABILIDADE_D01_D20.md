@@ -1,7 +1,7 @@
 # Matriz Inicial de Rastreabilidade — D01 a D20
 
 **Identificador:** MAT-TRC-SEFI-D01-D20-001  
-**Versão:** 0.2  
+**Versão:** 0.3  
 **Data:** 2026-11-11  
 **Branch:** `docs/integracao-especificacao-sefi`  
 **Fontes principais:** DEC-SEFI-001 v1.7; MOD-DOM-001 (M0.2) v0.7; EST-REC-001 v1.7; MOD-LOG-SEFI-003 (M0.3) v0.1; MAT-G0-SEFI-001 v0.3.  
@@ -89,14 +89,43 @@ A tabela abaixo é uma **associação analítica inicial** entre o texto dos cri
 
 **Observação de cobertura:** D17 (backup/recuperação) não possui CA específico entre CA01–CA37 conforme o conteúdo recuperado de EST-REC-001. Deve ser coberto por requisitos/critério técnico próprio associado a G0-P06, não por associação artificial a um CA existente. D12 possui cobertura apenas parcial por CA24 (congelamento de versão aplicada); o fluxo de elaboração, revisão, aprovação e publicação de checklist exige critérios adicionais.
 
-## 2.2 SIM01–SIM12
+## 2.2 Correspondência com SIM01–SIM12
 
-EST-REC-001 e M0.3 citam SIM01–SIM12 como cenários de validação operacional, mas o conteúdo individual dos cenários, participantes, passos e evidências não foi recuperado nesta etapa. Nenhum SIM é associado a D01–D20 por suposição. O vínculo será preenchido quando a fonte SIM original for localizada e lida.
+A fonte `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md` (SIM-SEFI-REC-001 v1.2) foi recuperada. A relação D→SIM abaixo consta expressamente do adendo da fonte; os critérios CA relacionados a cada cenário também estão listados no documento.
+
+| Cenário | Escopo | Decisões relacionadas conforme adendo da fonte | Critérios CA relacionados conforme cenário | Situação |
+|---|---|---|---|---|
+| SIM01 | Recebimento integral com aceite | D01–D04, D11–D12, D18, D20; também base de D10 | CA01–CA05, CA14, CA16–CA18, CA24, CA31–CA33, CA37 | Simulação documental; validação operacional pendente |
+| SIM02 | Recebimento parcial com item não apresentado | D01–D04, D18–D19 | CA07, CA08, CA23, CA28, CA36 | Simulação documental; validação operacional pendente |
+| SIM03 | Divergência entre quantidade declarada e apresentada | D02–D04 | CA04–CA08, CA26–CA27 | Simulação documental; depende de checklist/categoria |
+| SIM04 | Um item com dois objetos, um aceito e outro recusado | D03–D06, D11–D12, D20 | CA09, CA14, CA18, CA20, CA27, CA37 | Simulação documental; depende de regra por categoria |
+| SIM05 | Pendência saneável, comunicação, vencimento, prorrogação e reavaliação | D05, D11–D12 | CA05, CA12, CA13, CA14, CA26 | Simulação documental; prazos/canais/alçadas pendentes |
+| SIM06 | Recusa com permanência em custódia e posterior devolução | D06, D07, D11–D12 | CA04, CA09, CA14, CA15 | Simulação documental; procedimento de devolução pendente |
+| SIM07 | Transferência entre responsáveis | D07 | CA10, CA11, CA29, CA30 | Simulação documental; confirmação e política de assinatura pendentes |
+| SIM08 | Mudança de localização sem troca de custodiante | D08 | CA29, CA34 | Simulação documental; catálogo de locais pendente |
+| SIM09 | Retificação após criação de amostra e início de ensaio | D09–D10, D13–D16, D20 | CA19, CA20, CA22 | Simulação documental; procedimento de impacto pendente |
+| SIM10 | Reenvio concorrente e alteração com versão obsoleta | D18, D20; controles transversais G0-P23 | CA16, CA17, CA31, CA32, CA33 | Simulação documental; contrato técnico e testes reais pendentes |
+| SIM11 | Solicitante tenta acessar solicitação/evidência de terceiro | D13, D15–D16 | CA01, CA25, CA35 | Simulação documental; identidade externa e isolamento ainda pendentes |
+| SIM12 | Material chega após conclusão como não apresentado | D18–D19 | CA07, CA23, CA28, CA36 | Simulação documental; regra de exceção/reabertura pendente |
+
+**Rastreabilidade D→SIM expressa no adendo SIM-SEFI-REC-001 v1.2:**
+- D01–D04: SIM01–SIM04.
+- D05–D06: SIM05–SIM06.
+- D07–D08: SIM07–SIM08.
+- D09–D10: SIM09 e SIM01/SIM04/SIM06.
+- D11–D12: SIM01–SIM06.
+- D13–D16: SIM09–SIM11.
+- D17: cenários de falha/recuperação ainda precisam ser acrescentados.
+- D18: SIM01/SIM10/SIM12.
+- D19: SIM12.
+- D20: SIM01–SIM06 e SIM09.
+
+A matriz não declara os cenários executados com operadores. A fonte afirma expressamente que SIM01–SIM12 permanecem simulação documental, não teste automatizado nem homologação. Também recomenda acrescentar cenários de restauração de backup, integridade de anexos/hash, autorização/assinatura, acesso indevido a anexos e conflitos de concorrência na etapa de QA.
 
 ## 3. Lacunas de rastreabilidade identificadas
 
 1. **CA01–CA37:** o conteúdo individual foi recuperado em EST-REC-001 v1.7 e a correspondência analítica inicial está na seção 2.1. Ela não substitui uma matriz formal da fonte nem a validação dos vínculos.
-2. **SIM01–SIM12:** os cenários são citados como conjunto, mas seus passos, participantes, resultados e evidências precisam ser recuperados.
+2. **SIM01–SIM12:** conteúdo dos doze cenários e sua rastreabilidade D/CA foram recuperados. A execução de validação de mesa com representantes do SEFI, os registros de concordância/divergência e evidências de execução continuam pendentes.
 3. **M03-01 a M03-16:** permanecem pendências explícitas no M0.3. Em especial, M03-01 (EventoApresentacao/D19), M03-02 (agrupamento/fracionamento) e M03-03 (unidades/reconciliação) afetam o detalhamento do domínio.
 4. **M0.1/M0.2:** M0.2 v0.7 e EST-REC-001 v1.7 foram recuperados. A comparação detalhada das cardinalidades e regras entre M0.2 e M0.3 ainda precisa ser concluída.
 5. **Evidências operacionais:** a presença de uma regra ou evento no modelo não comprova execução por usuários do SEFI.
@@ -109,8 +138,8 @@ Fontes citadas no M0.3 que precisam ser localizadas/recuperadas:
 - `docs/ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md` (v1.7; CA01–CA37);
 - `docs/MODELO_RELACIONAL_PRELIMINAR_LIMS.md` (v0.3);
 - `docs/CONTRATO_HISTORICO_UNIFICADO_E_ACEITE.md` (v0.1);
-- documentos de cenários SIM01–SIM12;
-- documentos de critérios de aceitação e evidências de execução.
+- evidências de execução/validação operacional dos cenários SIM01–SIM12;
+- evidências de execução dos testes CA01–CA37.
 
 Os caminhos acima são citados literalmente por M0.3; sua recuperação ainda não foi concluída nesta etapa.
 
