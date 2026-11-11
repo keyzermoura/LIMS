@@ -1,10 +1,10 @@
 # Matriz Inicial de Rastreabilidade — D01 a D20
 
 **Identificador:** MAT-TRC-SEFI-D01-D20-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-11  
 **Branch:** `docs/integracao-especificacao-sefi`  
-**Fontes principais:** DEC-SEFI-001 v1.7; MOD-LOG-SEFI-003 (M0.3) v0.1; MAT-G0-SEFI-001 v0.3.  
+**Fontes principais:** DEC-SEFI-001 v1.7; MOD-DOM-001 (M0.2) v0.7; EST-REC-001 v1.7; MOD-LOG-SEFI-003 (M0.3) v0.1; MAT-G0-SEFI-001 v0.3.  
 **Natureza:** rastreabilidade documental inicial; não é validação funcional, homologação ou aprovação de implementação.
 
 ## 1. Objetivo e limites
@@ -21,7 +21,7 @@ As referências a entidades, estados, eventos e invariantes abaixo são transcri
 
 | Decisão | Requisito ratificado (síntese) | Entidades / conceitos M0.3 | Estados / condições relevantes | Eventos de domínio M0.3 | Invariantes candidatos | G0 relacionado | CA / SIM | Situação da evidência |
 |---|---|---|---|---|---|---|---|---|
-| D01 | Recepção registra chegada; conferência é evento distinto; acumulação de funções só com permissões. | UsuarioInterno, Perfil/Permissao, Recebimento, ItemRecebimento, RespostaChecklist, EventoAuditoria. | Recebimento REGISTRADO; conferência NAO_INICIADA → EM_ANDAMENTO → CONCLUIDA. | CHEGADA_REGISTRADA; CONFERENCIA_INICIADA; CONFERENCIA_CONCLUIDA. | INV-25, INV-30, INV-31. | P01, P11, P13, P16. | Não mapeados nesta versão. | Regra ratificada; fluxo no sistema atual diagnosticado como insuficiente; validação operacional pendente. |
+| D01 | Recepção registra chegada; conferência é evento distinto; acumulação de funções só com permissões. | UsuarioInterno, Perfil/Permissao, Recebimento, ItemRecebimento, RespostaChecklist, EventoAuditoria. | Recebimento REGISTRADO; conferência NAO_INICIADA → EM_ANDAMENTO → CONCLUIDA. | CHEGADA_REGISTRADA; CONFERENCIA_INICIADA; CONFERENCIA_CONCLUIDA. | INV-25, INV-30, INV-31. | P01, P11, P13, P16. | CA: ver tabela 2.1; SIM: pendente. | Regra ratificada; fluxo no sistema atual diagnosticado como insuficiente; validação operacional pendente. |
 | D02 | Registrar dados da chegada, atores, volumes, condição, documentos, observações e tempos efetivo/registro. | Solicitação, Recebimento, ItemRecebimento, Evidencia, VinculoEvidencia. | Recebimento REGISTRADO; apresentação por item. | CHEGADA_REGISTRADA; ITEM_APRESENTADO; ITEM_NAO_APRESENTADO; EVIDENCIA_VINCULADA. | INV-25, INV-31. | P07, P09, P11, P24. | Não mapeados nesta versão. | Regra ratificada; diagnóstico aponta lacunas no domínio atual; execução operacional não comprovada. |
 | D03 | Distinguir quantidades declarada, apresentada, aceita, recusada e não apresentada; permitir parcialidade e justificar divergências. | ItemDeclarado, ItemRecebimento, EventoApresentacao, ObjetoCustodia, DecisaoRecebimento. | APRESENTADO, NAO_APRESENTADO, APRESENTACAO_PARCIAL; decisão por escopo/objeto. | ITEM_APRESENTADO; ITEM_NAO_APRESENTADO; APRESENTACAO_COMPLEMENTAR_REGISTRADA; DECISAO_ACEITE_REGISTRADA; DECISAO_RECUSA_REGISTRADA. | INV-04, INV-05, INV-07, INV-34. | P07, P26. | Não mapeados nesta versão. | Regras conceituais presentes; unidades, precisão e reconciliação numérica continuam pendentes (M03-02/M03-03). |
 | D04 | Um item recebido pode originar vários objetos de custódia com decisões e históricos próprios. | ItemRecebimento, EventoApresentacao, ObjetoCustodia, EventoCustodia. | Objeto SOB_CUSTODIA, EM_CONFERENCIA, PENDENTE, ACEITO ou RECUSADO. | OBJETO_CUSTODIA_CRIADO; CUSTODIA_INICIADA; DECISAO_ACEITE_REGISTRADA; DECISAO_RECUSA_REGISTRADA. | INV-05, INV-06, INV-08, INV-18, INV-34. | P26. | Não mapeados nesta versão. | Cardinalidade lógica proposta em M0.3; regras por categoria e exemplos de agrupamento/fracionamento pendentes. |
@@ -42,12 +42,63 @@ As referências a entidades, estados, eventos e invariantes abaixo são transcri
 | D19 | Chegada posterior vinculada à solicitação original, novo evento, nova conferência e sem retroatividade. | Solicitação, Recebimento, ItemRecebimento, EventoApresentacao, ObjetoCustodia. | Apresentação complementar registrada; reabertura autorizada ou nova solicitação vinculada se processo encerrado. | APRESENTACAO_COMPLEMENTAR_REGISTRADA; ITEM_APRESENTADO; OBJETO_CUSTODIA_CRIADO. | INV-02, INV-05, INV-06, INV-25, INV-33. | P11, P18, P22, P23, P26. | Não mapeados nesta versão. | D19 ratificada; EventoApresentacao é refinamento proposto em M0.3 e requer validação funcional; M03-01 pendente. |
 | D20 | Amostra operacional somente após aceite formal, critérios impeditivos atendidos, pendências resolvidas, validações e custódia válidas. | ObjetoCustodia, DecisaoRecebimento, ValidacaoCoordenacao, AmostraOperacional, Ensaio. | Objeto ACEITO; decisão ACEITE_VALIDADO; AmostraOperacional CRIADA/ATIVA conforme fluxo compatibilizado. | DECISAO_ACEITE_REGISTRADA; VALIDACAO_COORDENACAO_REGISTRADA; AMOSTRA_OPERACIONAL_CRIADA. | INV-21, INV-22, INV-23, INV-24. | P11, P12, P14, P15, P17, P23, P26. | Não mapeados nesta versão. | Barreira D20 ratificada; divergência com fluxo atual de POST /samples registrada; implementação futura depende de validação e G0. |
 
+
+## 2.1 Correspondência analítica com CA01–CA37
+
+A tabela abaixo é uma **associação analítica inicial** entre o texto dos critérios CA em EST-REC-001 v1.7 e as decisões D01–D20. O documento EST-REC-001 apresenta os critérios, mas não fornece uma matriz formal CA × D01–D20. Portanto, esta correspondência é rastreabilidade proposta para revisão, não uma decisão adicional nem uma aprovação dos critérios.
+
+| Critério | Decisão(ões) relacionadas por análise textual | Conteúdo central do critério | Status na fonte EST-REC-001 |
+|---|---|---|---|
+| CA01 | D01, D15 | Usuário sem permissão tenta registrar chegada; bloqueio e registro da tentativa. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA02 | D01, D10 | Usuário com RECEPÇÃO + CONFERENTE pode registrar e conferir com eventos/autorias distintos. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA03 | D10 | Impedir validação da própria decisão quando independência é exigida. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA04 | D06, D11 | Critério E não conforme bloqueia aceite. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA05 | D05, D11 | Critério S não conforme gera pendência e bloqueia aceite até reavaliação favorável. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA06 | D11 | Critério I sem informação não bloqueia isoladamente. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA07 | D03 | Item não apresentado não gera ObjetoCustodia, custódia ou amostra. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA08 | D03 | Recebimento com itens apresentados e não apresentados pode ser concluído sem converter ausência em aceite. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA09 | D06, D07 | Material recusado e não retirado permanece sob guarda. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA10 | D07 | Transferência sem confirmação mantém responsabilidade com origem. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA11 | D07 | Confirmação do destinatário efetiva a mudança de responsável. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA12 | D05 | Vencimento não encerra pendência nem gera recusa automática. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA13 | D05, D13 | Evidência recebida sem reavaliação mantém pendência aguardando reavaliação. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA14 | D06, D10, D16 | Validação independente e assinatura formal na aprovação de recusa proposta. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA15 | D06, D11 | Coordenação não dispensa critério E, salvo fundamento previamente formalizado aplicável. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA16 | D18, D20 | Reenvio concorrente de criação de amostra não duplica amostra/identificador. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA17 | D20 | Aceite sem validação obrigatória concluída não permite criar amostra. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA18 | D03, D04, D06, D20 | Objetos de um item podem ter decisões distintas; objeto recusado permanece sob custódia. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA19 | D09, D16 | Retificação sem justificativa, evidência ou autorização é bloqueada. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA20 | D09 | Retificação após início de ensaios exige avaliação de impacto; não exclui dados automaticamente. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA21 | D10, D15 | Administrador não pode elevar a própria permissão. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA22 | D14 | Impedir alteração/exclusão de evento de auditoria formalizado. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA23 | D18, D19 | Chegada após conclusão como não apresentada não retroage; exige nova solicitação ou exceção formal. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA24 | D11, D12 | Conferência mantém versão do checklist originalmente aplicada. | Critério CA01–CA24 consolidado para revisão; teste não comprovado |
+| CA25 | D13, D15 | Solicitante não acessa solicitação/evidência de terceiro sem vínculo autorizado. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA26 | D02, D03 | Quantidade declarada e apresentada permanecem distintas; divergência é registrada. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA27 | D03, D04 | Agrupamento de ObjetoCustodia explicita quantidade, unidade e justificativa. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA28 | D02, D14, D19 | Instante efetivo e instante de registro permanecem distintos. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA29 | D08 | Mudança de localização não simula transferência nem troca custodiante. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA30 | D07, D08 | Transferência não confirmada mantém custodiante e localização vigentes. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA31 | D18, D20 | Reenvio idempotente com mesma chave/conteúdo devolve resultado original sem duplicar efeitos. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA32 | Transversal — G0-P23 | Reutilização de chave de idempotência com conteúdo diferente é rejeitada como conflito. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA33 | Transversal — G0-P23 | Alterações concorrentes com mesma versão esperada produzem conflito, sem sobrescrita. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA34 | D14, D18 | Paginação/ordenação histórica estável durante novas gravações. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA35 | D13, D14 | Upload/consulta/substituição de anexo preserva hash, metadados, vínculo, autorização e histórico. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA36 | D18, D19 | Registro legado sem evidência suficiente não recebe vínculo presumido. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+| CA37 | D18 | Protocolo SEFI, accession e QR mantêm finalidades distintas. | Complemento CA25–CA37 proposto; adoção/validação pendente |
+
+**Observação de cobertura:** D17 (backup/recuperação) não possui CA específico entre CA01–CA37 conforme o conteúdo recuperado de EST-REC-001. Deve ser coberto por requisitos/critério técnico próprio associado a G0-P06, não por associação artificial a um CA existente. D12 possui cobertura apenas parcial por CA24 (congelamento de versão aplicada); o fluxo de elaboração, revisão, aprovação e publicação de checklist exige critérios adicionais.
+
+## 2.2 SIM01–SIM12
+
+EST-REC-001 e M0.3 citam SIM01–SIM12 como cenários de validação operacional, mas o conteúdo individual dos cenários, participantes, passos e evidências não foi recuperado nesta etapa. Nenhum SIM é associado a D01–D20 por suposição. O vínculo será preenchido quando a fonte SIM original for localizada e lida.
+
 ## 3. Lacunas de rastreabilidade identificadas
 
-1. **CA01–CA37:** a matriz de prontidão informa a existência/referência dos critérios, mas esta versão não recuperou o conteúdo individual dos critérios. Não atribuir números CA a decisões por inferência.
+1. **CA01–CA37:** o conteúdo individual foi recuperado em EST-REC-001 v1.7 e a correspondência analítica inicial está na seção 2.1. Ela não substitui uma matriz formal da fonte nem a validação dos vínculos.
 2. **SIM01–SIM12:** os cenários são citados como conjunto, mas seus passos, participantes, resultados e evidências precisam ser recuperados.
 3. **M03-01 a M03-16:** permanecem pendências explícitas no M0.3. Em especial, M03-01 (EventoApresentacao/D19), M03-02 (agrupamento/fracionamento) e M03-03 (unidades/reconciliação) afetam o detalhamento do domínio.
-4. **M0.1/M0.2:** M0.3 declara preservar cardinalidades M0.2, mas as fontes originais M0.2 e de estados ainda precisam ser recuperadas e comparadas diretamente.
+4. **M0.1/M0.2:** M0.2 v0.7 e EST-REC-001 v1.7 foram recuperados. A comparação detalhada das cardinalidades e regras entre M0.2 e M0.3 ainda precisa ser concluída.
 5. **Evidências operacionais:** a presença de uma regra ou evento no modelo não comprova execução por usuários do SEFI.
 6. **Evidências técnicas:** a matriz de aderência e a matriz G0 registram limites específicos de CI/testes; não converter resultado de CI em homologação do fluxo SEFI.
 
