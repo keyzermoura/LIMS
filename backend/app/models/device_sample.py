@@ -36,8 +36,8 @@ class DeviceSample(
     accession_number: Mapped[str] = mapped_column(
         String(32), unique=True, nullable=False, index=True
     )
-    serial_number: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
-    lot_number: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    serial_number: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    lot_number: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
     manufacturer: Mapped[str] = mapped_column(String(160), nullable=False)
     commercial_name: Mapped[str] = mapped_column(String(200), nullable=False)
     model: Mapped[str | None] = mapped_column(String(120))
@@ -45,6 +45,13 @@ class DeviceSample(
         String(64), comment="Registro ANVISA (ex.: 80012345678)"
     )
     description: Mapped[str | None] = mapped_column(Text)
+
+    solicitation_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("solicitations.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    origin_custody_object_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("custody_objects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     status: Mapped[SampleStatus] = mapped_column(
         sample_status_type,
