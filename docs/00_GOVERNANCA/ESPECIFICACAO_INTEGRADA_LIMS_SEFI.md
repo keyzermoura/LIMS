@@ -87,7 +87,7 @@ A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RAS
 - Validação operacional SIM01–SIM12.
 - Especificação, execução e evidências dos CA01–CA37.
 
-## 8. Estado formal
+## 7. Estado formal
 
 - Especificação integrada: **ESTRUTURA INICIAL — EM ELABORAÇÃO**.
 - D01–D20: **RATIFICADAS**, sem alteração.
