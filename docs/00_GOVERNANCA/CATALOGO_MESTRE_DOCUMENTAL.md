@@ -40,6 +40,10 @@ Classificações utilizadas:
 | SRC-03 | Matriz de Aderência — Domínio Existente × Domínio SEFI Aprovado | `docs/MATRIZ_ADERENCIA_DOMINIO_SEFI.md` | v1.1; diagnóstico de aderência parcial/insuficiente para admissão SEFI | `607ead785c7d01b8f2eaa821d825cbd0083627ee` | Fonte de diagnóstico entre software existente e domínio SEFI |
 | SRC-04 | Modelo Lógico Revisado do Domínio SEFI — M0.3 | `docs/MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md` | v0.1; elaborado, aguardando revisão/validação; contém propostas M03-01 a M03-16 | `2044edf92d2e6d34c5a2645e476e5903216dee51` | Modelo lógico de trabalho; propostas não são promovidas a decisões aprovadas |
 | SRC-05 | README do LIMS | `README.md` | Documento técnico descritivo; sem versão formal de aprovação identificada | SHA não registrado neste catálogo inicial | Referência para stack, arquitetura e fluxos atualmente descritos no produto |
+| SRC-06 | Modelo Conceitual do Domínio — Solicitação e Recebimento (M0.2) | `docs/MODELO_CONCEITUAL_DOMINIO_SOLICITACAO_RECEBIMENTO.md` | v0.7; M0.2 aprovado funcionalmente; validação operacional e complementos técnicos pendentes; não aprovado para implementação | `937ad0327016a01c49f514b280d32a047d7e0031` | Fonte conceitual aprovada para cardinalidades e conceitos; prevalência formal conforme seções 14–16 |
+| SRC-07 | Estados e Transições — Solicitação e Recebimento | `docs/ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md` | v1.7; proposta documental consolidada; validação operacional pendente; não aprovada para implementação | `fb8ea208deb2e63d9d76572b35fdc6a6ba31e3d2` | Fonte de estados, transições e critérios funcionais CA01–CA37; propostas e limites devem ser preservados |
+| SRC-08 | Modelo Relacional Preliminar do LIMS | `docs/MODELO_RELACIONAL_PRELIMINAR_LIMS.md` | v0.3; proposta técnica preliminar; revisão arquitetural/institucional e autorização de implementação pendentes | `ba6b0592e977056dbc2b87c0c2f2026a390f0bea` | Referência técnica de compatibilidade, não esquema aprovado |
+| SRC-09 | Contrato do Histórico Unificado e da Transação de Aceite | `docs/CONTRATO_HISTORICO_UNIFICADO_E_ACEITE.md` | v0.1; proposta técnica para revisão funcional e arquitetural; não aprovada para implementação | `b81e786de482639394a40b601df0fec5a2a3f0a1` | Proposta de contrato histórico/transacional; não equivale a decisão aprovada |
 
 ### 3.1 Referências de histórico verificadas
 
@@ -55,17 +59,13 @@ O commit `e52e4d74374d5339b622b55a1ebdae7b53056824` foi o commit mais recente re
 
 ## 4. Documentos citados por outras fontes, ainda não localizados
 
-M0.3 e/ou o registro de decisões citam os seguintes identificadores como fontes ou artefatos relacionados:
+Após a recuperação das fontes citadas literalmente por M0.3, permanecem sem recuperação confirmada nesta etapa:
 
-- `EST-REC-001`
-- `MOD-DOM-001`
-- `MOD-REL-001`
-- `AUD-EST-001`
-- `REV-MD-LIMS-002`
-- `SIM-SEFI-REC-001`
-- `CTR-LIMS-CUST-001`
+- `AUD-EST-001` — auditoria de consistência EST01–EST10;
+- `REV-MD-LIMS-002` — revisão multidisciplinar;
+- `SIM-SEFI-REC-001` — cenários SIM01–SIM12.
 
-Foram testados os caminhos nominais `docs/<IDENTIFICADOR>.md` para esses sete identificadores, e a API de conteúdo retornou 404 para esses caminhos exatos. **Isso não prova que os documentos não existam**: podem estar em outra pasta, ter extensão/nome diferente, estar em arquivos anexos ou em outra superfície documental. A localização deverá ser retomada quando houver acesso à árvore completa e aos demais artefatos.
+Os caminhos nominais `docs/<IDENTIFICADOR>.md` foram testados para esses identificadores e não foram localizados nesses caminhos exatos. **Isso não prova que os documentos não existam**: podem estar em outra pasta, ter extensão/nome diferente, estar em arquivos anexos ou em outra superfície documental. A localização deverá ser retomada quando houver acesso à árvore completa e aos demais artefatos.
 
 ## 5. Lacunas do inventário
 
@@ -93,7 +93,7 @@ Para evitar conflitos durante a integração:
 
 | Versão | Data | Descrição |
 |---|---|---|
-| 0.1 | 2026-11-11 | Inventário inicial de cinco fontes recuperadas, histórico de commits conhecido, referências citadas não localizadas nos caminhos nominais e limitações do levantamento registradas. |
+| 0.1 | 2026-11-11 | Inventário ampliado para nove fontes recuperadas, incluindo M0.2, estados/transições, modelo relacional e contrato de histórico/aceite; referências AUD-EST-001, REV-MD-LIMS-002 e SIM-SEFI-REC-001 ainda não recuperadas; limitações do levantamento registradas. |
 
 ## 8. Situação formal
 
