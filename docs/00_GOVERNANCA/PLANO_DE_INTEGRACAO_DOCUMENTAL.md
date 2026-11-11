@@ -1,7 +1,7 @@
 # Plano de Integração Documental — LIMS-SEFI
 
 **Identificador:** PLN-INT-LIMS-SEFI-001  
-**Versão:** 0.4  
+**Versão:** 0.5  
 **Data:** 2026-11-11  
 **Branch:** `docs/integracao-especificacao-sefi`  
 **Natureza:** plano de organização documental; não constitui aprovação funcional, institucional ou técnica.
@@ -102,13 +102,13 @@ A aprovação de um pacote documental não modifica automaticamente decisões an
 |---|---|---|
 | PT-01 — Inventário | **Parcial** | Doze fontes recuperadas e registradas; inventário ainda não exaustivo porque a árvore completa do repositório não foi enumerada |
 | PT-02 — Baseline de decisões | **Consolidado documentalmente** | SRC-01 preservado e referenciado; D01–D20 ratificadas e G0-P01–P30 aprovadas, com limites mantidos |
-| PT-03 — Integração do domínio | **Primeira baseline consolidada elaborada** | BCDP-LIMS-SEFI-001 v0.1 reúne entidades, cardinalidades M0.2, dimensões de estado, eventos, invariantes e registro M03-01–M03-16; revisão/validação pendentes |
+| PT-03 — Integração do domínio | **Primeira baseline consolidada elaborada** | BCDP-LIMS-SEFI-001 v0.1 reúne entidades, cardinalidades M0.2, dimensões de estado, eventos, invariantes e registro M03-01–M03-16; MAT-HARM-EST-SEFI-001 v0.1 mapeia estados/eventos EST × M0.3; revisão/validação pendentes |
 | PT-04 — Integração dos processos | **Primeira versão ampliada** | Baseline de processos consolidada; mapa PROC-01–PROC-17 inclui continuidade/recuperação como controle transversal; validação operacional pendente |
 | PT-05 — Especificação funcional | **Primeira versão elaborada** | RF-001–RF-020 derivados de D01–D20 |
 | PT-06 — Requisitos transversais | **Primeira versão elaborada** | RT-001–RT-017 derivados de D01–D20/G0-P01–P30 |
 | PT-07 — Arquitetura-alvo | **Não iniciada** | Depende da consolidação de domínio/processos e de decisões técnicas/institucionais |
 | PT-08 — Rastreabilidade e validação | **Primeira versão ampliada** | Matrizes D01–D20 e G0-P01–P30 relacionadas a RF/RT/domínio/CA/SIM; plano de casos CA01–CA37; tudo não validado/não executado |
-| PT-09 — Revisão de consistência | **Parcial, com consolidação inicial** | Divergências de estados, decisão/custódia, D19 e linhagem do ObjetoCustodia mapeadas na BCDP-LIMS-SEFI-001; M03-01–M03-16 continuam pendentes |
+| PT-09 — Revisão de consistência | **Parcial, com consolidação inicial** | Divergências de estados, decisão/custódia, D19 e linhagem do ObjetoCustodia mapeadas na BCDP-LIMS-SEFI-001 e HARM-01–HARM-07; M03-01–M03-16 continuam pendentes |
 | PT-10 — Dossiê integrado | **Em elaboração** | Especificação Integrada v0.2 referencia baseline de domínio/processos e mapa PROC-01–PROC-17; demais capítulos e validações pendentes |
 
 As situações acima descrevem produção documental nesta branch. Não representam validação institucional, execução de testes, homologação, aprovação de arquitetura ou encerramento de bloqueadores do Gate G0.
