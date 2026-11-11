@@ -46,9 +46,9 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | 1 | Objetivo, escopo, atores e glossário | Decisões, EST-REC-001, documentos institucionais | Em elaboração |
 | 2 | Governança, papéis, competências e segregação | D10, D12, D15, G0-P01, P16 | Diretrizes aprovadas; designações pendentes |
 | 3 | Processos ponta a ponta | EST-REC-001, SIM-SEFI-REC-001, D01–D20 | Aguardando recuperação/integração das fontes |
-| 4 | Requisitos funcionais | D01–D20, G0-P01–P30, critérios CA | Parcial; rastreabilidade detalhada pendente |
+| 4 | Requisitos funcionais | D01–D20, G0-P01–P30, critérios CA | RF-001–RF-020 elaborados; decomposição detalhada e validação pendentes |
 | 5 | Modelo de domínio | M0.1/M0.2/M0.3 e fontes relacionadas | M0.3 aguarda validação |
-| 6 | Estados, transições e eventos | EST-REC-001, M0.3 | Parcial; propostas pendentes |
+| 6 | Estados, transições e eventos | EST-REC-001, M0.3 | Fontes recuperadas; diferenças de nomenclatura e refinamentos pendentes |
 | 7 | Regras de negócio e invariantes | D01–D20, M0.3 | Parcial; M03-01 a M03-16 em aberto |
 | 8 | Checklists, critérios e evidências | D11–D13, G0-P02/P09/P17/P24 | Estrutura aprovada; conteúdo específico pendente |
 | 9 | Custódia, localização e destinação | D06–D08, G0-P04/P08/P20 | Diretrizes aprovadas; procedimento e parâmetros pendentes |
@@ -59,7 +59,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | 14 | Documentos, anexos e evidências digitais | D13, G0-P09/P24/P30 | Requisitos aprovados; arquitetura e parâmetros pendentes |
 | 15 | Dados, integrações e migração | D18, G0-P07/P22/P23 | Especificação e reconciliação pendentes |
 | 16 | Continuidade, backup e retenção | D17, G0-P06/P30 | Diretrizes aprovadas; parâmetros e evidências pendentes |
-| 17 | Arquitetura-alvo | Diagnóstico, requisitos e decisões técnicas | Não iniciada |
+| 17 | Arquitetura-alvo | Diagnóstico, requisitos e decisões técnicas | Não iniciada; requisitos transversais RT-001–RT-017 consolidados como insumo |
 | 18 | Critérios de aceitação e testes | CA01–CA37, SIM01–SIM12, G0-P11–P15 | Fontes recuperadas; casos preliminares elaborados; execução não comprovada |
 | 19 | Rastreabilidade integral | Todas as fontes anteriores | Em elaboração |
 | 19.1 | Matriz D01–D20 × domínio × CA × SIM × evidência | D01–D20, M0.3, EST-REC-001 e registros SIM | Primeira versão documental criada; associação CA em consolidação; SIM pendente |
@@ -73,11 +73,15 @@ O [Catálogo de Requisitos Funcionais RF-001–RF-020](../03_ESPECIFICACAO_FUNCI
 
 A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) foi criada na branch documental. Ela relaciona decisões às entidades, estados, eventos e invariantes propostos em M0.3. A associação analítica aos critérios CA01–CA37 foi iniciada a partir de EST-REC-001. Os cenários SIM01–SIM12 foram recuperados e estão relacionados a decisões/CA na própria fonte; permanecem simulação documental, sem validação operacional ou teste de software.
 
-## 6. Plano preliminar de testes
+## 6. Requisitos transversais
+
+Os [Requisitos Transversais e de Qualidade RT-001–RT-017](../04_REQUISITOS/REQUISITOS_TRANSVERSAIS_QUALIDADE_SEFI_RT001_RT017.md) consolidam controles de identidade, competência, assinatura, auditoria, evidências, integridade, idempotência, consultas, backup, migração, retenção, proteção contra abuso, testes, identificadores, localização e comunicação.
+
+## 7. Plano preliminar de testes
 
 O [Plano Preliminar de Casos de Teste CA01–CA37](../06_VALIDACAO/PLANO_CASOS_TESTE_CA01_CA37.md) foi elaborado a partir de EST-REC-001 v1.7. Ele especifica pré-condições genéricas, ações, resultados esperados e evidências sugeridas. Todos os casos permanecem não executados; CA25–CA37 continuam identificados como complementos propostos.
 
-## 7. Registro de questões que não podem ser presumidas como resolvidas
+## 8. Registro de questões que não podem ser presumidas como resolvidas
 
 - M03-01 a M03-16, conforme M0.3.
 - Designações nominais de competências e substitutos.
@@ -96,7 +100,7 @@ O [Plano Preliminar de Casos de Teste CA01–CA37](../06_VALIDACAO/PLANO_CASOS_T
 - Validação operacional SIM01–SIM12.
 - Especificação, execução e evidências dos CA01–CA37.
 
-## 8. Estado formal
+## 9. Estado formal
 
 - Especificação integrada: **ESTRUTURA INICIAL — EM ELABORAÇÃO**.
 - D01–D20: **RATIFICADAS**, sem alteração.
