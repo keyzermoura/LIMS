@@ -17,8 +17,12 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | [Registro D01–D20 e G0-P01–P30](../DECISOES_PREVALIDACAO_SEFI_D01_D20.md) | Baseline de decisões ratificadas/aprovadas | D01–D20 ratificadas; P01–P30 aprovadas, com dependências explicitadas |
 | [Matriz de Prontidão G0](../MATRIZ_PRONTIDAO_GATE_G0.md) | Entregáveis, evidências, bloqueadores e situação do Gate | G0 não aprovado |
 | [Matriz de Aderência](../MATRIZ_ADERENCIA_DOMINIO_SEFI.md) | Diagnóstico do software existente versus domínio SEFI | Aderência parcial/insuficiente para admissão |
+| [Modelo Conceitual M0.2](../MODELO_CONCEITUAL_DOMINIO_SOLICITACAO_RECEBIMENTO.md) | Modelo conceitual aprovado funcionalmente; cardinalidades canônicas | M0.2 v0.7 aprovado funcionalmente; validação operacional pendente |
+| [Estados e Transições](../ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md) | Estados, transições, permissões e critérios CA01–CA37 | Proposta documental consolidada; validação operacional pendente |
+| [Modelo Relacional Preliminar](../MODELO_RELACIONAL_PRELIMINAR_LIMS.md) | Tradução relacional preliminar | Proposta técnica; não aprovada para implementação |
+| [Contrato de Histórico e Aceite](../CONTRATO_HISTORICO_UNIFICADO_E_ACEITE.md) | Histórico unificado e transação de aceite | Proposta técnica; não aprovada para implementação |
 | [Modelo Lógico M0.3](../MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md) | Modelo lógico proposto para revisão | Elaborado; aguarda revisão/validação |
-| [Catálogo Mestre](CATALOGO_MESTRE_DOCUMENTAL.md) | Inventário, versões, fontes e limitações | Inventário inicial não exaustivo |
+| [Catálogo Mestre](CATALOGO_MESTRE_DOCUMENTAL.md) | Inventário, versões, fontes e limitações | Inventário ampliado; ainda não exaustivo |
 | [Plano de Integração](PLANO_DE_INTEGRACAO_DOCUMENTAL.md) | Escopo, pacotes, governança e critérios de execução | Plano de trabalho documental |
 
 ## 3. Regras de interpretação
@@ -53,9 +57,14 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | 17 | Arquitetura-alvo | Diagnóstico, requisitos e decisões técnicas | Não iniciada |
 | 18 | Critérios de aceitação e testes | CA01–CA37, SIM01–SIM12, G0-P11–P15 | Fontes detalhadas a recuperar; execução não comprovada |
 | 19 | Rastreabilidade integral | Todas as fontes anteriores | Em elaboração |
+| 19.1 | Matriz D01–D20 × domínio × CA × SIM × evidência | D01–D20, M0.3, EST-REC-001 e registros SIM | Primeira versão documental criada; associação CA em consolidação; SIM pendente |
 | 20 | Pendências, decisões e histórico | Catálogo Mestre e registros de validação | Em elaboração |
 
-## 5. Registro de questões que não podem ser presumidas como resolvidas
+## 5. Matriz inicial de rastreabilidade
+
+A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) foi criada na branch documental. Ela relaciona decisões às entidades, estados, eventos e invariantes propostos em M0.3. A associação detalhada aos critérios CA01–CA37 está em consolidação a partir de EST-REC-001; os cenários SIM01–SIM12 e suas evidências ainda precisam ser localizados.
+
+## 6. Registro de questões que não podem ser presumidas como resolvidas
 
 - M03-01 a M03-16, conforme M0.3.
 - Designações nominais de competências e substitutos.
@@ -74,7 +83,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 - Validação operacional SIM01–SIM12.
 - Especificação, execução e evidências dos CA01–CA37.
 
-## 6. Estado formal
+## 7. Estado formal
 
 - Especificação integrada: **ESTRUTURA INICIAL — EM ELABORAÇÃO**.
 - D01–D20: **RATIFICADAS**, sem alteração.
