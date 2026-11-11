@@ -45,7 +45,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 |---|---|---|---|
 | 1 | Objetivo, escopo, atores e glossário | Decisões, EST-REC-001, documentos institucionais | Em elaboração |
 | 2 | Governança, papéis, competências e segregação | D10, D12, D15, G0-P01, P16 | Diretrizes aprovadas; designações pendentes |
-| 3 | Processos ponta a ponta | EST-REC-001, SIM-SEFI-REC-001, D01–D20 | Aguardando recuperação/integração das fontes |
+| 3 | Processos ponta a ponta | EST-REC-001, SIM-SEFI-REC-001, D01–D20 | Fontes recuperadas; mapa PROC-01–PROC-16 elaborado; validação operacional pendente |
 | 4 | Requisitos funcionais | D01–D20, G0-P01–P30, critérios CA | RF-001–RF-020 elaborados; decomposição detalhada e validação pendentes |
 | 5 | Modelo de domínio | M0.1/M0.2/M0.3 e fontes relacionadas | M0.3 aguarda validação |
 | 6 | Estados, transições e eventos | EST-REC-001, M0.3 | Fontes recuperadas; diferenças de nomenclatura e refinamentos pendentes |
@@ -65,11 +65,15 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | 19.1 | Matriz D01–D20 × domínio × CA × SIM × evidência | D01–D20, M0.3, EST-REC-001 e registros SIM | Primeira versão documental criada; associação CA em consolidação; SIM pendente |
 | 20 | Pendências, decisões e histórico | Catálogo Mestre e registros de validação | Em elaboração |
 
-## 5. Requisitos funcionais e matriz de rastreabilidade
+## 5. Processos e requisitos funcionais
+
+O [Mapa de Processos Operacionais PROC-01–PROC-16](../02_DOMINIO/MAPA_PROCESSOS_OPERACIONAIS_SEFI_PROC01_PROC16.md) organiza os fluxos de solicitação, chegada, apresentação, custódia, conferência, pendência, decisão, validação, admissão, movimentação, destinação, retificação, chegada posterior, evidências e consulta. O mapa é documental e ainda depende de validação operacional.
+
+## 5.1 Requisitos funcionais e matriz de rastreabilidade
 
 O [Catálogo de Requisitos Funcionais RF-001–RF-020](../03_ESPECIFICACAO_FUNCIONAL/REQUISITOS_FUNCIONAIS_SEFI_RF001_RF020.md) decompõe D01–D20 sem alterar as decisões-fonte.
 
-## 5.1 Matriz inicial de rastreabilidade
+## 5.2 Matriz inicial de rastreabilidade
 
 A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) foi criada na branch documental. Ela relaciona decisões às entidades, estados, eventos e invariantes propostos em M0.3. A associação analítica aos critérios CA01–CA37 foi iniciada a partir de EST-REC-001. Os cenários SIM01–SIM12 foram recuperados e estão relacionados a decisões/CA na própria fonte; permanecem simulação documental, sem validação operacional ou teste de software.
 
