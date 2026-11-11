@@ -1,7 +1,7 @@
 # Plano de Integração Documental — LIMS-SEFI
 
 **Identificador:** PLN-INT-LIMS-SEFI-001  
-**Versão:** 0.2  
+**Versão:** 0.3  
 **Data:** 2026-11-11  
 **Branch:** `docs/integracao-especificacao-sefi`  
 **Natureza:** plano de organização documental; não constitui aprovação funcional, institucional ou técnica.
@@ -107,7 +107,7 @@ A aprovação de um pacote documental não modifica automaticamente decisões an
 | PT-05 — Especificação funcional | **Primeira versão elaborada** | RF-001–RF-020 derivados de D01–D20 |
 | PT-06 — Requisitos transversais | **Primeira versão elaborada** | RT-001–RT-017 derivados de D01–D20/G0-P01–P30 |
 | PT-07 — Arquitetura-alvo | **Não iniciada** | Depende da consolidação de domínio/processos e de decisões técnicas/institucionais |
-| PT-08 — Rastreabilidade e validação | **Primeira versão elaborada** | Matriz D01–D20 × entidades/estados/eventos/invariantes/CA/SIM; plano de casos CA01–CA37; tudo não validado/não executado |
+| PT-08 — Rastreabilidade e validação | **Primeira versão ampliada** | Matrizes D01–D20 e G0-P01–P30 relacionadas a RF/RT/domínio/CA/SIM; plano de casos CA01–CA37; tudo não validado/não executado |
 | PT-09 — Revisão de consistência | **Parcial** | Divergências de nomenclatura e origem/linhagem do ObjetoCustodia registradas em CMP-DOM-SEFI-M02-M03-001 |
 | PT-10 — Dossiê integrado | **Em elaboração** | Índice da especificação integrada criado; ainda não é documento consolidado nem aprovado |
 
