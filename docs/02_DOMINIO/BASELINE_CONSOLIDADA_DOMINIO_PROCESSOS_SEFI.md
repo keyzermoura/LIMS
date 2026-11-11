@@ -137,6 +137,8 @@ ObjetoCustodia pode representar unidade individual ou agrupamento homogêneo qua
 
 ## 8. Máquina de estados — separação das dimensões
 
+A [Matriz de Harmonização de Estados, Transições e Eventos](MATRIZ_HARMONIZACAO_ESTADOS_TRANSICOES_EVENTOS_SEFI.md) detalha a correspondência entre EST-REC-001 e M0.3, incluindo eventos, projeções e questões HARM-01–HARM-07. Esta baseline e a matriz são análises documentais, não validação funcional.
+
 Não usar um único estado global para representar todo o processo. Manter pelo menos as dimensões abaixo, com projeções agregadas quando aplicável.
 
 ### 8.1 Solicitação
@@ -308,7 +310,7 @@ A lista completa INV-01–INV-34 permanece em M0.3 e deverá ser rastreada na ma
 
 ## 15. Rastreabilidade e evidências
 
-A rastreabilidade completa deve permanecer nas matrizes:
+A [Matriz de Harmonização de Estados, Transições e Eventos](MATRIZ_HARMONIZACAO_ESTADOS_TRANSICOES_EVENTOS_SEFI.md) complementa esta baseline para a correspondência de vocabulário. A rastreabilidade completa deve permanecer nas matrizes:
 - D01–D20 × entidades/estados/eventos/invariantes/CA/SIM;
 - G0-P01–P30 × RF/RT/artefatos;
 - RF-001–RF-020 × processos e critérios;
