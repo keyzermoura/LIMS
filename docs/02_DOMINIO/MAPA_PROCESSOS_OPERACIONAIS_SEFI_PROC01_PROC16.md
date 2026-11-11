@@ -3,7 +3,7 @@
 **Identificador:** PROC-MAP-SEFI-001  
 **Versão:** 0.2  
 **Data:** 2026-11-11  
-**Fontes:** D01–D20 (DEC-SEFI-001 v1.7); M0.2 v0.7; EST-REC-001 v1.7; M0.3 v0.1; SIM-SEFI-REC-001 v1.2.  
+**Fontes:** D01–D20 (DEC-SEFI-001 v1.7); M0.2 v0.7; EST-REC-001 v1.7; M0.3 v0.1; SIM-SEFI-REC-001 v1.2; BCDP-LIMS-SEFI-001 v0.1.  
 **Natureza:** consolidação documental dos processos; não é procedimento operacional institucional aprovado nem homologação.
 
 ## 1. Objetivo
@@ -60,11 +60,14 @@ A chegada física, a conferência, a decisão e a criação da amostra são atos
 - EventoApresentacao permanece proposta sujeita à validação funcional (M03-01).
 - Critérios CA01–CA37 e SIM01–SIM12 ainda não foram executados; SIM são simulações documentais.
 - D17 requer cenários adicionais de backup/restauração; os SIM atuais não cobrem integralmente continuidade.
+- A referência integrada para interpretação de entidades, cardinalidades, estados e pendências é a [Baseline Consolidada do Domínio e dos Processos](BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md).
 - O mapa não prova que o software atual implemente os processos.
 
 ## 6. Situação formal
 
-- Processos PROC-01–PROC-16: **MAPEAMENTO DOCUMENTAL INICIAL**.
+- Processos PROC-01–PROC-17: **MAPEAMENTO DOCUMENTAL INICIAL**.
+- PROC-17 é controle transversal de continuidade/recuperação; não é etapa do recebimento.
+- Baseline consolidada de domínio/processos: **v0.1 — proposta para revisão, não validada**.
 - Validação operacional: **PENDENTE**.
 - Critérios/testes: **NÃO EXECUTADOS**.
 - Gate G0: **NÃO APROVADO**.
