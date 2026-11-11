@@ -87,6 +87,7 @@ Os seguintes documentos foram criados nesta linha de trabalho, sem modificar as 
 | Matriz D01–D20 | `docs/05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md` | Relação D × domínio × CA × SIM | v0.3; não validada |
 | Requisitos Funcionais RF-001–RF-020 | `docs/03_ESPECIFICACAO_FUNCIONAL/REQUISITOS_FUNCIONAIS_SEFI_RF001_RF020.md` | Decomposição das decisões ratificadas em requisitos funcionais | v0.1; inicial |
 | Plano de Casos de Teste CA01–CA37 | `docs/06_VALIDACAO/PLANO_CASOS_TESTE_CA01_CA37.md` | Casos de teste preliminares com pré-condições, ações, resultados e evidências sugeridas | v0.1; rascunho, não executado |
+| Requisitos Transversais RT-001–RT-017 | `docs/04_REQUISITOS/REQUISITOS_TRANSVERSAIS_QUALIDADE_SEFI_RT001_RT017.md` | Segurança, integridade, auditoria, evidências, continuidade, migração e qualidade | v0.1; consolidação inicial |
 
 ## 6. Lacunas do inventário
 
