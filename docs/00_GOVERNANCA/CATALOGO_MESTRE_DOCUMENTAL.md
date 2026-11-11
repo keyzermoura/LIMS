@@ -1,7 +1,7 @@
 # Catálogo Mestre Documental — LIMS-SEFI
 
 **Identificador:** CAT-DOC-LIMS-SEFI-001  
-**Versão:** 0.4  
+**Versão:** 0.5  
 **Data de elaboração:** 2026-11-11  
 **Branch de trabalho:** `docs/integracao-especificacao-sefi`  
 **Branch de referência:** `main`  
@@ -123,6 +123,7 @@ Para evitar conflitos durante a integração:
 | 0.2 | 2026-11-11 | Atualiza o catálogo de artefatos integradores, matrizes e requisitos elaborados na branch documental. |
 | 0.3 | 2026-11-11 | Registra a baseline consolidada de domínio/processos v0.1 e o mapa PROC-01–PROC-17 v0.2, preservando o inventário como não exaustivo. |
 | 0.4 | 2026-11-11 | Acrescenta a matriz analítica de harmonização de estados, transições e eventos entre EST-REC-001 e M0.3. |
+| 0.5 | 2026-11-11 | Acrescenta a especificação detalhada dos processos críticos PROC-01–PROC-09. |
 
 ## 9. Situação formal
 
