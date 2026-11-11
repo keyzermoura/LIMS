@@ -21,7 +21,7 @@ As referências a entidades, estados, eventos e invariantes abaixo são transcri
 
 | Decisão | Requisito ratificado (síntese) | Entidades / conceitos M0.3 | Estados / condições relevantes | Eventos de domínio M0.3 | Invariantes candidatos | G0 relacionado | CA / SIM | Situação da evidência |
 |---|---|---|---|---|---|---|---|---|
-| D01 | Recepção registra chegada; conferência é evento distinto; acumulação de funções só com permissões. | UsuarioInterno, Perfil/Permissao, Recebimento, ItemRecebimento, RespostaChecklist, EventoAuditoria. | Recebimento REGISTRADO; conferência NAO_INICIADA → EM_ANDAMENTO → CONCLUIDA. | CHEGADA_REGISTRADA; CONFERENCIA_INICIADA; CONFERENCIA_CONCLUIDA. | INV-25, INV-30, INV-31. | P01, P11, P13, P16. | CA: ver tabela 2.1; SIM: pendente. | Regra ratificada; fluxo no sistema atual diagnosticado como insuficiente; validação operacional pendente. |
+| D01 | Recepção registra chegada; conferência é evento distinto; acumulação de funções só com permissões. | UsuarioInterno, Perfil/Permissao, Recebimento, ItemRecebimento, RespostaChecklist, EventoAuditoria. | Recebimento REGISTRADO; conferência NAO_INICIADA → EM_ANDAMENTO → CONCLUIDA. | CHEGADA_REGISTRADA; CONFERENCIA_INICIADA; CONFERENCIA_CONCLUIDA. | INV-25, INV-30, INV-31. | P01, P11, P13, P16. | CA: ver 2.1; SIM: ver 2.2. | Regra ratificada; fluxo no sistema atual diagnosticado como insuficiente; validação operacional pendente. |
 | D02 | Registrar dados da chegada, atores, volumes, condição, documentos, observações e tempos efetivo/registro. | Solicitação, Recebimento, ItemRecebimento, Evidencia, VinculoEvidencia. | Recebimento REGISTRADO; apresentação por item. | CHEGADA_REGISTRADA; ITEM_APRESENTADO; ITEM_NAO_APRESENTADO; EVIDENCIA_VINCULADA. | INV-25, INV-31. | P07, P09, P11, P24. | Não mapeados nesta versão. | Regra ratificada; diagnóstico aponta lacunas no domínio atual; execução operacional não comprovada. |
 | D03 | Distinguir quantidades declarada, apresentada, aceita, recusada e não apresentada; permitir parcialidade e justificar divergências. | ItemDeclarado, ItemRecebimento, EventoApresentacao, ObjetoCustodia, DecisaoRecebimento. | APRESENTADO, NAO_APRESENTADO, APRESENTACAO_PARCIAL; decisão por escopo/objeto. | ITEM_APRESENTADO; ITEM_NAO_APRESENTADO; APRESENTACAO_COMPLEMENTAR_REGISTRADA; DECISAO_ACEITE_REGISTRADA; DECISAO_RECUSA_REGISTRADA. | INV-04, INV-05, INV-07, INV-34. | P07, P26. | Não mapeados nesta versão. | Regras conceituais presentes; unidades, precisão e reconciliação numérica continuam pendentes (M03-02/M03-03). |
 | D04 | Um item recebido pode originar vários objetos de custódia com decisões e históricos próprios. | ItemRecebimento, EventoApresentacao, ObjetoCustodia, EventoCustodia. | Objeto SOB_CUSTODIA, EM_CONFERENCIA, PENDENTE, ACEITO ou RECUSADO. | OBJETO_CUSTODIA_CRIADO; CUSTODIA_INICIADA; DECISAO_ACEITE_REGISTRADA; DECISAO_RECUSA_REGISTRADA. | INV-05, INV-06, INV-08, INV-18, INV-34. | P26. | Não mapeados nesta versão. | Cardinalidade lógica proposta em M0.3; regras por categoria e exemplos de agrupamento/fracionamento pendentes. |
@@ -95,17 +95,17 @@ A fonte `docs/VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md` (SIM-SEFI-REC-001 v1.2) f
 
 | Cenário | Escopo | Decisões relacionadas conforme adendo da fonte | Critérios CA relacionados conforme cenário | Situação |
 |---|---|---|---|---|
-| SIM01 | Recebimento integral com aceite | D01–D04, D11–D12, D18, D20; também base de D10 | CA01–CA05, CA14, CA16–CA18, CA24, CA31–CA33, CA37 | Simulação documental; validação operacional pendente |
-| SIM02 | Recebimento parcial com item não apresentado | D01–D04, D18–D19 | CA07, CA08, CA23, CA28, CA36 | Simulação documental; validação operacional pendente |
+| SIM01 | Recebimento integral com aceite | D01–D04, D09–D12, D18, D20 | CA01–CA05, CA14, CA16–CA18, CA24, CA31–CA33, CA37 | Simulação documental; validação operacional pendente |
+| SIM02 | Recebimento parcial com item não apresentado | D01–D04, D11–D12 | CA07, CA08, CA23, CA28, CA36 | Simulação documental; validação operacional pendente |
 | SIM03 | Divergência entre quantidade declarada e apresentada | D02–D04 | CA04–CA08, CA26–CA27 | Simulação documental; depende de checklist/categoria |
-| SIM04 | Um item com dois objetos, um aceito e outro recusado | D03–D06, D11–D12, D20 | CA09, CA14, CA18, CA20, CA27, CA37 | Simulação documental; depende de regra por categoria |
-| SIM05 | Pendência saneável, comunicação, vencimento, prorrogação e reavaliação | D05, D11–D12 | CA05, CA12, CA13, CA14, CA26 | Simulação documental; prazos/canais/alçadas pendentes |
-| SIM06 | Recusa com permanência em custódia e posterior devolução | D06, D07, D11–D12 | CA04, CA09, CA14, CA15 | Simulação documental; procedimento de devolução pendente |
+| SIM04 | Um item com dois objetos, um aceito e outro recusado | D01–D04, D09–D12, D20 | CA09, CA14, CA18, CA20, CA27, CA37 | Simulação documental; depende de regra por categoria |
+| SIM05 | Pendência saneável, comunicação, vencimento, prorrogação e reavaliação | D05–D06, D11–D12, D20 | CA05, CA12, CA13, CA14, CA26 | Simulação documental; prazos/canais/alçadas pendentes |
+| SIM06 | Recusa com permanência em custódia e posterior devolução | D05–D06, D09–D12, D20 | CA04, CA09, CA14, CA15 | Simulação documental; procedimento de devolução pendente |
 | SIM07 | Transferência entre responsáveis | D07 | CA10, CA11, CA29, CA30 | Simulação documental; confirmação e política de assinatura pendentes |
 | SIM08 | Mudança de localização sem troca de custodiante | D08 | CA29, CA34 | Simulação documental; catálogo de locais pendente |
 | SIM09 | Retificação após criação de amostra e início de ensaio | D09–D10, D13–D16, D20 | CA19, CA20, CA22 | Simulação documental; procedimento de impacto pendente |
 | SIM10 | Reenvio concorrente e alteração com versão obsoleta | D18, D20; controles transversais G0-P23 | CA16, CA17, CA31, CA32, CA33 | Simulação documental; contrato técnico e testes reais pendentes |
-| SIM11 | Solicitante tenta acessar solicitação/evidência de terceiro | D13, D15–D16 | CA01, CA25, CA35 | Simulação documental; identidade externa e isolamento ainda pendentes |
+| SIM11 | Solicitante tenta acessar solicitação/evidência de terceiro | D13–D16 | CA01, CA25, CA35 | Simulação documental; identidade externa e isolamento ainda pendentes |
 | SIM12 | Material chega após conclusão como não apresentado | D18–D19 | CA07, CA23, CA28, CA36 | Simulação documental; regra de exceção/reabertura pendente |
 
 **Rastreabilidade D→SIM expressa no adendo SIM-SEFI-REC-001 v1.2:**
