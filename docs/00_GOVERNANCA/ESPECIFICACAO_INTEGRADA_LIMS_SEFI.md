@@ -21,6 +21,9 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | [Estados e Transições](../ESTADOS_E_TRANSICOES_SOLICITACAO_RECEBIMENTO.md) | Estados, transições, permissões e critérios CA01–CA37 | Proposta documental consolidada; validação operacional pendente |
 | [Modelo Relacional Preliminar](../MODELO_RELACIONAL_PRELIMINAR_LIMS.md) | Tradução relacional preliminar | Proposta técnica; não aprovada para implementação |
 | [Contrato de Histórico e Aceite](../CONTRATO_HISTORICO_UNIFICADO_E_ACEITE.md) | Histórico unificado e transação de aceite | Proposta técnica; não aprovada para implementação |
+| [Auditoria de Consistência EST01–EST10](../AUDITORIA_CONSISTENCIA_EST01_EST10.md) | Achados AUD01–AUD22 e consistência funcional | Auditoria documental concluída; validação operacional e dependências técnicas pendentes |
+| [Revisão Multidisciplinar](../REVISAO_MULTIDISCIPLINAR_MAQUINA_ESTADOS_CA01_CA24.md) | Parecer multidisciplinar e revisão de critérios | Revisão documental concluída; dependências e validação operacional pendentes |
+| [Simulação de Mesa SIM01–SIM12](../VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md) | Cenários operacionais e relação com CA | Simulação documental; não é homologação nem teste de software |
 | [Modelo Lógico M0.3](../MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md) | Modelo lógico proposto para revisão | Elaborado; aguarda revisão/validação |
 | [Catálogo Mestre](CATALOGO_MESTRE_DOCUMENTAL.md) | Inventário, versões, fontes e limitações | Inventário ampliado; ainda não exaustivo |
 | [Plano de Integração](PLANO_DE_INTEGRACAO_DOCUMENTAL.md) | Escopo, pacotes, governança e critérios de execução | Plano de trabalho documental |
@@ -62,7 +65,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 
 ## 5. Matriz inicial de rastreabilidade
 
-A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) foi criada na branch documental. Ela relaciona decisões às entidades, estados, eventos e invariantes propostos em M0.3. A associação detalhada aos critérios CA01–CA37 está em consolidação a partir de EST-REC-001; os cenários SIM01–SIM12 e suas evidências ainda precisam ser localizados.
+A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) foi criada na branch documental. Ela relaciona decisões às entidades, estados, eventos e invariantes propostos em M0.3. A associação analítica aos critérios CA01–CA37 foi iniciada a partir de EST-REC-001. Os cenários SIM01–SIM12 foram recuperados e estão relacionados a decisões/CA na própria fonte; permanecem simulação documental, sem validação operacional ou teste de software.
 
 ## 6. Registro de questões que não podem ser presumidas como resolvidas
 
