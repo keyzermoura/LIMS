@@ -73,7 +73,11 @@ O [Mapa de Processos Operacionais PROC-01–PROC-16](../02_DOMINIO/MAPA_PROCESSO
 
 O [Catálogo de Requisitos Funcionais RF-001–RF-020](../03_ESPECIFICACAO_FUNCIONAL/REQUISITOS_FUNCIONAIS_SEFI_RF001_RF020.md) decompõe D01–D20 sem alterar as decisões-fonte.
 
-## 5.2 Matriz inicial de rastreabilidade
+## 5.2 Matrizes de rastreabilidade
+
+A [Matriz D01–D20 × domínio × CA × SIM](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) relaciona as decisões ratificadas ao modelo lógico e aos critérios/cenários documentados. A [Matriz G0-P01–P30 × RF × RT × artefatos](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_G0_P01_P30.md) relaciona as propostas G0 aprovadas aos requisitos e entregáveis documentais. Ambas são matrizes analíticas iniciais e ainda não validadas.
+
+## 5.3 Matriz inicial de rastreabilidade
 
 A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) foi criada na branch documental. Ela relaciona decisões às entidades, estados, eventos e invariantes propostos em M0.3. A associação analítica aos critérios CA01–CA37 foi iniciada a partir de EST-REC-001. Os cenários SIM01–SIM12 foram recuperados e estão relacionados a decisões/CA na própria fonte; permanecem simulação documental, sem validação operacional ou teste de software.
 
