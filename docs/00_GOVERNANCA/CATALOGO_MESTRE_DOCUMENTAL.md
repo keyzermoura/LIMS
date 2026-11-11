@@ -1,7 +1,7 @@
 # Catálogo Mestre Documental — LIMS-SEFI
 
 **Identificador:** CAT-DOC-LIMS-SEFI-001  
-**Versão:** 0.5  
+**Versão:** 0.6  
 **Data de elaboração:** 2026-11-11  
 **Branch de trabalho:** `docs/integracao-especificacao-sefi`  
 **Branch de referência:** `main`  
@@ -90,6 +90,7 @@ Os seguintes documentos foram criados nesta linha de trabalho, sem modificar as 
 | Matriz G0-P01–P30 | `docs/05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_G0_P01_P30.md` | Relação das decisões G0 com RF, RT e artefatos | v0.1; analítica, não validada |
 | Matriz D01–D20 | `docs/05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md` | Relação D × domínio × CA × SIM | v0.3; não validada |
 | Requisitos Funcionais RF-001–RF-020 | `docs/03_ESPECIFICACAO_FUNCIONAL/REQUISITOS_FUNCIONAIS_SEFI_RF001_RF020.md` | Decomposição das decisões ratificadas em requisitos funcionais | v0.1; inicial |
+| Especificação Detalhada PROC-01–PROC-09 | `docs/03_ESPECIFICACAO_FUNCIONAL/ESPECIFICACAO_DETALHADA_PROCESSOS_CRITICOS_RECEBIMENTO_PROC01_PROC09.md` | Fluxos, portas de controle, atores, pré-condições, exceções, evidências e rastreabilidade dos processos críticos | v0.1; derivada, não validada |
 | Plano de Casos de Teste CA01–CA37 | `docs/06_VALIDACAO/PLANO_CASOS_TESTE_CA01_CA37.md` | Casos de teste preliminares com pré-condições, ações, resultados e evidências sugeridas | v0.1; rascunho, não executado |
 | Requisitos Transversais RT-001–RT-017 | `docs/04_REQUISITOS/REQUISITOS_TRANSVERSAIS_QUALIDADE_SEFI_RT001_RT017.md` | Segurança, integridade, auditoria, evidências, continuidade, migração e qualidade | v0.1; consolidação inicial |
 
@@ -124,6 +125,7 @@ Para evitar conflitos durante a integração:
 | 0.3 | 2026-11-11 | Registra a baseline consolidada de domínio/processos v0.1 e o mapa PROC-01–PROC-17 v0.2, preservando o inventário como não exaustivo. |
 | 0.4 | 2026-11-11 | Acrescenta a matriz analítica de harmonização de estados, transições e eventos entre EST-REC-001 e M0.3. |
 | 0.5 | 2026-11-11 | Acrescenta a especificação detalhada dos processos críticos PROC-01–PROC-09. |
+| 0.6 | 2026-11-11 | Confirma a inclusão da especificação detalhada no catálogo mestre. |
 
 ## 9. Situação formal
 
