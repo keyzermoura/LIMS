@@ -119,6 +119,7 @@ Para evitar conflitos durante a integração:
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-11 | Inventário ampliado para doze fontes recuperadas, incluindo M0.2, estados/transições, modelo relacional e contrato de histórico/aceite; inclui auditoria, revisão multidisciplinar e simulação documental; a enumeração integral da árvore do repositório continua pendente; limitações do levantamento registradas. |
+| 0.2 | 2026-11-11 | Atualiza o catálogo de artefatos integradores, matrizes e requisitos elaborados na branch documental. |
 | 0.3 | 2026-11-11 | Registra a baseline consolidada de domínio/processos v0.1 e o mapa PROC-01–PROC-17 v0.2, preservando o inventário como não exaustivo. |
 
 ## 9. Situação formal
