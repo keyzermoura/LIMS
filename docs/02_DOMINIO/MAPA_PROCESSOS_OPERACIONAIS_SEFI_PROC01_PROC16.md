@@ -53,7 +53,11 @@ A chegada física, a conferência, a decisão e a criação da amostra são atos
 11. Chegada posterior é novo fato; não retroagir o evento anterior.
 12. Estado agregado não substitui histórico individual de item/objeto.
 
-## 5. Limites e questões em aberto
+## 5. Especificação detalhada dos processos críticos
+
+A [Especificação Detalhada dos Processos Críticos de Recebimento PROC-01–PROC-09](../03_ESPECIFICACAO_FUNCIONAL/ESPECIFICACAO_DETALHADA_PROCESSOS_CRITICOS_RECEBIMENTO_PROC01_PROC09.md) decompõe os nove primeiros processos em gatilho, atores, pré-condições, fluxo principal, saídas, bloqueios, exceções, evidências, rastreabilidade e decisões pendentes. É uma especificação derivada para revisão, não procedimento aprovado.
+
+## 6. Limites e questões em aberto
 
 - O mapa não define prazos, canais, formulários, critérios técnicos por categoria, competências nominais, modalidade de assinatura ou tecnologia.
 - A nomenclatura de estados entre EST-REC-001/SIM e M0.3 ainda requer harmonização, conforme `CMP-DOM-SEFI-M02-M03-001`.
@@ -63,9 +67,10 @@ A chegada física, a conferência, a decisão e a criação da amostra são atos
 - A referência integrada para interpretação de entidades, cardinalidades, estados e pendências é a [Baseline Consolidada do Domínio e dos Processos](BASELINE_CONSOLIDADA_DOMINIO_PROCESSOS_SEFI.md).
 - O mapa não prova que o software atual implemente os processos.
 
-## 6. Situação formal
+## 7. Situação formal
 
 - Processos PROC-01–PROC-17: **MAPEAMENTO DOCUMENTAL INICIAL**.
+- PROC-01–PROC-09: **DECOMPOSIÇÃO FUNCIONAL DOCUMENTAL v0.1 — NÃO VALIDADA**.
 - PROC-17 é controle transversal de continuidade/recuperação; não é etapa do recebimento.
 - Baseline consolidada de domínio/processos: **v0.1 — proposta para revisão, não validada**.
 - Validação operacional: **PENDENTE**.
