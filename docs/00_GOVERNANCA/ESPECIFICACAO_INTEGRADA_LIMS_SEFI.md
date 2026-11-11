@@ -26,6 +26,7 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | [Simulação de Mesa SIM01–SIM12](../VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md) | Cenários operacionais e relação com CA | Simulação documental; não é homologação nem teste de software |
 | [Modelo Lógico M0.3](../MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md) | Modelo lógico proposto para revisão | Elaborado; aguarda revisão/validação |
 | [Comparação M0.2 × M0.3](../02_DOMINIO/COMPARACAO_M0_2_M0_3.md) | Preservação de cardinalidades, refinamentos e divergências de nomenclatura | Análise documental inicial; não validada |
+| [Requisitos Funcionais RF-001–RF-020](../03_ESPECIFICACAO_FUNCIONAL/REQUISITOS_FUNCIONAIS_SEFI_RF001_RF020.md) | Decomposição de D01–D20 em requisitos funcionais | Versão inicial derivada de decisões ratificadas; detalhamento/testes pendentes |
 | [Catálogo Mestre](CATALOGO_MESTRE_DOCUMENTAL.md) | Inventário, versões, fontes e limitações | Inventário ampliado; ainda não exaustivo |
 | [Plano de Integração](PLANO_DE_INTEGRACAO_DOCUMENTAL.md) | Escopo, pacotes, governança e critérios de execução | Plano de trabalho documental |
 
@@ -64,7 +65,11 @@ Este documento será o ponto de entrada integrado para a especificação do LIMS
 | 19.1 | Matriz D01–D20 × domínio × CA × SIM × evidência | D01–D20, M0.3, EST-REC-001 e registros SIM | Primeira versão documental criada; associação CA em consolidação; SIM pendente |
 | 20 | Pendências, decisões e histórico | Catálogo Mestre e registros de validação | Em elaboração |
 
-## 5. Matriz inicial de rastreabilidade
+## 5. Requisitos funcionais e matriz de rastreabilidade
+
+O [Catálogo de Requisitos Funcionais RF-001–RF-020](../03_ESPECIFICACAO_FUNCIONAL/REQUISITOS_FUNCIONAIS_SEFI_RF001_RF020.md) decompõe D01–D20 sem alterar as decisões-fonte.
+
+## 5.1 Matriz inicial de rastreabilidade
 
 A [Matriz Inicial de Rastreabilidade D01–D20](../05_RASTREABILIDADE/MATRIZ_RASTREABILIDADE_D01_D20.md) foi criada na branch documental. Ela relaciona decisões às entidades, estados, eventos e invariantes propostos em M0.3. A associação analítica aos critérios CA01–CA37 foi iniciada a partir de EST-REC-001. Os cenários SIM01–SIM12 foram recuperados e estão relacionados a decisões/CA na própria fonte; permanecem simulação documental, sem validação operacional ou teste de software.
 
