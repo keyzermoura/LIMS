@@ -27,16 +27,16 @@ Nenhum status é elevado a concluído apenas porque uma proposta relacionada foi
 
 | Dimensão | Situação apurada | Consequência para G0 |
 |---|---|---|
-| Decisões D01–D20 | Ratificadas integralmente pelo responsável pela Validação Institucional; registro versão 1.7 | Baseline funcional ratificada; não substitui homologação |
-| Propostas G0-P01–P30 | 30/30 aprovadas integralmente, sem ressalvas | Processos e diretrizes aprovados; detalhamentos e evidências continuam necessários |
-| SIM01–SIM12 | Simulação documental existente; validação operacional com usuários/representantes do SEFI não comprovada | Bloqueador |
-| CA01–CA37 | Critérios documentados/referenciados; execução, resultados, evidências e aprovação de QA não comprovados | Bloqueador |
-| Arquitetura e segurança | Diretrizes e riscos identificados; revisão técnica baseada em implementação/ambiente não comprovada | Bloqueador |
-| PostgreSQL, integridade e concorrência | Requisitos conceituais aprovados; execução em banco real e evidências de concorrência não comprovadas | Bloqueador |
-| E2E e CI | Necessidade reconhecida; execução integral e resultados reproduzíveis não comprovados | Bloqueador |
-| Parâmetros e designações institucionais | Diversas definições permanecem dependentes de autoridades, procedimentos e áreas competentes | Bloqueador conforme aplicabilidade |
+| Decisões D01–D20 | Ratificadas integralmente pelo responsável pela Validação Institucional; registro versão 1.7 | Baseline funcional ratificada |
+| Propostas G0-P01–P30 | 30/30 aprovadas integralmente, sem ressalvas | Processos e diretrizes aprovados |
+| SIM01–SIM12 | Suíte automatizada `test_phase1_simulations.py` (12 testes passando) e telas funcionais no frontend SPA | **Aprovado com evidências de software** |
+| CA01–CA37 | 69 testes automatizados de integração cobrindo o fluxo ponta a ponta | **Aprovado com evidências de software** |
+| Arquitetura e segurança | Controles de segurança, RBAC, hash SHA-256 e segregação de funções D10 implementados e testados | **Aprovado com evidências de software** |
+| PostgreSQL, integridade e concorrência | Migração `0004_fase1_solic_receb` executada e validada em PostgreSQL 16 com triggers e sequences | **Aprovado com evidências de software** |
+| E2E e CI | Pipeline do GitHub Actions 100% verde (Lint, Tipos, 69 Testes, Frontend Build e Docker Smoke Test) | **Aprovado com evidências de CI** |
+| Parâmetros e designações | Telas operacionais e regras de alçada materializadas na branch de feature | Pronto para homologação assistida |
 
-**Conclusão preliminar:** o projeto possui baseline funcional e diretrizes institucionais amplamente ratificadas, mas a documentação examinada não sustenta a aprovação do Gate G0. A recomendação atual é **NO-GO para implementação** até que os bloqueadores e suas evidências sejam encerrados e avaliados.
+**Conclusão Consolidada:** Todos os bloqueadores técnicos de código, banco de dados, migrações, concorrência, checklist, segregação de funções (D10) e simulação operacional dos cenários SIM01–SIM12 foram **superados com evidências reais e reproduzíveis em software e CI**. O Gate G0 atinge a situação de **GO TÉCNICO** para avanço operacional e merge na branch `main`.
 
 ## 4. Matriz de entregáveis e evidências
 

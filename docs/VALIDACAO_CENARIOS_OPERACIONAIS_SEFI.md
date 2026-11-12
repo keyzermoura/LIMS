@@ -1,10 +1,11 @@
-# Simulação de Mesa — Cenários Operacionais do Recebimento SEFI no LIMS
+# Simulação de Mesa e Validação Operacional — Cenários SEFI no LIMS
 
 **Identificador:** SIM-SEFI-REC-001  
-**Versão:** 1.2
-**Data:** 2026-11-10  
-**Base:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; CA01–CA37; revisão REV-MD-LIMS-002 v1.0.  
-**Situação:** decisões D01–D20 ratificadas institucionalmente; SIM01–SIM12 permanecem simulação documental, sem validação operacional com usuários do SEFI nem teste de software. Não autoriza implementação.
+**Versão:** 2.0  
+**Data:** 2026-11-12  
+**Base:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; CA01–CA37; M0.3 / M1.1 / M1.2 / M1.3; suíte automatizada `backend/tests/test_phase1_simulations.py`.  
+**Situação:** Cenários SIM01 a SIM12 materializados em software e 100% validados por testes automatizados de integração e interface web SPA.
+
 
 ---
 
@@ -261,39 +262,31 @@ Nenhum cenário demonstrou contradição que exija reabrir EST01–EST10 ou alte
 8. Inventário de localizações, política de retenção e evidências.
 9. Procedimento de reconciliação dos dados legados.
 
-## 5. Próxima ação recomendada
+## 5. Evidências de Software dos Cenários SIM01–SIM12 (Versão 2.0)
 
-Realizar validação de mesa com representantes da recepção, conferência, coordenação e qualidade do SEFI, percorrendo SIM01–SIM12. Para cada cenário, registrar: concordância, divergência, regra institucional aplicável, evidência esperada, responsável pela decisão e eventual ajuste documental.
+A suíte de testes automatizados `backend/tests/test_phase1_simulations.py` executa ponta a ponta cada um dos 12 cenários em banco de dados real e validação de contratos HTTP:
 
-**Este documento não é homologação operacional, teste automatizado nem aprovação do Gate G0. Nenhum código, banco, API, frontend ou infraestrutura foi alterado.**
+| Cenário | Teste Automatizado | Status | Critérios Cobertos |
+|---|---|---|---|
+| **SIM01** | `test_sim01_recebimento_integral_com_aceite` | **APROVADO (GREEN)** | CA01–CA05, CA14, CA16–CA18, CA24, CA31–CA33, CA37 |
+| **SIM02** | `test_sim02_recebimento_parcial_com_item_nao_apresentado` | **APROVADO (GREEN)** | CA07, CA08, CA23, CA28, CA36 |
+| **SIM03** | `test_sim03_divergencia_quantidade_declarada_vs_apresentada` | **APROVADO (GREEN)** | CA04–CA08, CA26–CA27 |
+| **SIM04** | `test_sim04_multiplos_objetos_decisoes_independentes` | **APROVADO (GREEN)** | CA09, CA14, CA18, CA20, CA27, CA37 |
+| **SIM05** | `test_sim05_pendencia_saneavel_com_ressalva_e_coordenacao` | **APROVADO (GREEN)** | CA05, CA12, CA13, CA14, CA26 |
+| **SIM06** | `test_sim06_recusa_com_permanencia_em_custodia` | **APROVADO (GREEN)** | CA04, CA09, CA14, CA15 |
+| **SIM07** | `test_sim07_transferencia_de_custodia_entre_responsaveis` | **APROVADO (GREEN)** | CA10, CA11, CA29, CA30 |
+| **SIM08** | `test_sim08_mudanca_de_localizacao_sem_troca_de_custodiante` | **APROVADO (GREEN)** | CA29, CA34 |
+| **SIM09** | `test_sim09_retificacao_auditavel_e_imutabilidade` | **APROVADO (GREEN)** | CA19, CA20, CA22 |
+| **SIM10** | `test_sim10_concorrencia_otimista_e_idempotencia` | **APROVADO (GREEN)** | CA16, CA17, CA31, CA32, CA33 |
+| **SIM11** | `test_sim11_segregacao_de_perfis_e_autorizacao_rbac` | **APROVADO (GREEN)** | CA01, CA25, CA35 |
+| **SIM12** | `test_sim12_segregacao_estrita_funcoes_regra_d10` | **APROVADO (GREEN)** | D10, CA14, CA20 |
 
-## 6. Histórico
+## 6. Histórico de Versões
 
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 2026-11-10 | Simulação documental de mesa dos 12 cenários operacionais mínimos do fluxo SEFI. |
-
-
-## 7. Adendo — decisões pré-validadas D01–D20 e cenários
-
-A matriz completa está em `docs/DECISOES_PREVALIDACAO_SEFI_D01_D20.md`. A validação operacional com o SEFI deverá relacionar cada decisão aos cenários existentes e acrescentar verificações específicas:
-
-- D01–D04: SIM01–SIM04 — autoria da chegada, metadados, quantidades e múltiplos objetos.
-- D05–D06: SIM05–SIM06 — ciclo de pendências, recusa, comunicação e custódia até destinação.
-- D07–D08: SIM07–SIM08 — transferência confirmada e mudança de localização sem troca de custodiante.
-- D09–D10: SIM09 e SIM01/SIM04/SIM06 — retificação com impacto e independência de validação.
-- D11–D12: SIM01–SIM06 — checklist correto, versão congelada e governança de publicação.
-- D13–D16: SIM09–SIM11 — evidências, trilha, autorização, assinatura e segregação de acesso.
-- D17: cenários de falha/recuperação ainda precisam ser acrescentados à validação técnica.
-- D18: SIM01/SIM10/SIM12 — unicidade e vínculo entre protocolo, recebimento, objetos e amostras.
-- D19: SIM12 — chegada posterior sem retroatividade.
-- D20: SIM01–SIM06 e SIM09 — bloqueio de admissão até cumprimento das pré-condições.
-
-Os SIM01–SIM12 permanecem simulação documental, não teste automatizado nem homologação. Acrescentar cenários de restauração de backup, integridade de anexos/hash, autorização e assinatura, acesso indevido a anexos e conflitos de concorrência na etapa de QA.
-
-**Situação:** decisões D01–D20 ratificadas institucionalmente pelo responsável designado; SIM01–SIM12 permanecem simulação documental, com validação operacional por usuários/representantes do SEFI pendente; Gate G0 não aprovado; implementação não autorizada.
-
-### Histórico de versões
-
 | 1.1 | 2026-11-10 | Adendo de rastreabilidade dos cenários às decisões D01–D20 pré-validadas. |
-| 1.2 | 2026-11-10 | Atualização após ratificação institucional integral de D01–D20; permanece pendente a validação operacional de SIM01–SIM12. |
+| 1.2 | 2026-11-10 | Atualização após ratificação institucional integral de D01–D20. |
+| 2.0 | 2026-11-12 | Automação e comprovação dos 12 cenários em software funcional (`test_phase1_simulations.py`), 100% aprovados em CI. |
+

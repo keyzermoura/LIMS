@@ -6,8 +6,11 @@ import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/use-auth";
 import { AuditTrailPage } from "@/pages/AuditTrail";
 import { CapasPage } from "@/pages/Capas";
+import { CoordinationReviewsPage } from "@/pages/CoordinationReviews";
 import { DashboardPage } from "@/pages/Dashboard";
 import { LoginPage } from "@/pages/Login";
+import { ReceiptsPage } from "@/pages/Receipts";
+import { SolicitationsPage } from "@/pages/Solicitations";
 import { TestsPage } from "@/pages/Tests";
 
 function FullScreenLoader() {
@@ -45,6 +48,12 @@ function AuditRoute() {
   return allowed ? <AuditTrailPage /> : <Navigate to="/" replace />;
 }
 
+function CoordinationRoute() {
+  const { user } = useAuth();
+  const allowed = user?.role === "ADMIN" || user?.role === "FISCAL";
+  return allowed ? <CoordinationReviewsPage /> : <Navigate to="/" replace />;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -57,6 +66,9 @@ export default function App() {
         }
       >
         <Route index element={<DashboardPage />} />
+        <Route path="/solicitations" element={<SolicitationsPage />} />
+        <Route path="/receipts" element={<ReceiptsPage />} />
+        <Route path="/coordination-reviews" element={<CoordinationRoute />} />
         <Route path="/tests" element={<TestsPage />} />
         <Route path="/capas" element={<CapasPage />} />
         <Route path="/audit" element={<AuditRoute />} />

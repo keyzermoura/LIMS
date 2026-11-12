@@ -88,3 +88,80 @@ class AuditEntity(str, Enum):
     USER = "User"
     ELECTRONIC_SIGNATURE = "ElectronicSignature"
     AUDIT_LOG = "AuditLog"
+    SOLICITATION = "Solicitation"
+    RECEIPT = "Receipt"
+    CUSTODY_OBJECT = "CustodyObject"
+    CHECKLIST = "Checklist"
+    RECEIPT_DECISION = "ReceiptDecision"
+    COORDINATION_REVIEW = "CoordinationReview"
+
+
+class SolicitationStatus(str, Enum):
+    RASCUNHO = "RASCUNHO"
+    SUBMETIDA = "SUBMETIDA"
+    RECEBIMENTO_REGISTRADO = "RECEBIMENTO_REGISTRADO"
+    EM_TRATAMENTO = "EM_TRATAMENTO"
+    CONCLUIDA = "CONCLUIDA"
+    CANCELADA = "CANCELADA"
+
+
+class ReceiptStatus(str, Enum):
+    REGISTRADO = "REGISTRADO"
+    EM_CONFERENCIA = "EM_CONFERENCIA"
+    PENDENTE = "PENDENTE"
+    CONCLUIDO = "CONCLUIDO"
+    CANCELADO = "CANCELADO"
+
+
+class PresentationStatus(str, Enum):
+    PRESENTED = "PRESENTED"
+    NOT_PRESENTED = "NOT_PRESENTED"
+
+
+class ConferenceStatus(str, Enum):
+    PENDENTE = "PENDENTE"
+    CONFORME = "CONFORME"
+    COM_RESSALVA = "COM_RESSALVA"
+    NAO_CONFORME = "NAO_CONFORME"
+
+
+class ReceiptDecisionEnum(str, Enum):
+    ACCEPTED = "ACCEPTED"
+    PENDING = "PENDING"
+    REJECTED = "REJECTED"
+
+
+class CustodyObjectStatus(str, Enum):
+    SOB_GUARDA = "SOB_GUARDA"
+    EM_CONFERENCIA = "EM_CONFERENCIA"
+    ACEITO = "ACEITO"
+    RECUSADO = "RECUSADO"
+    DEVOLVIDO = "DEVOLVIDO"
+    DESCARTADO = "DESCARTADO"
+
+
+class CustodyEventType(str, Enum):
+    INGRESSO = "INGRESSO"
+    TRANSFERENCIA = "TRANSFERENCIA"
+    MUDANCA_LOCAL = "MUDANCA_LOCAL"
+    SAIDA = "SAIDA"
+    ENCERRAMENTO = "ENCERRAMENTO"
+
+
+class CriterionClass(str, Enum):
+    ELIMINATORIO = "ELIMINATORIO"
+    SANEAVEL = "SANEAVEL"
+    INFORMATIVO = "INFORMATIVO"
+
+
+class ChecklistResult(str, Enum):
+    CONFORME = "CONFORME"
+    NAO_CONFORME = "NAO_CONFORME"
+    NAO_APLICAVEL = "NAO_APLICAVEL"
+
+
+class CoordinationReviewStatus(str, Enum):
+    PENDENTE = "PENDENTE"
+    APROVADO = "APROVADO"
+    DEVOLVIDO = "DEVOLVIDO"
+    REJEITADO = "REJEITADO"

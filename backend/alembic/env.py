@@ -28,6 +28,7 @@ def _configure(**kwargs: object) -> None:
         target_metadata=target_metadata,
         compare_type=True,
         compare_server_default=True,
+        version_num_length=64,
         **kwargs,
     )
 
