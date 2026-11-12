@@ -17,6 +17,16 @@ class ReceiptDecisionCreate(BaseModel):
     custody_object_id: UUID | None = None
 
 
+class DecisionBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    decision: ReceiptDecisionEnum
+    justification: str
+    decided_by: UserBrief | None = None
+    created_at: datetime
+
+
 class CoordinationReviewAction(BaseModel):
     status: CoordinationReviewStatus = CoordinationReviewStatus.APROVADO
     review_notes: str = Field(min_length=5, max_length=2000)
@@ -28,6 +38,7 @@ class CoordinationReviewOut(BaseModel):
     id: UUID
     decision_id: UUID
     status: CoordinationReviewStatus
+    decision: DecisionBrief | None = None
     reviewed_by_id: UUID | None = None
     reviewed_by: UserBrief | None = None
     reviewed_at: datetime | None = None

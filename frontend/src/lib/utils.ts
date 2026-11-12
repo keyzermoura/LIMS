@@ -142,6 +142,61 @@ export const CAPA_STATUS_LABELS: Record<string, string> = {
   CANCELADA: "Cancelada",
 };
 
+export const SOLICITATION_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "Rascunho",
+  SUBMITTED: "Submetida",
+  CANCELLED: "Cancelada",
+};
+
+export const RECEIPT_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "Rascunho",
+  EM_CONFERENCIA: "Em conferência",
+  CONCLUIDO: "Concluído",
+  CANCELADO: "Cancelado",
+};
+
+export const CONFERENCE_STATUS_LABELS: Record<string, string> = {
+  PENDENTE: "Pendente",
+  CONFORME: "Conforme",
+  COM_RESSALVA: "Com ressalva",
+  NAO_CONFORME: "Não conforme",
+};
+
+export const CUSTODY_OBJECT_STATUS_LABELS: Record<string, string> = {
+  AGUARDANDO_RECEBIMENTO: "Aguardando",
+  RECEBIDO_INTEGRO: "Íntegro",
+  RECEBIDO_AVARIADO: "Avariado",
+  RETIDO: "Retido",
+  TRANSFERIDO: "Transferido",
+  ACEITO: "Aceito (Amostra)",
+  REJEITADO: "Rejeitado",
+};
+
+export const CRITERION_CLASS_LABELS: Record<string, string> = {
+  ELIMINATORIO: "Eliminatório",
+  SANEAVEL: "Saneável",
+  INFORMATIVO: "Informativo",
+};
+
+export const CHECKLIST_RESULT_LABELS: Record<string, string> = {
+  CONFORME: "Conforme",
+  NAO_CONFORME: "Não conforme",
+  NAO_APLICA: "Não se aplica",
+};
+
+export const COORDINATION_STATUS_LABELS: Record<string, string> = {
+  PENDENTE: "Pendente de revisão",
+  APROVADO: "Aprovado",
+  DEVOLVIDO: "Devolvido para diligência",
+  REJEITADO: "Rejeitado",
+};
+
+export const RECEIPT_DECISION_LABELS: Record<string, string> = {
+  ACCEPTED: "Aceito",
+  PENDING: "Pendente de revisão",
+  REJECTED: "Rejeitado",
+};
+
 export const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Administrador",
   FISCAL: "Fiscal sanitário",
@@ -173,4 +228,23 @@ export const STATUS_TONE: Record<string, string> = {
   CONCLUIDA: "border-emerald-200 bg-emerald-50 text-emerald-800",
   CANCELADA: "border-slate-200 bg-slate-100 text-slate-600",
   INCONCLUSIVO: "border-slate-200 bg-slate-100 text-slate-700",
+  DRAFT: "border-slate-200 bg-slate-100 text-slate-700",
+  SUBMITTED: "border-sky-200 bg-sky-50 text-sky-800",
+  CANCELLED: "border-rose-200 bg-rose-50 text-rose-800",
+  EM_CONFERENCIA: "border-amber-200 bg-amber-50 text-amber-900",
+  CONFORME: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  COM_RESSALVA: "border-amber-200 bg-amber-50 text-amber-900",
+  NAO_CONFORME: "border-rose-200 bg-rose-50 text-rose-800",
+  AGUARDANDO_RECEBIMENTO: "border-slate-200 bg-slate-100 text-slate-600",
+  RECEBIDO_INTEGRO: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  RECEBIDO_AVARIADO: "border-rose-200 bg-rose-50 text-rose-800",
+  RETIDO: "border-amber-200 bg-amber-50 text-amber-900",
+  TRANSFERIDO: "border-sky-200 bg-sky-50 text-sky-800",
+  ACEITO: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  REJEITADO: "border-rose-200 bg-rose-50 text-rose-800",
+  ELIMINATORIO: "border-rose-200 bg-rose-50 text-rose-800",
+  SANEAVEL: "border-amber-200 bg-amber-50 text-amber-900",
+  INFORMATIVO: "border-blue-200 bg-blue-50 text-blue-800",
+  NAO_APLICA: "border-slate-200 bg-slate-100 text-slate-600",
+  DEVOLVIDO: "border-amber-200 bg-amber-50 text-amber-900",
 };

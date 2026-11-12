@@ -288,3 +288,232 @@ export interface AppMetadata {
   auto_open_capa_on_failure: boolean;
   password_min_length: number;
 }
+
+// ==========================================
+// Fase 1: Solicitação, Recebimento e Custódia
+// ==========================================
+
+export type SolicitationStatus = "DRAFT" | "SUBMITTED" | "CANCELLED";
+
+export type PresentationStatus = "PRESENTED" | "ABSENT" | "DAMAGED";
+
+export type ConferenceStatus =
+  | "PENDENTE"
+  | "CONFORME"
+  | "COM_RESSALVA"
+  | "NAO_CONFORME";
+
+export type CustodyObjectStatus =
+  | "AGUARDANDO_RECEBIMENTO"
+  | "RECEBIDO_INTEGRO"
+  | "RECEBIDO_AVARIADO"
+  | "RETIDO"
+  | "TRANSFERIDO"
+  | "ACEITO"
+  | "REJEITADO";
+
+export type ReceiptStatus =
+  | "DRAFT"
+  | "EM_CONFERENCIA"
+  | "CONCLUIDO"
+  | "CANCELADO";
+
+export type CustodyEventType =
+  | "RECEIPT"
+  | "TRANSFER"
+  | "ACCEPTANCE"
+  | "REJECTION"
+  | "SEAL_CHANGE"
+  | "INSPECTION";
+
+export type CriterionClass = "ELIMINATORIO" | "SANEAVEL" | "INFORMATIVO";
+
+export type ChecklistResult = "CONFORME" | "NAO_CONFORME" | "NAO_APLICA";
+
+export type ReceiptDecisionEnum = "ACCEPTED" | "PENDING" | "REJECTED";
+
+export type CoordinationReviewStatus =
+  | "PENDENTE"
+  | "APROVADO"
+  | "DEVOLVIDO"
+  | "REJEITADO";
+
+export interface SolicitationItem {
+  id: string;
+  solicitation_id: string;
+  item_number: number;
+  product_name: string;
+  category: string | null;
+  manufacturer: string | null;
+  model: string | null;
+  serial_number: string | null;
+  lot_number: string | null;
+  declared_quantity: number;
+  unit_of_measure: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Solicitation {
+  id: string;
+  solicitation_number: string;
+  requester_name: string;
+  requester_email: string | null;
+  requester_document: string | null;
+  requester_organization: string | null;
+  created_by_id: string;
+  created_by: UserBrief | null;
+  purpose: string | null;
+  request_type: string;
+  priority: string;
+  status: SolicitationStatus;
+  submitted_at: string | null;
+  items: SolicitationItem[];
+  has_receipt: boolean;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustodyEventBrief {
+  id: string;
+  custody_object_id: string;
+  event_type: CustodyEventType;
+  effective_at: string;
+  from_custodian_id: string | null;
+  from_custodian: UserBrief | null;
+  to_custodian_id: string | null;
+  to_custodian: UserBrief | null;
+  from_location: string | null;
+  to_location: string | null;
+  reason: string;
+  registered_by_id: string;
+  registered_by: UserBrief | null;
+  created_at: string;
+}
+
+export interface CustodyObject {
+  id: string;
+  receipt_item_id: string;
+  object_code: string;
+  grouping_description: string | null;
+  represented_quantity: number;
+  current_location: string | null;
+  seal_number: string | null;
+  status: CustodyObjectStatus;
+  current_custodian_id: string | null;
+  current_custodian: UserBrief | null;
+  linked_device_sample_id: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReceiptItem {
+  id: string;
+  receipt_id: string;
+  solicitation_item_id: string;
+  solicitation_item: SolicitationItem | null;
+  presentation_status: PresentationStatus;
+  presented_quantity: number;
+  conference_status: ConferenceStatus;
+  decision: ReceiptDecisionEnum | null;
+  notes: string | null;
+  custody_objects: CustodyObject[];
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Receipt {
+  id: string;
+  solicitation_id: string;
+  receipt_number: string;
+  arrived_at: string;
+  received_by_id: string;
+  received_by: UserBrief | null;
+  arrival_location: string | null;
+  external_protocol: string | null;
+  delivery_method: string | null;
+  packaging_condition: string | null;
+  notes: string | null;
+  status: ReceiptStatus;
+  items: ReceiptItem[];
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChecklistCriterion {
+  id: string;
+  template_id: string;
+  code: string;
+  description: string;
+  criterion_class: CriterionClass;
+  is_mandatory: boolean;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChecklistTemplate {
+  id: string;
+  code: string;
+  name: string;
+  category: string | null;
+  version: number;
+  is_active: boolean;
+  criteria: ChecklistCriterion[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChecklistAnswer {
+  id: string;
+  receipt_item_id: string;
+  criterion_id: string;
+  criterion: ChecklistCriterion | null;
+  result: ChecklistResult;
+  justification: string | null;
+  evaluated_by_id: string;
+  evaluated_by: UserBrief | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DecisionBrief {
+  id: string;
+  decision: ReceiptDecisionEnum;
+  justification: string;
+  decided_by: UserBrief | null;
+  created_at: string;
+}
+
+export interface CoordinationReview {
+  id: string;
+  decision_id: string;
+  decision?: DecisionBrief | null;
+  status: CoordinationReviewStatus;
+  reviewed_by_id: string | null;
+  reviewed_by: UserBrief | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReceiptDecision {
+  id: string;
+  receipt_item_id: string;
+  custody_object_id: string | null;
+  decision: ReceiptDecisionEnum;
+  justification: string;
+  decided_by_id: string;
+  decided_by: UserBrief | null;
+  requires_coordination_review: boolean;
+  coordination_review: CoordinationReview | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}

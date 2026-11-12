@@ -1,10 +1,13 @@
 import * as React from "react";
 import {
+  Boxes,
   ClipboardCheck,
+  ClipboardList,
   FlaskConical,
   LayoutDashboard,
   LogOut,
   Menu,
+  Scale,
   ScrollText,
   ShieldCheck,
   Timer,
@@ -26,7 +29,15 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/", label: "Painel de entrada", icon: LayoutDashboard, end: true },
+  { to: "/solicitations", label: "Solicitações SEFI", icon: ClipboardList },
+  { to: "/receipts", label: "Recebimento & Custódia", icon: Boxes },
+  {
+    to: "/coordination-reviews",
+    label: "Revisão da Coordenação",
+    icon: Scale,
+    roles: ["ADMIN", "FISCAL"],
+  },
+  { to: "/", label: "Amostras Operacionais", icon: LayoutDashboard, end: true },
   { to: "/tests", label: "Ensaios e laudos", icon: FlaskConical },
   { to: "/capas", label: "CAPA", icon: ClipboardCheck },
   {
