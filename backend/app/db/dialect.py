@@ -10,8 +10,14 @@ from __future__ import annotations
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# Sequences criadas por `app/db/sql/001_immutability.sql`.
-SEQUENCES = frozenset({"sample_accession_seq", "capa_code_seq"})
+# Sequences nativas do sistema.
+SEQUENCES = frozenset({
+    "sample_accession_seq",
+    "capa_code_seq",
+    "solicitation_number_seq",
+    "receipt_number_seq",
+    "custody_object_code_seq",
+})
 
 _SQLITE_COUNTERS_TABLE = "_sequence_counters"
 
@@ -36,6 +42,7 @@ async def next_sequence(db: AsyncSession, name: str) -> int:
 
     if is_postgres(db):
         # `name` é validado contra a allowlist acima; não há interpolação livre.
+        await db.execute(text(f"CREATE SEQUENCE IF NOT EXISTS {name} START WITH 1 INCREMENT BY 1"))
         value = await db.scalar(text(f"SELECT nextval('{name}')"))
         return int(value or 0)
 
