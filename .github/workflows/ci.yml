@@ -51,7 +51,12 @@ jobs:
       # Garante que as migrações versionadas reproduzem o schema e que o
       # metadata dos modelos não divergiu do último head.
       - name: Migrações (alembic upgrade head)
-        run: alembic upgrade head
+        run: |
+          if ! alembic upgrade head 2>&1 | tee /tmp/alembic.log; then
+            msg=$(tail -n 25 /tmp/alembic.log | tr '\r\n' ' ')
+            echo "::error title=Alembic Failure::$msg"
+            exit 1
+          fi
         env:
           DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
 
