@@ -52,9 +52,12 @@ jobs:
       # metadata dos modelos não divergiu do último head.
       - name: Migrações (alembic upgrade head)
         run: |
-          if ! alembic upgrade head 2>&1 | tee /tmp/alembic.log; then
-            msg=$(tail -n 25 /tmp/alembic.log | tr '\r\n' ' ')
-            echo "::error title=Alembic Failure::$msg"
+          if ! python -m alembic upgrade head 2>&1 | tee /tmp/alembic.log; then
+            echo "### Alembic Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat /tmp/alembic.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            python -c "import urllib.parse; msg = open('/tmp/alembic.log').read()[-3000:]; print('::error title=Alembic::' + urllib.parse.quote(msg))"
             exit 1
           fi
         env:
