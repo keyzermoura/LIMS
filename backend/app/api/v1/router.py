@@ -6,7 +6,9 @@ from app.api.v1.routes import (
     audit,
     auth,
     capas,
+    checklists,
     custody,
+    decisions,
     receipts,
     samples,
     solicitations,
@@ -19,6 +21,10 @@ api_router.include_router(auth.router)
 api_router.include_router(solicitations.router)
 api_router.include_router(receipts.receipts_router)
 api_router.include_router(receipts.custody_objects_router)
+api_router.include_router(checklists.templates_router)
+api_router.include_router(checklists.checklist_eval_router)
+api_router.include_router(decisions.decisions_router)
+api_router.include_router(decisions.coordination_router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)

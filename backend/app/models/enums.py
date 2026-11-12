@@ -91,6 +91,9 @@ class AuditEntity(str, Enum):
     SOLICITATION = "Solicitation"
     RECEIPT = "Receipt"
     CUSTODY_OBJECT = "CustodyObject"
+    CHECKLIST = "Checklist"
+    RECEIPT_DECISION = "ReceiptDecision"
+    COORDINATION_REVIEW = "CoordinationReview"
 
 
 class SolicitationStatus(str, Enum):
