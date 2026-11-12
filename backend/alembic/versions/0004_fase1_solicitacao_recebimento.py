@@ -27,8 +27,13 @@ RECEIPT_DECISION = postgresql.ENUM(
 def upgrade() -> None:
     # Enum compartilhado por duas tabelas: criar uma única vez (PostgreSQL).
     if op.get_bind().dialect.name == "postgresql":
-        RECEIPT_DECISION.create(op.get_bind(), checkfirst=True)
-    # 1. Tabelas de SolicitaÃ§Ã£o
+        op.execute(
+            "DO $$ BEGIN "
+            "CREATE TYPE receipt_decision AS ENUM ('ACCEPTED', 'PENDING', 'REJECTED'); "
+            "EXCEPTION WHEN duplicate_object THEN null; "
+            "END $$;"
+        )
+    # 1. Tabelas de Solicitação
     op.create_table(
         "solicitations",
         sa.Column("solicitation_number", sa.String(length=32), nullable=False),
