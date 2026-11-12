@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0004_fase1_solicitacao_recebimento"
+revision: str = "0004_fase1_solic_receb"
 down_revision: str | None = "0003_audit_export"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -356,13 +356,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_constraint(op.f("fk_device_samples_origin_custody_object_id_custody_objects"), "device_samples", type_="foreignkey")
-    op.drop_constraint(op.f("fk_device_samples_solicitation_id_solicitations"), "device_samples", type_="foreignkey")
-    op.drop_index(op.f("ix_device_samples_origin_custody_object_id"), table_name="device_samples")
-    op.drop_index(op.f("ix_device_samples_solicitation_id"), table_name="device_samples")
-    op.drop_column("device_samples", "origin_custody_object_id")
-    op.drop_column("device_samples", "solicitation_id")
-
     # Restaura a obrigatoriedade original. Linhas criadas depois do upgrade sem
     # serie/lote tornam a reversao impossivel sem perda de dados: falhar alto e
     # claro e melhor do que inventar valores.
@@ -378,6 +371,13 @@ def downgrade() -> None:
             f"Downgrade 0004 abortado: {pendentes} amostra(s) sem serial_number/lot_number. "
             "Preencha os valores (ou trate manualmente) antes de reverter."
         )
+
+    op.drop_constraint(op.f("fk_device_samples_origin_custody_object_id_custody_objects"), "device_samples", type_="foreignkey")
+    op.drop_constraint(op.f("fk_device_samples_solicitation_id_solicitations"), "device_samples", type_="foreignkey")
+    op.drop_index(op.f("ix_device_samples_origin_custody_object_id"), table_name="device_samples")
+    op.drop_index(op.f("ix_device_samples_solicitation_id"), table_name="device_samples")
+    op.drop_column("device_samples", "origin_custody_object_id")
+    op.drop_column("device_samples", "solicitation_id")
     op.alter_column("device_samples", "serial_number", existing_type=sa.String(length=120), nullable=False)
     op.alter_column("device_samples", "lot_number", existing_type=sa.String(length=120), nullable=False)
 

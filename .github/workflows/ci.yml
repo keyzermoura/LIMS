@@ -51,28 +51,12 @@ jobs:
       # Garante que as migrações versionadas reproduzem o schema e que o
       # metadata dos modelos não divergiu do último head.
       - name: Migrações (alembic upgrade head)
-        run: |
-          if ! python -m alembic upgrade head 2>&1 | tee /tmp/alembic.log; then
-            echo "### Alembic Output" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat /tmp/alembic.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            python -c "import urllib.parse; msg = open('/tmp/alembic.log').read()[-3000:]; print('::error title=Alembic::' + urllib.parse.quote(msg))"
-            exit 1
-          fi
+        run: alembic upgrade head
         env:
           DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
 
       - name: Paridade metadata x migrações (alembic check)
-        run: |
-          if ! python -m alembic check 2>&1 | tee /tmp/alembic_check.log; then
-            echo "### Alembic Check Diffs" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat /tmp/alembic_check.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            python -c "import urllib.parse; msg = open('/tmp/alembic_check.log').read()[-3000:]; print('::error title=AlembicCheck::' + urllib.parse.quote(msg))"
-            exit 1
-          fi
+        run: alembic check
         env:
           DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
 
@@ -138,9 +122,7 @@ jobs:
 
       - name: Logs dos serviços
         if: failure()
-        run: |
-          docker compose logs --no-color --tail 200
-          python -c "import subprocess, urllib.parse; msg = subprocess.check_output(['docker', 'compose', 'logs', '--no-color', '--tail', '50'], text=True); print('::error title=DockerLogs::' + urllib.parse.quote(msg))"
+        run: docker compose logs --no-color
 
       - name: Derrubar a stack
         if: always()

@@ -32,7 +32,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 PRE_PHASE1 = "0003_audit_export"
-PHASE1 = "0004_fase1_solicitacao_recebimento"
+PHASE1 = "0004_fase1_solic_receb"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -200,7 +200,8 @@ async def test_downgrade_is_reversible(migration_url: str) -> None:
     nullable = await _scalars(
         migration_url,
         "SELECT is_nullable FROM information_schema.columns "
-        "WHERE table_name = 'device_samples' AND column_name IN ('serial_number', 'lot_number')",
+        "WHERE table_schema = 'public' AND table_name = 'device_samples' "
+        "AND column_name IN ('lot_number', 'serial_number') ORDER BY column_name",
     )
     assert nullable == ["NO", "NO"]
 
