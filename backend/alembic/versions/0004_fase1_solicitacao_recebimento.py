@@ -1,4 +1,4 @@
-"""Modelos da Fase 1: Solicitação, Recebimento, Objetos de Custódia e Checklist (M0.3).
+"""Modelos da Fase 1: SolicitaÃ§Ã£o, Recebimento, Objetos de CustÃ³dia e Checklist (M0.3).
 
 Revision ID: 0004_fase1_solicitacao_recebimento
 Revises: 0003_audit_export
@@ -19,8 +19,16 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
+RECEIPT_DECISION = postgresql.ENUM(
+    "ACCEPTED", "PENDING", "REJECTED", name="receipt_decision", create_type=False
+)
+
+
 def upgrade() -> None:
-    # 1. Tabelas de Solicitação
+    # Enum compartilhado por duas tabelas: criar uma única vez (PostgreSQL).
+    if op.get_bind().dialect.name == "postgresql":
+        RECEIPT_DECISION.create(op.get_bind(), checkfirst=True)
+    # 1. Tabelas de SolicitaÃ§Ã£o
     op.create_table(
         "solicitations",
         sa.Column("solicitation_number", sa.String(length=32), nullable=False),
@@ -142,7 +150,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "decision",
-            sa.Enum("ACCEPTED", "PENDING", "REJECTED", name="receipt_decision"),
+            RECEIPT_DECISION,
             nullable=True,
         ),
         sa.Column("notes", sa.Text(), nullable=True),
@@ -157,7 +165,7 @@ def upgrade() -> None:
     op.create_index(op.f("ix_receipt_items_receipt_id"), "receipt_items", ["receipt_id"], unique=False)
     op.create_index(op.f("ix_receipt_items_solicitation_item_id"), "receipt_items", ["solicitation_item_id"], unique=False)
 
-    # 3. Tabelas de Custódia Física Pré-Amostra
+    # 3. Tabelas de CustÃ³dia FÃ­sica PrÃ©-Amostra
     op.create_table(
         "custody_objects",
         sa.Column("receipt_item_id", sa.UUID(), nullable=False),
@@ -283,14 +291,14 @@ def upgrade() -> None:
     op.create_index(op.f("ix_checklist_answers_criterion_id"), "checklist_answers", ["criterion_id"], unique=False)
     op.create_index(op.f("ix_checklist_answers_receipt_item_id"), "checklist_answers", ["receipt_item_id"], unique=False)
 
-    # 5. Tabelas de Decisões e Coordenação
+    # 5. Tabelas de DecisÃµes e CoordenaÃ§Ã£o
     op.create_table(
         "receipt_decisions",
         sa.Column("receipt_item_id", sa.UUID(), nullable=False),
         sa.Column("custody_object_id", sa.UUID(), nullable=True),
         sa.Column(
             "decision",
-            sa.Enum("ACCEPTED", "PENDING", "REJECTED", name="receipt_decision"),
+            RECEIPT_DECISION,
             nullable=False,
         ),
         sa.Column("justification", sa.Text(), nullable=False),
@@ -331,7 +339,7 @@ def upgrade() -> None:
     op.create_index(op.f("ix_coordination_reviews_decision_id"), "coordination_reviews", ["decision_id"], unique=True)
     op.create_index(op.f("ix_coordination_reviews_status"), "coordination_reviews", ["status"], unique=False)
 
-    # 6. Alterações aditivas em device_samples
+    # 6. AlteraÃ§Ãµes aditivas em device_samples
     op.add_column("device_samples", sa.Column("solicitation_id", sa.UUID(), nullable=True))
     op.add_column("device_samples", sa.Column("origin_custody_object_id", sa.UUID(), nullable=True))
     op.create_foreign_key(
@@ -353,7 +361,7 @@ def upgrade() -> None:
     op.create_index(op.f("ix_device_samples_solicitation_id"), "device_samples", ["solicitation_id"], unique=False)
     op.create_index(op.f("ix_device_samples_origin_custody_object_id"), "device_samples", ["origin_custody_object_id"], unique=False)
 
-    # Relaxar restrições NOT NULL para série e lote
+    # Relaxar restriÃ§Ãµes NOT NULL para sÃ©rie e lote
     op.alter_column("device_samples", "serial_number", existing_type=sa.String(length=120), nullable=True)
     op.alter_column("device_samples", "lot_number", existing_type=sa.String(length=120), nullable=True)
 
@@ -377,3 +385,11 @@ def downgrade() -> None:
     op.drop_table("receipts")
     op.drop_table("solicitation_items")
     op.drop_table("solicitations")
+
+    if op.get_bind().dialect.name == "postgresql":
+        for enum_name in (
+            "coordination_review_status", "checklist_result", "criterion_class",
+            "custody_event_type", "custody_object_status", "receipt_decision",
+            "conference_status", "presentation_status", "receipt_status", "solicitation_status",
+        ):
+            op.execute(f"DROP TYPE IF EXISTS {enum_name}")

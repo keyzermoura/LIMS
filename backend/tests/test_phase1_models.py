@@ -10,6 +10,9 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
 from app.models.checklist import ChecklistAnswer, ChecklistCriterion, ChecklistTemplate
 from app.models.decision import CoordinationReview, ReceiptDecision
 from app.models.enums import (
@@ -28,8 +31,6 @@ from app.models.enums import (
 from app.models.receipt import CustodyEvent, CustodyObject, Receipt, ReceiptItem
 from app.models.solicitation import Solicitation, SolicitationItem
 from app.models.user import User
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 @pytest.mark.asyncio
