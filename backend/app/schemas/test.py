@@ -18,6 +18,8 @@ class LabTestCreate(BaseModel):
     device_sample_id: UUID
     name: str = Field(min_length=2, max_length=160)
     method: str | None = Field(default=None, max_length=200)
+    method_id: UUID | None = None
+    equipment_id: UUID | None = None
     parameters: dict[str, Any] = Field(default_factory=dict)
     unit: str = Field(min_length=1, max_length=32)
     lower_limit: Decimal | None = None
@@ -52,6 +54,8 @@ class LabTestOut(BaseModel):
     device_sample_id: UUID
     name: str
     method: str | None
+    method_id: UUID | None = None
+    equipment_id: UUID | None = None
     parameters: dict[str, Any]
     unit: str
     lower_limit: Decimal | None

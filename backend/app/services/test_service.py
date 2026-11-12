@@ -34,7 +34,13 @@ from app.models.enums import (
 from app.models.lab_test import LabTest, LabTestResult
 from app.models.user import User
 from app.schemas.test import LabTestCreate, LabTestResultIn, TestAlert
-from app.services import audit_service, sample_service, signature_service
+from app.services import (
+    audit_service,
+    equipment_service,
+    method_service,
+    sample_service,
+    signature_service,
+)
 
 
 async def create_test(
@@ -85,11 +91,20 @@ async def create_test(
     elif actor.role in (UserRole.TECNICO, UserRole.ADMIN):
         assignee = actor
 
+    if payload.method_id is not None:
+        await method_service.get_method(db, payload.method_id)
+
+    if payload.equipment_id is not None:
+        eq = await equipment_service.get_equipment(db, payload.equipment_id)
+        equipment_service.validate_equipment_for_use(eq)
+
     test = LabTest(
         id=payload.id,
         device_sample_id=sample.id,
         name=payload.name.strip(),
         method=payload.method,
+        method_id=payload.method_id,
+        equipment_id=payload.equipment_id,
         parameters=payload.parameters,
         unit=payload.unit.strip(),
         lower_limit=payload.lower_limit,

@@ -205,6 +205,20 @@ export const ROLE_LABELS: Record<string, string> = {
   AUDITOR: "Auditor da qualidade",
 };
 
+export const EQUIPMENT_CALIBRATION_LABELS: Record<string, string> = {
+  CALIBRADO: "Calibrado",
+  VENCIDO: "Calibração Vencida",
+  EM_MANUTENCAO: "Em Manutenção",
+  NAO_APLICAVEL: "Não Aplicável",
+};
+
+export const EXECUTION_STATUS_LABELS: Record<string, string> = {
+  EM_ANDAMENTO: "Em Andamento",
+  CONCLUIDA: "Concluída",
+  INTERROMPIDA: "Interrompida",
+  CANCELADA: "Cancelada",
+};
+
 export const MEANING_LABELS: Record<string, string> = {
   AUTORIA: "Autoria",
   REVISAO: "Revisão",
@@ -228,6 +242,11 @@ export const STATUS_TONE: Record<string, string> = {
   CONCLUIDA: "border-emerald-200 bg-emerald-50 text-emerald-800",
   CANCELADA: "border-slate-200 bg-slate-100 text-slate-600",
   INCONCLUSIVO: "border-slate-200 bg-slate-100 text-slate-700",
+  CALIBRADO: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  VENCIDO: "border-rose-300 bg-rose-50 text-rose-800 font-medium",
+  EM_MANUTENCAO: "border-amber-200 bg-amber-50 text-amber-900",
+  NAO_APLICAVEL: "border-slate-200 bg-slate-100 text-slate-600",
+  INTERROMPIDA: "border-rose-200 bg-rose-50 text-rose-800",
   DRAFT: "border-slate-200 bg-slate-100 text-slate-700",
   SUBMITTED: "border-sky-200 bg-sky-50 text-sky-800",
   CANCELLED: "border-rose-200 bg-rose-50 text-rose-800",

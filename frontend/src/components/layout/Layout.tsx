@@ -1,9 +1,11 @@
 import * as React from "react";
 import {
+  BookOpen,
   Boxes,
   ClipboardCheck,
   ClipboardList,
   FlaskConical,
+  Gauge,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -39,6 +41,8 @@ const NAV_ITEMS: NavItem[] = [
   },
   { to: "/", label: "Amostras Operacionais", icon: LayoutDashboard, end: true },
   { to: "/tests", label: "Ensaios e laudos", icon: FlaskConical },
+  { to: "/equipment", label: "Controle de Equipamentos", icon: Gauge },
+  { to: "/methods", label: "Catálogo de Métodos", icon: BookOpen },
   { to: "/capas", label: "CAPA", icon: ClipboardCheck },
   {
     to: "/audit",

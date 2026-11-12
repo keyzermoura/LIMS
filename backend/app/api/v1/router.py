@@ -9,6 +9,9 @@ from app.api.v1.routes import (
     checklists,
     custody,
     decisions,
+    equipment,
+    executions,
+    methods,
     receipts,
     samples,
     solicitations,
@@ -25,6 +28,10 @@ api_router.include_router(checklists.templates_router)
 api_router.include_router(checklists.checklist_eval_router)
 api_router.include_router(decisions.decisions_router)
 api_router.include_router(decisions.coordination_router)
+api_router.include_router(methods.router)
+api_router.include_router(equipment.router)
+api_router.include_router(executions.test_executions_router)
+api_router.include_router(executions.executions_router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)
