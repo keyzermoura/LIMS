@@ -38,8 +38,8 @@ def upgrade() -> None:
         sa.Column("requester_organization", sa.String(length=200), nullable=True),
         sa.Column("created_by_id", sa.UUID(), nullable=False),
         sa.Column("purpose", sa.Text(), nullable=True),
-        sa.Column("request_type", sa.String(length=64), nullable=False, server_default="FISCALIZACAO"),
-        sa.Column("priority", sa.String(length=32), nullable=False, server_default="NORMAL"),
+        sa.Column("request_type", sa.String(length=64), nullable=False),
+        sa.Column("priority", sa.String(length=32), nullable=False),
         sa.Column(
             "status",
             sa.Enum(
@@ -52,17 +52,15 @@ def upgrade() -> None:
                 name="solicitation_status",
             ),
             nullable=False,
-            server_default="RASCUNHO",
         ),
         sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("version", sa.Integer(), server_default="1", nullable=False),
+        sa.Column("version", sa.Integer(), nullable=False),
         sa.Column("metadata", postgresql.JSONB(astext_type=sa.Text()), server_default="{}", nullable=False),
         sa.ForeignKeyConstraint(["created_by_id"], ["users.id"], name=op.f("fk_solicitations_created_by_id_users"), ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_solicitations")),
-        sa.UniqueConstraint("solicitation_number", name=op.f("uq_solicitations_solicitation_number")),
     )
     op.create_index(op.f("ix_solicitations_created_by_id"), "solicitations", ["created_by_id"], unique=False)
     op.create_index(op.f("ix_solicitations_solicitation_number"), "solicitations", ["solicitation_number"], unique=True)
@@ -71,7 +69,7 @@ def upgrade() -> None:
     op.create_table(
         "solicitation_items",
         sa.Column("solicitation_id", sa.UUID(), nullable=False),
-        sa.Column("item_number", sa.Integer(), nullable=False, server_default="1"),
+        sa.Column("item_number", sa.Integer(), nullable=False),
         sa.Column("product_name", sa.String(length=200), nullable=False),
         sa.Column("category", sa.String(length=100), nullable=True),
         sa.Column("manufacturer", sa.String(length=160), nullable=True),
@@ -79,7 +77,7 @@ def upgrade() -> None:
         sa.Column("serial_number", sa.String(length=120), nullable=True),
         sa.Column("lot_number", sa.String(length=120), nullable=True),
         sa.Column("declared_quantity", sa.Numeric(precision=12, scale=4), nullable=False),
-        sa.Column("unit_of_measure", sa.String(length=32), nullable=False, server_default="UN"),
+        sa.Column("unit_of_measure", sa.String(length=32), nullable=False),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
@@ -112,18 +110,15 @@ def upgrade() -> None:
                 name="receipt_status",
             ),
             nullable=False,
-            server_default="REGISTRADO",
         ),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("version", sa.Integer(), server_default="1", nullable=False),
+        sa.Column("version", sa.Integer(), nullable=False),
         sa.Column("metadata", postgresql.JSONB(astext_type=sa.Text()), server_default="{}", nullable=False),
         sa.ForeignKeyConstraint(["received_by_id"], ["users.id"], name=op.f("fk_receipts_received_by_id_users"), ondelete="RESTRICT"),
         sa.ForeignKeyConstraint(["solicitation_id"], ["solicitations.id"], name=op.f("fk_receipts_solicitation_id_solicitations"), ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_receipts")),
-        sa.UniqueConstraint("receipt_number", name=op.f("uq_receipts_receipt_number")),
-        sa.UniqueConstraint("solicitation_id", name=op.f("uq_receipts_solicitation_id")),
     )
     op.create_index(op.f("ix_receipts_external_protocol"), "receipts", ["external_protocol"], unique=False)
     op.create_index(op.f("ix_receipts_receipt_number"), "receipts", ["receipt_number"], unique=True)
@@ -139,14 +134,12 @@ def upgrade() -> None:
             "presentation_status",
             sa.Enum("PRESENTED", "NOT_PRESENTED", name="presentation_status"),
             nullable=False,
-            server_default="PRESENTED",
         ),
-        sa.Column("presented_quantity", sa.Numeric(precision=12, scale=4), nullable=False, server_default="0"),
+        sa.Column("presented_quantity", sa.Numeric(precision=12, scale=4), nullable=False),
         sa.Column(
             "conference_status",
             sa.Enum("PENDENTE", "CONFORME", "COM_RESSALVA", "NAO_CONFORME", name="conference_status"),
             nullable=False,
-            server_default="PENDENTE",
         ),
         sa.Column(
             "decision",
@@ -157,7 +150,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("version", sa.Integer(), server_default="1", nullable=False),
+        sa.Column("version", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(["receipt_id"], ["receipts.id"], name=op.f("fk_receipt_items_receipt_id_receipts"), ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["solicitation_item_id"], ["solicitation_items.id"], name=op.f("fk_receipt_items_solicitation_item_id_solicitation_items"), ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_receipt_items")),
@@ -178,21 +171,18 @@ def upgrade() -> None:
             "status",
             sa.Enum("SOB_GUARDA", "EM_CONFERENCIA", "ACEITO", "RECUSADO", "DEVOLVIDO", "DESCARTADO", name="custody_object_status"),
             nullable=False,
-            server_default="SOB_GUARDA",
         ),
         sa.Column("current_custodian_id", sa.UUID(), nullable=True),
         sa.Column("linked_device_sample_id", sa.UUID(), nullable=True),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("version", sa.Integer(), server_default="1", nullable=False),
+        sa.Column("version", sa.Integer(), nullable=False),
         sa.Column("metadata", postgresql.JSONB(astext_type=sa.Text()), server_default="{}", nullable=False),
         sa.ForeignKeyConstraint(["current_custodian_id"], ["users.id"], name=op.f("fk_custody_objects_current_custodian_id_users"), ondelete="RESTRICT"),
         sa.ForeignKeyConstraint(["linked_device_sample_id"], ["device_samples.id"], name=op.f("fk_custody_objects_linked_device_sample_id_device_samples"), ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["receipt_item_id"], ["receipt_items.id"], name=op.f("fk_custody_objects_receipt_item_id_receipt_items"), ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_custody_objects")),
-        sa.UniqueConstraint("linked_device_sample_id", name=op.f("uq_custody_objects_linked_device_sample_id")),
-        sa.UniqueConstraint("object_code", name=op.f("uq_custody_objects_object_code")),
     )
     op.create_index(op.f("ix_custody_objects_current_custodian_id"), "custody_objects", ["current_custodian_id"], unique=False)
     op.create_index(op.f("ix_custody_objects_linked_device_sample_id"), "custody_objects", ["linked_device_sample_id"], unique=True)
@@ -208,9 +198,8 @@ def upgrade() -> None:
             "event_type",
             sa.Enum("INGRESSO", "TRANSFERENCIA", "MUDANCA_LOCAL", "SAIDA", "ENCERRAMENTO", name="custody_event_type"),
             nullable=False,
-            server_default="INGRESSO",
         ),
-        sa.Column("effective_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("effective_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("from_custodian_id", sa.UUID(), nullable=True),
         sa.Column("to_custodian_id", sa.UUID(), nullable=True),
         sa.Column("from_location", sa.String(length=255), nullable=True),
@@ -236,13 +225,12 @@ def upgrade() -> None:
         sa.Column("code", sa.String(length=32), nullable=False),
         sa.Column("name", sa.String(length=160), nullable=False),
         sa.Column("category", sa.String(length=100), nullable=True),
-        sa.Column("version", sa.Integer(), server_default="1", nullable=False),
-        sa.Column("is_active", sa.Boolean(), server_default="true", nullable=False),
+        sa.Column("version", sa.Integer(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_checklist_templates")),
-        sa.UniqueConstraint("code", name=op.f("uq_checklist_templates_code")),
     )
     op.create_index(op.f("ix_checklist_templates_category"), "checklist_templates", ["category"], unique=False)
     op.create_index(op.f("ix_checklist_templates_code"), "checklist_templates", ["code"], unique=True)
@@ -256,10 +244,9 @@ def upgrade() -> None:
             "criterion_class",
             sa.Enum("ELIMINATORIO", "SANEAVEL", "INFORMATIVO", name="criterion_class"),
             nullable=False,
-            server_default="ELIMINATORIO",
         ),
-        sa.Column("is_mandatory", sa.Boolean(), server_default="true", nullable=False),
-        sa.Column("order", sa.Integer(), server_default="0", nullable=False),
+        sa.Column("is_mandatory", sa.Boolean(), nullable=False),
+        sa.Column("order", sa.Integer(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
@@ -276,7 +263,6 @@ def upgrade() -> None:
             "result",
             sa.Enum("CONFORME", "NAO_CONFORME", "NAO_APLICAVEL", name="checklist_result"),
             nullable=False,
-            server_default="CONFORME",
         ),
         sa.Column("justification", sa.Text(), nullable=True),
         sa.Column("evaluated_by_id", sa.UUID(), nullable=False),
@@ -303,11 +289,11 @@ def upgrade() -> None:
         ),
         sa.Column("justification", sa.Text(), nullable=False),
         sa.Column("decided_by_id", sa.UUID(), nullable=False),
-        sa.Column("requires_coordination_review", sa.Boolean(), server_default="false", nullable=False),
+        sa.Column("requires_coordination_review", sa.Boolean(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("version", sa.Integer(), server_default="1", nullable=False),
+        sa.Column("version", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(["custody_object_id"], ["custody_objects.id"], name=op.f("fk_receipt_decisions_custody_object_id_custody_objects"), ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["decided_by_id"], ["users.id"], name=op.f("fk_receipt_decisions_decided_by_id_users"), ondelete="RESTRICT"),
         sa.ForeignKeyConstraint(["receipt_item_id"], ["receipt_items.id"], name=op.f("fk_receipt_decisions_receipt_item_id_receipt_items"), ondelete="CASCADE"),
@@ -323,7 +309,6 @@ def upgrade() -> None:
             "status",
             sa.Enum("PENDENTE", "APROVADO", "DEVOLVIDO", "REJEITADO", name="coordination_review_status"),
             nullable=False,
-            server_default="PENDENTE",
         ),
         sa.Column("reviewed_by_id", sa.UUID(), nullable=True),
         sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True),
@@ -334,7 +319,6 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["decision_id"], ["receipt_decisions.id"], name=op.f("fk_coordination_reviews_decision_id_receipt_decisions"), ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["reviewed_by_id"], ["users.id"], name=op.f("fk_coordination_reviews_reviewed_by_id_users"), ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_coordination_reviews")),
-        sa.UniqueConstraint("decision_id", name=op.f("uq_coordination_reviews_decision_id")),
     )
     op.create_index(op.f("ix_coordination_reviews_decision_id"), "coordination_reviews", ["decision_id"], unique=True)
     op.create_index(op.f("ix_coordination_reviews_status"), "coordination_reviews", ["status"], unique=False)
@@ -373,6 +357,24 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_device_samples_solicitation_id"), table_name="device_samples")
     op.drop_column("device_samples", "origin_custody_object_id")
     op.drop_column("device_samples", "solicitation_id")
+
+    # Restaura a obrigatoriedade original. Linhas criadas depois do upgrade sem
+    # serie/lote tornam a reversao impossivel sem perda de dados: falhar alto e
+    # claro e melhor do que inventar valores.
+    bind = op.get_bind()
+    pendentes = bind.execute(
+        sa.text(
+            "SELECT count(*) FROM device_samples "
+            "WHERE serial_number IS NULL OR lot_number IS NULL"
+        )
+    ).scalar_one()
+    if pendentes:
+        raise RuntimeError(
+            f"Downgrade 0004 abortado: {pendentes} amostra(s) sem serial_number/lot_number. "
+            "Preencha os valores (ou trate manualmente) antes de reverter."
+        )
+    op.alter_column("device_samples", "serial_number", existing_type=sa.String(length=120), nullable=False)
+    op.alter_column("device_samples", "lot_number", existing_type=sa.String(length=120), nullable=False)
 
     op.drop_table("coordination_reviews")
     op.drop_table("receipt_decisions")
