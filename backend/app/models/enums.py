@@ -100,6 +100,8 @@ class AuditEntity(str, Enum):
     TEST_REVIEW = "TestReview"
     OFFICIAL_REPORT = "OfficialReport"
     TEST_ATTACHMENT = "TestAttachment"
+    ANALYST_QUALIFICATION = "AnalystQualification"
+    TRAINING_RECORD = "TrainingRecord"
 
 
 class SolicitationStatus(str, Enum):
@@ -185,3 +187,12 @@ class ExecutionStatus(str, Enum):
     CONCLUIDA = "CONCLUIDA"
     INTERROMPIDA = "INTERROMPIDA"
     CANCELADA = "CANCELADA"
+
+
+class QualificationStatus(str, Enum):
+    """Status de habilitação formal do analista para método analítico (ISO/IEC 17025 §6.2)."""
+
+    QUALIFICADO = "QUALIFICADO"
+    EM_SUPERVISAO = "EM_SUPERVISAO"
+    SUSPENSO = "SUSPENSO"
+    EXPIRADO = "EXPIRADO"

@@ -21,6 +21,7 @@ from app.models.enums import (
     EquipmentCalibrationStatus,
     ExecutionStatus,
     PresentationStatus,
+    QualificationStatus,
     ReceiptDecisionEnum,
     ReceiptStatus,
     SampleStatus,
@@ -71,4 +72,7 @@ equipment_calibration_status_type = SAEnum(
 )
 execution_status_type = SAEnum(
     ExecutionStatus, name="execution_status", validate_strings=True
+)
+qualification_status_type = SAEnum(
+    QualificationStatus, name="qualification_status", validate_strings=True
 )

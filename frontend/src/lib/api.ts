@@ -339,6 +339,9 @@ import type {
   OfficialReportGeneratePayload,
   OfficialReportPublicVerify,
   TestAttachment,
+  AnalystQualification,
+  QualificationCheck,
+  TrainingRecord,
 } from "./types";
 
 export const methodsApi = {
@@ -488,4 +491,37 @@ export const attachmentsApi = {
     request<TestAttachment[]>(`/attachments/tests/${testId}`),
   getDownloadUrl: (attachmentId: string) =>
     `${API_BASE}/attachments/${attachmentId}/download`,
+};
+
+export const qualificationsApi = {
+  list: (params?: { user_id?: string; method_id?: string; status?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.user_id) query.set("user_id", params.user_id);
+    if (params?.method_id) query.set("method_id", params.method_id);
+    if (params?.status) query.set("status", params.status);
+    const qs = query.toString();
+    return request<AnalystQualification[]>(`/qualifications${qs ? `?${qs}` : ""}`);
+  },
+  check: (userId: string, methodId: string) =>
+    request<QualificationCheck>(`/qualifications/check?user_id=${userId}&method_id=${methodId}`),
+  grant: (payload: unknown, signatureToken?: string) =>
+    request<AnalystQualification>("/qualifications/grant", {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  revoke: (id: string, payload: { status: string; reason: string }, signatureToken?: string) =>
+    request<AnalystQualification>(`/qualifications/${id}/revoke`, {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  recordTraining: (userId: string, payload: unknown, qualificationId?: string) => {
+    const query = new URLSearchParams({ user_id: userId });
+    if (qualificationId) query.set("qualification_id", qualificationId);
+    return request<TrainingRecord>(`/qualifications/trainings?${query.toString()}`, {
+      method: "POST",
+      body: payload,
+    });
+  },
 };

@@ -753,3 +753,52 @@ export interface TestAttachment {
   uploaded_by: UserBrief | null;
   created_at: string;
 }
+
+export type QualificationStatus =
+  | "QUALIFICADO"
+  | "EM_SUPERVISAO"
+  | "SUSPENSO"
+  | "EXPIRADO";
+
+export interface TrainingRecord {
+  id: string;
+  user_id: string;
+  qualification_id?: string | null;
+  title: string;
+  provider?: string | null;
+  completed_at: string;
+  hours: number;
+  certificate_code?: string | null;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface AnalystQualification {
+  id: string;
+  user_id: string;
+  method_id: string;
+  status: QualificationStatus;
+  granted_at: string;
+  expires_at: string | null;
+  authorized_by_id: string;
+  signature_id: string | null;
+  scope: string | null;
+  notes: string | null;
+  is_active: boolean;
+  version: number;
+  created_at: string;
+  user_name?: string | null;
+  method_code?: string | null;
+  method_name?: string | null;
+  trainings: TrainingRecord[];
+}
+
+export interface QualificationCheck {
+  is_qualified: boolean;
+  status?: QualificationStatus | null;
+  user_id: string;
+  method_id: string;
+  user_name: string;
+  method_code: string;
+  reason?: string | null;
+}

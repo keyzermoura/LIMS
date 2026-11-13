@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.context import RequestContext
-from app.core.errors import ConflictError, NotFoundError
+from app.core.errors import ConflictError, NotFoundError, ValidationDomainError
 from app.models.base import utcnow
 from app.models.enums import (
     AuditAction,
@@ -26,7 +26,7 @@ from app.schemas.test_execution import (
     TestExecutionRecordData,
     TestExecutionStart,
 )
-from app.services import audit_service, equipment_service
+from app.services import audit_service, equipment_service, qualification_service
 
 
 async def get_execution(db: AsyncSession, execution_id: UUID) -> TestExecution:
@@ -95,6 +95,18 @@ async def start_execution(
             f"Já existe a {active_execution.attempt_label} em andamento para este ensaio. "
             "Conclua ou interrompa a tentativa atual antes de iniciar uma nova."
         )
+
+    # 1.1 Validação de competência técnica do analista executor (ISO/IEC 17025 §6.2)
+    if test.method_id is not None:
+        qual_check = await qualification_service.check_analyst_qualification(
+            db, user_id=actor.id, method_id=test.method_id
+        )
+        if not qual_check.is_qualified:
+            raise ValidationDomainError(
+                f"Bloqueio de Competência Metrológica (ISO/IEC 17025 §6.2): "
+                f"O analista '{actor.full_name}' não possui habilitação técnica vigente para o método '{qual_check.method_code}'. "
+                f"Motivo: {qual_check.reason}"
+            )
 
     # 2. Resolução e validação do equipamento
     equipment_to_use_id = payload.equipment_id or test.equipment_id

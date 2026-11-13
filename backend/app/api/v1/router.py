@@ -13,6 +13,7 @@ from app.api.v1.routes import (
     equipment,
     executions,
     methods,
+    qualifications,
     receipts,
     reports,
     reviews,
@@ -38,6 +39,7 @@ api_router.include_router(executions.executions_router)
 api_router.include_router(reviews.reviews_router)
 api_router.include_router(reports.reports_router)
 api_router.include_router(attachments.attachments_router)
+api_router.include_router(qualifications.router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)

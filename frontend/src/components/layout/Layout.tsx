@@ -6,6 +6,7 @@ import {
   ClipboardList,
   FlaskConical,
   Gauge,
+  GraduationCap,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -43,6 +44,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/tests", label: "Ensaios e laudos", icon: FlaskConical },
   { to: "/equipment", label: "Controle de Equipamentos", icon: Gauge },
   { to: "/methods", label: "Catálogo de Métodos", icon: BookOpen },
+  { to: "/qualifications", label: "Qualificação de Analistas", icon: GraduationCap },
   { to: "/capas", label: "CAPA", icon: ClipboardCheck },
   {
     to: "/audit",
