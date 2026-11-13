@@ -51,12 +51,22 @@ jobs:
       # Garante que as migrações versionadas reproduzem o schema e que o
       # metadata dos modelos não divergiu do último head.
       - name: Migrações (alembic upgrade head)
-        run: alembic upgrade head
+        run: |
+          if ! alembic upgrade head; then
+            ALEMBIC_OUT=$(alembic upgrade head 2>&1 | tail -n 35 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            echo "::error title=AlembicUpgradeFailures::$ALEMBIC_OUT"
+            exit 1
+          fi
         env:
           DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
 
       - name: Paridade metadata x migrações (alembic check)
-        run: alembic check
+        run: |
+          if ! alembic check; then
+            CHECK_OUT=$(alembic check 2>&1 | tail -n 35 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            echo "::error title=AlembicCheckFailures::$CHECK_OUT"
+            exit 1
+          fi
         env:
           DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
 
@@ -110,7 +120,12 @@ jobs:
         run: docker compose build
 
       - name: Subir a stack
-        run: docker compose up -d
+        run: |
+          if ! docker compose up -d; then
+            DOCK_OUT=$(docker compose logs 2>&1 | tail -n 35 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            echo "::error title=DockerUpFailures::$DOCK_OUT"
+            exit 1
+          fi
 
       - name: Semear dados de demonstração
         run: docker compose --profile tools run --rm -T seed
