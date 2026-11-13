@@ -40,13 +40,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
+import { ExecutionBenchDialog } from "@/components/ExecutionBenchDialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useESignature } from "@/hooks/use-esignature";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, methodsApi } from "@/lib/api";
 import type {
   DeviceSample,
   LabTest,
   Page,
+  TestExecution,
+  TestMethod,
   TestOutcome,
   TestResultResponse,
   UserBrief,
@@ -278,6 +281,28 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
   const [amendmentReason, setAmendmentReason] = React.useState("");
   const [amending, setAmending] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
+  const [benchOpen, setBenchOpen] = React.useState(false);
+
+  function handleImportFromExecution(execution: TestExecution) {
+    if (execution.result_value !== null) {
+      setValue(String(execution.result_value));
+    }
+    if (execution.result_text) {
+      setResultText(execution.result_text);
+    }
+    if (execution.outcome) {
+      setOutcome(execution.outcome);
+    }
+    const envInfo = [
+      execution.temperature_celsius ? `Temp: ${execution.temperature_celsius}°C` : null,
+      execution.humidity_percent ? `UR: ${execution.humidity_percent}%` : null,
+      execution.pressure_hpa ? `Pressão: ${execution.pressure_hpa} hPa` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    const notePrefix = `Importado da Execução #${execution.execution_number}${envInfo ? ` (${envInfo})` : ""}.`;
+    setNotes((prev) => (prev ? `${notePrefix}\n${prev}` : notePrefix));
+  }
 
   // O backend só permite que o testador designado (ou ADMIN) assine — e um
   // designado sem competência para assinar (ex.: FISCAL em registro legado)
@@ -421,7 +446,19 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
           {test.acceptance_criteria ? (
             <span className="line-clamp-1">{test.acceptance_criteria}</span>
           ) : null}
-          <span className="ml-auto font-mono">v{test.result_version}</span>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border/40">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setBenchOpen(true)}
+            className="h-7 text-xs font-medium border-primary/30 hover:border-primary text-primary"
+          >
+            <FlaskConical className="mr-1.5 h-3.5 w-3.5" />
+            Bancada de Execução
+          </Button>
+          <span className="font-mono text-[11px] text-muted-foreground">v{test.result_version}</span>
         </div>
       </CardHeader>
 
@@ -613,6 +650,14 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
           )}
         </form>
       </CardContent>
+
+      <ExecutionBenchDialog
+        open={benchOpen}
+        onOpenChange={setBenchOpen}
+        test={test}
+        sampleCode={test.name}
+        onImportToReport={handleImportFromExecution}
+      />
     </Card>
   );
 }
@@ -638,6 +683,28 @@ function NewTestDialog({
   const [criteria, setCriteria] = React.useState("");
   const [assignedTo, setAssignedTo] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
+  const [selectedMethodId, setSelectedMethodId] = React.useState<string>("");
+
+  const methodsQuery = useQuery({
+    queryKey: ["catalog", "methods", "active"],
+    queryFn: () => methodsApi.list({ activeOnly: true }),
+    enabled: open,
+  });
+  const standardMethods = methodsQuery.data ?? [];
+
+  function handleSelectStandardMethod(methodId: string) {
+    setSelectedMethodId(methodId);
+    if (!methodId) return;
+    const m = standardMethods.find((item) => item.id === methodId);
+    if (m) {
+      setName(m.name);
+      setMethod(`${m.code} — ${m.standard}`);
+      setUnit(m.default_unit);
+      setLower(m.default_lower_limit !== null ? String(m.default_lower_limit) : "");
+      setUpper(m.default_upper_limit !== null ? String(m.default_upper_limit) : "");
+      setCriteria(m.default_acceptance_criteria ?? "");
+    }
+  }
 
   const usersQuery = useQuery({
     queryKey: ["users", "testers"],
@@ -658,6 +725,7 @@ function NewTestDialog({
     setUpper("");
     setCriteria("");
     setAssignedTo("");
+    setSelectedMethodId("");
   }, [open]);
 
   async function handleCreate(event: React.FormEvent) {
@@ -688,6 +756,7 @@ function NewTestDialog({
           device_sample_id: sample.id,
           name: name.trim(),
           method: method.trim() || null,
+          method_id: selectedMethodId || null,
           parameters: {},
           unit: unit.trim(),
           lower_limit: lower.trim() ? Number(lower.replace(",", ".")) : null,
@@ -730,6 +799,26 @@ function NewTestDialog({
         </DialogHeader>
 
         <form onSubmit={handleCreate} className="grid gap-4">
+          {standardMethods.length > 0 ? (
+            <div className="grid gap-1.5 rounded-md border border-primary/20 bg-primary/[0.03] p-2.5">
+              <Label htmlFor="standard-method" className="text-xs text-primary font-semibold">
+                Importar do Catálogo de Métodos / Normas da SEFI (Opcional)
+              </Label>
+              <Select value={selectedMethodId} onValueChange={handleSelectStandardMethod}>
+                <SelectTrigger id="standard-method" className="h-8 text-xs bg-background">
+                  <SelectValue placeholder="Selecione um método normativo padronizado..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {standardMethods.map((m) => (
+                    <SelectItem key={m.id} value={m.id} className="text-xs">
+                      <span className="font-mono font-medium">{m.code}</span> — {m.name} ({m.standard})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+
           <div className="grid gap-1.5">
             <Label htmlFor="test-name">Nome do ensaio *</Label>
             <Input

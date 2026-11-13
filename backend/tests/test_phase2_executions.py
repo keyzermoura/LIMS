@@ -294,6 +294,7 @@ async def test_execution_alcoa_raw_data_interrupt_and_repeat(
             "unit": "°C",
             "lower_limit": 20.0,
             "upper_limit": 65.0,
+            "assigned_to_id": tecnico["user"]["id"],
         },
     )
     assert test_res.status_code == 201
@@ -414,3 +415,34 @@ async def test_execution_alcoa_raw_data_interrupt_and_repeat(
     assert history[1]["execution_number"] == 2
     assert history[1]["status"] == "CONCLUIDA"
     assert history[1]["outcome"] == "APROVADO"
+
+    # 3.9 Formalização do Laudo do Ensaio com base na Execução Concluída (Item 2.7)
+    sign_grant = await issue_signature(
+        client,
+        tecnico["access_token"],
+        users["tecnico"]["password"],
+        entity_type="LabTest",
+        entity_id=test_id,
+        action="UPDATE",
+        meaning="RESPONSABILIDADE_TECNICA",
+        reason="Formalização e assinatura técnica do laudo a partir da Execução #2.",
+    )
+    result_payload = {
+        "result_value": exec2_done["result_value"],
+        "result_text": exec2_done["result_text"],
+        "outcome": exec2_done["outcome"],
+        "notes": f"Laudo emitido a partir da Execução #{exec2_done['execution_number']}. Ambiente: {exec2_payload['temperature_celsius']} °C.",
+        "version": 1,
+    }
+    result_res = await client.patch(
+        f"{API}/tests/{test_id}/result",
+        headers=signed(tecnico["access_token"], sign_grant["token"]),
+        json=result_payload,
+    )
+    assert result_res.status_code == 200, result_res.text
+    final_test = result_res.json()["test"]
+    assert final_test["status"] == "CONCLUIDO"
+    assert final_test["outcome"] == "APROVADO"
+    assert float(final_test["result_value"]) == 53.1
+    assert final_test["result_version"] == 1
+    assert final_test["signed_by"] is not None
