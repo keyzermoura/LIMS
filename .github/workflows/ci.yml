@@ -56,9 +56,25 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
 
       - name: Paridade metadata x migrações (alembic check)
-        run: alembic check
+        run: |
+          if ! alembic check; then
+            echo "::error title=Alembic Check Falhou::Divergência detectada entre os modelos e migrações!"
+            alembic revision --autogenerate -m "drift_diagnostic"
+            DRIFT_FILE=$(ls alembic/versions/*drift_diagnostic*.py | head -n 1)
+            echo "::notice title=Conteudo da Migracao de Drift::$DRIFT_FILE"
+            cat "$DRIFT_FILE"
+            exit 255
+          fi
         env:
           DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
+
+      - name: Upload Drift Diagnostic se falhar
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alembic-drift-diagnostic
+          path: backend/alembic/versions/*drift_diagnostic*.py
+          if-no-files-found: ignore
 
       # Primeiro SQLite (rápido, sem infraestrutura) e depois PostgreSQL real,
       # que exercita triggers, sequences nativas e advisory lock.
