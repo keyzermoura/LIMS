@@ -96,7 +96,6 @@ class LabTest(
         coordination_review_status_type,
         nullable=False,
         default=CoordinationReviewStatus.PENDENTE,
-        server_default="PENDENTE",
         index=True,
     )
     assigned_to_id: Mapped[UUID | None] = mapped_column(

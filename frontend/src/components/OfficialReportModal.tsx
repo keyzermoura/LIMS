@@ -242,7 +242,7 @@ export function OfficialReportModal({
                 <Label>Sumário Executivo e Fundamentação Técnica</Label>
                 <Textarea
                   value={summary}
-                  onChange={(e) => setReportSummary(e.target.value)}
+                  onChange={(e) => setSummary(e.target.value)}
                   placeholder="Parecer técnico conclusivo consolidando as evidências metrológicas de bancada..."
                   rows={4}
                 />

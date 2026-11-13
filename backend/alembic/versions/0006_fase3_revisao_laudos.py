@@ -54,6 +54,7 @@ def upgrade() -> None:
             nullable=False,
         ),
     )
+    op.alter_column("lab_tests", "review_status", server_default=None)
     op.create_index(
         op.f("ix_lab_tests_review_status"),
         "lab_tests",
