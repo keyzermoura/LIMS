@@ -118,11 +118,11 @@ export function ExecutionBenchDialog({
     enabled: open,
   });
 
-  const executions = executionsQuery.data ?? [];
-  const equipmentList = equipmentQuery.data ?? [];
+  const executions: TestExecution[] = executionsQuery.data ?? [];
+  const equipmentList: LaboratoryEquipment[] = equipmentQuery.data ?? [];
 
-  const activeExecution = executions.find((e) => e.status === "EM_ANDAMENTO") ?? null;
-  const completedExecutions = executions.filter((e) => e.status !== "EM_ANDAMENTO");
+  const activeExecution = executions.find((e: TestExecution) => e.status === "EM_ANDAMENTO") ?? null;
+  const completedExecutions = executions.filter((e: TestExecution) => e.status !== "EM_ANDAMENTO");
 
   // Sincronizar form da execução ativa quando ela mudar
   React.useEffect(() => {
@@ -149,7 +149,7 @@ export function ExecutionBenchDialog({
 
   // Checagem metrológica do equipamento selecionado
   const selectedEquipment = React.useMemo(() => {
-    return equipmentList.find((e) => e.id === startEquipmentId) ?? null;
+    return equipmentList.find((e: LaboratoryEquipment) => e.id === startEquipmentId) ?? null;
   }, [equipmentList, startEquipmentId]);
 
   const isEquipmentExpired = selectedEquipment?.calibration_status === "VENCIDO";
@@ -783,7 +783,7 @@ export function ExecutionBenchDialog({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {executions.map((exec) => (
+                  {executions.map((exec: TestExecution) => (
                     <div
                       key={exec.id}
                       className="rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/40 shadow-sm"

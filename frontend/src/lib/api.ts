@@ -334,10 +334,22 @@ import type {
 } from "./types";
 
 export const methodsApi = {
-  list: (category?: string, activeOnly = true) =>
-    request<TestMethod[]>(
-      `/catalog/methods${buildQuery({ category, active_only: activeOnly })}`,
-    ),
+  list: (
+    options?: { category?: string; activeOnly?: boolean } | string,
+    activeOnly = true,
+  ) => {
+    let cat: string | undefined;
+    let act = activeOnly;
+    if (typeof options === "object" && options !== null) {
+      cat = options.category;
+      act = options.activeOnly ?? true;
+    } else {
+      cat = options;
+    }
+    return request<TestMethod[]>(
+      `/catalog/methods${buildQuery({ category: cat, active_only: act })}`,
+    );
+  },
   get: (id: string) => request<TestMethod>(`/catalog/methods/${id}`),
   create: (payload: TestMethodCreatePayload) =>
     request<TestMethod>("/catalog/methods", {
@@ -356,10 +368,22 @@ export const methodsApi = {
 };
 
 export const equipmentApi = {
-  list: (status?: string, activeOnly = true) =>
-    request<LaboratoryEquipment[]>(
-      `/equipment${buildQuery({ calibration_status: status, active_only: activeOnly })}`,
-    ),
+  list: (
+    options?: { status?: string; activeOnly?: boolean } | string,
+    activeOnly = true,
+  ) => {
+    let st: string | undefined;
+    let act = activeOnly;
+    if (typeof options === "object" && options !== null) {
+      st = options.status;
+      act = options.activeOnly ?? true;
+    } else {
+      st = options;
+    }
+    return request<LaboratoryEquipment[]>(
+      `/equipment${buildQuery({ calibration_status: st, active_only: act })}`,
+    );
+  },
   get: (id: string) => request<LaboratoryEquipment>(`/equipment/${id}`),
   create: (payload: EquipmentCreatePayload) =>
     request<LaboratoryEquipment>("/equipment", {
@@ -379,6 +403,8 @@ export const equipmentApi = {
 };
 
 export const executionsApi = {
+  list: (testId: string) =>
+    request<TestExecution[]>(`/tests/${testId}/executions`),
   listForTest: (testId: string) =>
     request<TestExecution[]>(`/tests/${testId}/executions`),
   start: (testId: string, payload: TestExecutionStartPayload) =>
