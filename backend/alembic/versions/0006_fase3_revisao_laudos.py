@@ -72,7 +72,12 @@ def upgrade() -> None:
         sa.Column("reviewed_by_id", sa.UUID(), nullable=False),
         sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("notes", sa.Text(), nullable=True),
-        sa.Column("justification", sa.Text(), nullable=True),
+        sa.Column(
+            "justification",
+            sa.Text(),
+            nullable=True,
+            comment="Justificativa técnica mandatória em caso de devolução ou reprovação (ALCOA+)",
+        ),
         sa.Column("signature_id", sa.UUID(), nullable=True),
         sa.Column("version", sa.Integer(), nullable=False),
         sa.Column("metadata", json_type, server_default="{}", nullable=False),
