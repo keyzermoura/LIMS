@@ -254,4 +254,4 @@ async def test_downgrade_refuses_when_it_would_lose_data(migration_url: str) -> 
     # A falha é transacional: nada foi desfeito pela metade.
     assert await _tables(migration_url) >= PHASE1_TABLES
     current = _ok(migration_url, "current")
-    assert PHASE1 in current or PHASE2 in current
+    assert PHASE1 in current or PHASE2 in current or PHASE3 in current
