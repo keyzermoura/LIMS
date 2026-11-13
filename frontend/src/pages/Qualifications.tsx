@@ -296,7 +296,7 @@ export function QualificationsPage() {
           <CardContent>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               {totalActive}
-            </CardContent>
+            </div>
             <p className="text-xs text-slate-500 mt-1">
               Capacitações com autorização vigente de bancada
             </p>
@@ -313,7 +313,7 @@ export function QualificationsPage() {
           <CardContent>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               {uniqueAnalysts}
-            </CardContent>
+            </div>
             <p className="text-xs text-slate-500 mt-1">
               Profissionais aptos para ensaios metrológicos
             </p>
@@ -330,7 +330,7 @@ export function QualificationsPage() {
           <CardContent>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               {totalSuspended}
-            </CardContent>
+            </div>
             <p className="text-xs text-slate-500 mt-1">
               Bloqueados preventivamente por vencimento ou desvio
             </p>

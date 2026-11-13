@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
-from app.core.context import RequestContext
-from app.models.enums import QualificationStatus, UserRole
+from app.models.enums import QualificationStatus
+from app.models.qualification import AnalystQualification
 from app.models.user import User
 from app.schemas.qualification import (
     AnalystQualificationGrantIn,
@@ -25,7 +25,7 @@ from app.services import qualification_service
 router = APIRouter(prefix="/qualifications", tags=["Competência & Qualificação (Fase 4)"])
 
 
-def _to_qualification_out(qual: Any) -> AnalystQualificationOut:
+def _to_qualification_out(qual: AnalystQualification) -> AnalystQualificationOut:
     return AnalystQualificationOut(
         id=qual.id,
         user_id=qual.user_id,
