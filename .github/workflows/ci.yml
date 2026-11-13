@@ -43,7 +43,12 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Lint (ruff)
-        run: ruff check app tests
+        run: |
+          if ! ruff check app tests; then
+            RUFF_OUT=$(ruff check app tests 2>&1 | head -n 30 | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            echo "::error title=RuffFailures::$RUFF_OUT"
+            exit 1
+          fi
 
       - name: Tipagem (mypy)
         run: mypy app

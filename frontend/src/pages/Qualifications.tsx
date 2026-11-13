@@ -43,12 +43,12 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/hooks/use-auth";
-import { qualificationsApi, methodsApi, usersApi, authApi, ApiError } from "@/lib/api";
+import { qualificationsApi, methodsApi, api, ApiError } from "@/lib/api";
 import type {
   AnalystQualification,
   QualificationStatus,
   TestMethod,
-  User,
+  UserBrief,
 } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
@@ -89,14 +89,14 @@ export function QualificationsPage() {
       ),
   });
 
-  const { data: methods = [] } = useQuery({
+  const { data: methods = [] } = useQuery<TestMethod[]>({
     queryKey: ["methods"],
     queryFn: () => methodsApi.list(undefined, true),
   });
 
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<UserBrief[]>({
     queryKey: ["users"],
-    queryFn: () => usersApi.list(),
+    queryFn: () => api.get<UserBrief[]>("/users"),
   });
 
   const canManage = user?.role === "ADMIN" || user?.role === "FISCAL";
@@ -123,7 +123,7 @@ export function QualificationsPage() {
     try {
       let signatureToken: string | undefined;
       if (signaturePassword) {
-        const sig = await authApi.sign({
+        const sig = await api.post<{ token: string }>("/auth/sign", {
           password: signaturePassword,
           entity_type: "User",
           entity_id: targetUserId,
@@ -195,7 +195,7 @@ export function QualificationsPage() {
     try {
       let signatureToken: string | undefined;
       if (revokePassword) {
-        const sig = await authApi.sign({
+        const sig = await api.post<{ token: string }>("/auth/sign", {
           password: revokePassword,
           entity_type: "User",
           entity_id: selectedQual.user_id,
@@ -481,7 +481,7 @@ export function QualificationsPage() {
                     <SelectValue placeholder="Selecione o analista" />
                   </SelectTrigger>
                   <SelectContent>
-                    {users.map((u) => (
+                    {users.map((u: UserBrief) => (
                       <SelectItem key={u.id} value={u.id}>
                         {u.full_name} ({u.username} - {u.role})
                       </SelectItem>
@@ -497,7 +497,7 @@ export function QualificationsPage() {
                     <SelectValue placeholder="Selecione o método" />
                   </SelectTrigger>
                   <SelectContent>
-                    {methods.map((m) => (
+                    {methods.map((m: TestMethod) => (
                       <SelectItem key={m.id} value={m.id}>
                         {m.code} — {m.name} ({m.standard})
                       </SelectItem>
