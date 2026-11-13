@@ -1,6 +1,6 @@
 """Modelos da Fase 4: Qualificação de Analistas e Registros de Treinamento (Sprint 4.1).
 
-Revision ID: 0007_fase4_qualidade_competencias
+Revision ID: 0007_fase4_competencias
 Revises: 0006_fase3_revisao_laudos
 Create Date: 2026-11-13
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0007_fase4_qualidade_competencias"
+revision: str = "0007_fase4_competencias"
 down_revision: str | None = "0006_fase3_revisao_laudos"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

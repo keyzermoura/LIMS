@@ -35,7 +35,7 @@ PRE_PHASE1 = "0003_audit_export"
 PHASE1 = "0004_fase1_solic_receb"
 PHASE2 = "0005_fase2_execucao_lab"
 PHASE3 = "0006_fase3_revisao_laudos"
-PHASE4 = "0007_fase4_qualidade_competencias"
+PHASE4 = "0007_fase4_competencias"
 
 PHASE1_TABLES = {
     "solicitations",
