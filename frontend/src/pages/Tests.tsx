@@ -3,10 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ClipboardCheck,
   FileCheck2,
+  FileText,
   FlaskConical,
   Loader2,
   LockKeyhole,
+  Paperclip,
   Plus,
+  Send,
   ShieldCheck,
   Sigma,
   TriangleAlert,
@@ -41,9 +44,11 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 import { ExecutionBenchDialog } from "@/components/ExecutionBenchDialog";
+import { OfficialReportModal } from "@/components/OfficialReportModal";
+import { TestAttachmentsDialog } from "@/components/TestAttachmentsDialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useESignature } from "@/hooks/use-esignature";
-import { api, ApiError, methodsApi } from "@/lib/api";
+import { api, ApiError, methodsApi, reviewsApi } from "@/lib/api";
 import type {
   DeviceSample,
   LabTest,
@@ -66,6 +71,7 @@ export function TestsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedId = searchParams.get("sample");
   const [newTestOpen, setNewTestOpen] = React.useState(false);
+  const [reportModalOpen, setReportModalOpen] = React.useState(false);
 
   const canWrite =
     user?.role === "ADMIN" || user?.role === "TECNICO" || user?.role === "FISCAL";
@@ -140,6 +146,16 @@ export function TestsPage() {
               >
                 <Plus className="h-4 w-4" />
                 Novo ensaio
+              </Button>
+            ) : null}
+            {sample ? (
+              <Button
+                variant="outline"
+                onClick={() => setReportModalOpen(true)}
+                className="border-primary/40 text-primary hover:bg-primary/5"
+              >
+                <FileText className="h-4 w-4 mr-1.5" />
+                Emitir Laudo Oficial
               </Button>
             ) : null}
           </div>
@@ -232,16 +248,28 @@ export function TestsPage() {
       )}
 
       {sample ? (
-        <NewTestDialog
-          open={newTestOpen}
-          onOpenChange={setNewTestOpen}
-          sample={sample}
-          onCreated={() => {
-            void queryClient.invalidateQueries({ queryKey: ["tests", selectedId] });
-            void queryClient.invalidateQueries({ queryKey: ["samples"] });
-            void queryClient.invalidateQueries({ queryKey: ["timeline", selectedId] });
-          }}
-        />
+        <>
+          <NewTestDialog
+            open={newTestOpen}
+            onOpenChange={setNewTestOpen}
+            sample={sample}
+            onCreated={() => {
+              void queryClient.invalidateQueries({ queryKey: ["tests", selectedId] });
+              void queryClient.invalidateQueries({ queryKey: ["samples"] });
+              void queryClient.invalidateQueries({ queryKey: ["timeline", selectedId] });
+            }}
+          />
+          <OfficialReportModal
+            open={reportModalOpen}
+            onOpenChange={setReportModalOpen}
+            sample={sample}
+            tests={tests}
+            onReportIssued={() => {
+              void queryClient.invalidateQueries({ queryKey: ["tests", selectedId] });
+              void queryClient.invalidateQueries({ queryKey: ["samples"] });
+            }}
+          />
+        </>
       ) : null}
     </div>
   );
@@ -282,6 +310,26 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
   const [amending, setAmending] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [benchOpen, setBenchOpen] = React.useState(false);
+  const [attachmentsOpen, setAttachmentsOpen] = React.useState(false);
+  const [submittingReview, setSubmittingReview] = React.useState(false);
+
+  async function handleSubmitForReview() {
+    try {
+      setSubmittingReview(true);
+      await reviewsApi.submit(test.id);
+      push({
+        title: "Ensaio submetido",
+        description: "Ensaio encaminhado para revisão técnica independente por pares.",
+        variant: "success",
+      });
+      onSaved();
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Falha ao submeter ensaio.";
+      push({ title: "Erro na submissão", description: msg, variant: "destructive" });
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
 
   function handleImportFromExecution(execution: TestExecution) {
     if (execution.result_value !== null) {
@@ -448,16 +496,47 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
           ) : null}
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border/40">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setBenchOpen(true)}
-            className="h-7 text-xs font-medium border-primary/30 hover:border-primary text-primary"
-          >
-            <FlaskConical className="mr-1.5 h-3.5 w-3.5" />
-            Bancada de Execução
-          </Button>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setBenchOpen(true)}
+              className="h-7 text-xs font-medium border-primary/30 hover:border-primary text-primary"
+            >
+              <FlaskConical className="mr-1.5 h-3.5 w-3.5" />
+              Bancada
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setAttachmentsOpen(true)}
+              className="h-7 text-xs font-medium"
+            >
+              <Paperclip className="mr-1.5 h-3.5 w-3.5" />
+              Evidências
+            </Button>
+            {isSigned && test.status === "CONCLUIDO" && (!test.review_status || test.review_status === "PENDENTE" || test.review_status === "DEVOLVIDO") && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSubmitForReview}
+                disabled={submittingReview || test.review_status === "PENDENTE"}
+                className="h-7 text-xs font-medium text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <Send className="mr-1.5 h-3.5 w-3.5" />
+                {test.review_status === "PENDENTE" ? "Em Revisão" : "Submeter Revisão"}
+              </Button>
+            )}
+            {test.review_status === "APROVADO" && (
+              <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900 border border-emerald-200">
+                <ShieldCheck className="h-3 w-3" />
+                Homologado (Peer Review)
+              </span>
+            )}
+          </div>
           <span className="font-mono text-[11px] text-muted-foreground">v{test.result_version}</span>
         </div>
       </CardHeader>
@@ -657,6 +736,12 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
         test={test}
         sampleCode={test.name}
         onImportToReport={handleImportFromExecution}
+      />
+
+      <TestAttachmentsDialog
+        open={attachmentsOpen}
+        onOpenChange={setAttachmentsOpen}
+        test={test}
       />
     </Card>
   );

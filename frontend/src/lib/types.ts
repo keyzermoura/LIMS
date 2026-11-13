@@ -123,6 +123,7 @@ export interface LabTest {
   outcome: TestOutcome | null;
   notes: string | null;
   status: TestStatus;
+  review_status?: CoordinationReviewStatus | null;
   assigned_to_id: string | null;
   tested_by: UserBrief | null;
   tested_at: string | null;
@@ -671,4 +672,84 @@ export interface TestExecutionCompletePayload {
 
 export interface TestExecutionInterruptPayload {
   reason: string;
+}
+
+// =============================================================================
+// FASE 3: Revisão por Pares, Laudos Periciais e Evidências (M3)
+// =============================================================================
+
+export interface TestReview {
+  id: string;
+  lab_test_id: string;
+  review_number: number;
+  reviewed_by_id: string;
+  reviewed_by: UserBrief | null;
+  status: CoordinationReviewStatus;
+  justification: string | null;
+  notes: string | null;
+  signature_id: string | null;
+  reviewed_at: string;
+  created_at: string;
+}
+
+export interface TestSubmitReviewPayload {
+  notes?: string | null;
+}
+
+export interface TestReviewDecisionPayload {
+  status: CoordinationReviewStatus;
+  justification?: string | null;
+  notes?: string | null;
+  findings?: Record<string, unknown>;
+}
+
+export interface OfficialReport {
+  id: string;
+  report_number: string;
+  device_sample_id: string;
+  title: string;
+  conclusion: TestOutcome;
+  summary: string | null;
+  sha256_hash: string;
+  auth_token: string;
+  issued_by_id: string;
+  issued_by: UserBrief | null;
+  signature_id: string;
+  issued_at: string;
+  created_at: string;
+}
+
+export interface OfficialReportGeneratePayload {
+  device_sample_id: string;
+  test_ids: string[];
+  title?: string;
+  conclusion?: TestOutcome;
+  summary?: string | null;
+  observations?: string | null;
+}
+
+export interface OfficialReportPublicVerify {
+  is_valid: boolean;
+  report_number: string;
+  sample_acc_number: string;
+  sample_commercial_name: string;
+  sample_serial_number: string | null;
+  sample_lot_number: string | null;
+  conclusion: TestOutcome;
+  sha256_hash: string;
+  issued_by_name: string;
+  issued_at: string;
+}
+
+export interface TestAttachment {
+  id: string;
+  lab_test_id: string;
+  filename: string;
+  content_type: string;
+  file_size: number;
+  sha256_hash: string;
+  description: string | null;
+  uploaded_by_id: string;
+  uploaded_by: UserBrief | null;
+  created_at: string;
 }

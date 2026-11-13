@@ -10,10 +10,13 @@ from app.models.device_sample import DeviceSample
 from app.models.electronic_signature import ElectronicSignature
 from app.models.equipment import LaboratoryEquipment
 from app.models.lab_test import LabTest, LabTestResult
+from app.models.official_report import OfficialReport
 from app.models.receipt import CustodyEvent, CustodyObject, Receipt, ReceiptItem
 from app.models.solicitation import Solicitation, SolicitationItem
+from app.models.test_attachment import TestAttachment
 from app.models.test_execution import TestExecution
 from app.models.test_method import TestMethod
+from app.models.test_review import TestReview
 from app.models.user import RefreshToken, User
 
 __all__ = [
@@ -32,13 +35,16 @@ __all__ = [
     "LabTest",
     "LabTestResult",
     "LaboratoryEquipment",
+    "OfficialReport",
     "Receipt",
     "ReceiptDecision",
     "ReceiptItem",
     "RefreshToken",
     "Solicitation",
     "SolicitationItem",
+    "TestAttachment",
     "TestExecution",
     "TestMethod",
+    "TestReview",
     "User",
 ]

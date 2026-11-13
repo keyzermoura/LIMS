@@ -331,6 +331,14 @@ import type {
   TestExecutionInterruptPayload,
   TestExecutionRecordDataPayload,
   TestExecutionStartPayload,
+  LabTest,
+  TestReview,
+  TestSubmitReviewPayload,
+  TestReviewDecisionPayload,
+  OfficialReport,
+  OfficialReportGeneratePayload,
+  OfficialReportPublicVerify,
+  TestAttachment,
 } from "./types";
 
 export const methodsApi = {
@@ -429,4 +437,55 @@ export const executionsApi = {
       method: "POST",
       body: payload,
     }),
+};
+
+// ============================================================================
+// Fase 3 APIs: Revisão por Pares, Laudos Periciais Oficiais e Evidências
+// ============================================================================
+
+export const reviewsApi = {
+  listPending: () => request<LabTest[]>("/reviews/tests/pending"),
+  submit: (testId: string, payload?: TestSubmitReviewPayload) =>
+    request<LabTest>(`/reviews/tests/${testId}/submit`, {
+      method: "POST",
+      body: payload ?? {},
+    }),
+  decide: (testId: string, payload: TestReviewDecisionPayload, signatureToken?: string) =>
+    request<TestReview>(`/reviews/tests/${testId}/decide`, {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  getHistory: (testId: string) =>
+    request<TestReview[]>(`/reviews/tests/${testId}`),
+};
+
+export const reportsApi = {
+  generateOfficial: (payload: OfficialReportGeneratePayload, signatureToken: string) =>
+    request<OfficialReport>("/reports/official", {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  getOfficial: (reportId: string) =>
+    request<OfficialReport>(`/reports/official/${reportId}`),
+  listForSample: (sampleId: string) =>
+    request<OfficialReport[]>(`/reports/official/sample/${sampleId}`),
+  verifyPublic: (authToken: string) =>
+    request<OfficialReportPublicVerify>(`/reports/verify/${authToken}`),
+};
+
+export const attachmentsApi = {
+  upload: (testId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<TestAttachment>(`/attachments/tests/${testId}`, {
+      method: "POST",
+      formData,
+    });
+  },
+  list: (testId: string) =>
+    request<TestAttachment[]>(`/attachments/tests/${testId}`),
+  getDownloadUrl: (attachmentId: string) =>
+    `${API_BASE}/attachments/${attachmentId}/download`,
 };

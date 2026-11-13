@@ -97,6 +97,9 @@ class AuditEntity(str, Enum):
     TEST_METHOD = "TestMethod"
     LABORATORY_EQUIPMENT = "LaboratoryEquipment"
     TEST_EXECUTION = "TestExecution"
+    TEST_REVIEW = "TestReview"
+    OFFICIAL_REPORT = "OfficialReport"
+    TEST_ATTACHMENT = "TestAttachment"
 
 
 class SolicitationStatus(str, Enum):

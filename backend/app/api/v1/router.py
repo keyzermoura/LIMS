@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.routes import (
+    attachments,
     audit,
     auth,
     capas,
@@ -13,6 +14,8 @@ from app.api.v1.routes import (
     executions,
     methods,
     receipts,
+    reports,
+    reviews,
     samples,
     solicitations,
     tests,
@@ -32,6 +35,9 @@ api_router.include_router(methods.router)
 api_router.include_router(equipment.router)
 api_router.include_router(executions.test_executions_router)
 api_router.include_router(executions.executions_router)
+api_router.include_router(reviews.reviews_router)
+api_router.include_router(reports.reports_router)
+api_router.include_router(attachments.attachments_router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)

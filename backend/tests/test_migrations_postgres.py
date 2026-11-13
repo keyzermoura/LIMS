@@ -34,6 +34,7 @@ pytestmark = pytest.mark.skipif(
 PRE_PHASE1 = "0003_audit_export"
 PHASE1 = "0004_fase1_solic_receb"
 PHASE2 = "0005_fase2_execucao_lab"
+PHASE3 = "0006_fase3_revisao_laudos"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -69,6 +70,12 @@ PHASE2_TABLES = {
 PHASE2_ENUMS = {
     "equipment_calibration_status",
     "execution_status",
+}
+
+PHASE3_TABLES = {
+    "test_reviews",
+    "official_reports",
+    "test_attachments",
 }
 
 
@@ -178,7 +185,7 @@ async def _insert_legacy_sample(url: str, *, serial: str | None, lot: str | None
 async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> None:
     _ok(migration_url, "upgrade", "head")
 
-    assert await _tables(migration_url) >= (PHASE1_TABLES | PHASE2_TABLES)
+    assert await _tables(migration_url) >= (PHASE1_TABLES | PHASE2_TABLES | PHASE3_TABLES)
 
     # Cada enum nativo deve existir exatamente uma vez (regressão: receipt_decision
     # é compartilhado por duas tabelas e já foi criado em duplicidade).
@@ -193,7 +200,7 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
     )
     assert triggers
 
-    assert PHASE2 in _ok(migration_url, "current")
+    assert PHASE3 in _ok(migration_url, "current")
     # Paridade metadata x migrações: acusa índices, defaults ou tipos divergentes.
     _ok(migration_url, "check")
 
@@ -203,7 +210,7 @@ async def test_downgrade_is_reversible(migration_url: str) -> None:
     _ok(migration_url, "downgrade", PRE_PHASE1)
 
     tables = await _tables(migration_url)
-    assert not ((PHASE1_TABLES | PHASE2_TABLES) & tables)
+    assert not ((PHASE1_TABLES | PHASE2_TABLES | PHASE3_TABLES) & tables)
     assert {"users", "device_samples", "audit_logs"} <= tables
     counts = await _enum_counts(migration_url)
     assert not ((PHASE1_ENUMS | PHASE2_ENUMS) & set(counts))

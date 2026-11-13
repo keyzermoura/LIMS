@@ -9,7 +9,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.models.enums import TestOutcome, TestStatus
+from app.models.enums import CoordinationReviewStatus, TestOutcome, TestStatus
 from app.schemas.common import UserBrief
 
 
@@ -66,6 +66,7 @@ class LabTestOut(BaseModel):
     outcome: TestOutcome | None = None
     notes: str | None
     status: TestStatus
+    review_status: CoordinationReviewStatus | None = None
     assigned_to_id: UUID | None
     tested_by: UserBrief | None = None
     tested_at: datetime | None
