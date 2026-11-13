@@ -85,7 +85,7 @@ async function refreshSession(): Promise<boolean> {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   form?: URLSearchParams;
   formData?: FormData;
@@ -335,44 +335,44 @@ import type {
 
 export const methodsApi = {
   list: (category?: string, activeOnly = true) =>
-    apiRequest<TestMethod[]>(
+    request<TestMethod[]>(
       `/catalog/methods${buildQuery({ category, active_only: activeOnly })}`,
     ),
-  get: (id: string) => apiRequest<TestMethod>(`/catalog/methods/${id}`),
+  get: (id: string) => request<TestMethod>(`/catalog/methods/${id}`),
   create: (payload: TestMethodCreatePayload) =>
-    apiRequest<TestMethod>("/catalog/methods", {
+    request<TestMethod>("/catalog/methods", {
       method: "POST",
       body: payload,
     }),
   update: (id: string, payload: Partial<TestMethodCreatePayload>) =>
-    apiRequest<TestMethod>(`/catalog/methods/${id}`, {
+    request<TestMethod>(`/catalog/methods/${id}`, {
       method: "PUT",
       body: payload,
     }),
   seedStandards: () =>
-    apiRequest<TestMethod[]>("/catalog/methods/seed-standards", {
+    request<TestMethod[]>("/catalog/methods/seed-standards", {
       method: "POST",
     }),
 };
 
 export const equipmentApi = {
   list: (status?: string, activeOnly = true) =>
-    apiRequest<LaboratoryEquipment[]>(
+    request<LaboratoryEquipment[]>(
       `/equipment${buildQuery({ calibration_status: status, active_only: activeOnly })}`,
     ),
-  get: (id: string) => apiRequest<LaboratoryEquipment>(`/equipment/${id}`),
+  get: (id: string) => request<LaboratoryEquipment>(`/equipment/${id}`),
   create: (payload: EquipmentCreatePayload) =>
-    apiRequest<LaboratoryEquipment>("/equipment", {
+    request<LaboratoryEquipment>("/equipment", {
       method: "POST",
       body: payload,
     }),
   update: (id: string, payload: Partial<EquipmentCreatePayload>) =>
-    apiRequest<LaboratoryEquipment>(`/equipment/${id}`, {
+    request<LaboratoryEquipment>(`/equipment/${id}`, {
       method: "PUT",
       body: payload,
     }),
   calibrate: (id: string, payload: EquipmentCalibrationPayload) =>
-    apiRequest<LaboratoryEquipment>(`/equipment/${id}/calibration`, {
+    request<LaboratoryEquipment>(`/equipment/${id}/calibration`, {
       method: "POST",
       body: payload,
     }),
@@ -380,26 +380,26 @@ export const equipmentApi = {
 
 export const executionsApi = {
   listForTest: (testId: string) =>
-    apiRequest<TestExecution[]>(`/tests/${testId}/executions`),
+    request<TestExecution[]>(`/tests/${testId}/executions`),
   start: (testId: string, payload: TestExecutionStartPayload) =>
-    apiRequest<TestExecution>(`/tests/${testId}/executions`, {
+    request<TestExecution>(`/tests/${testId}/executions`, {
       method: "POST",
       body: payload,
     }),
   get: (executionId: string) =>
-    apiRequest<TestExecution>(`/executions/${executionId}`),
+    request<TestExecution>(`/executions/${executionId}`),
   recordReadings: (executionId: string, payload: TestExecutionRecordDataPayload) =>
-    apiRequest<TestExecution>(`/executions/${executionId}/readings`, {
+    request<TestExecution>(`/executions/${executionId}/readings`, {
       method: "POST",
       body: payload,
     }),
   complete: (executionId: string, payload: TestExecutionCompletePayload) =>
-    apiRequest<TestExecution>(`/executions/${executionId}/complete`, {
+    request<TestExecution>(`/executions/${executionId}/complete`, {
       method: "POST",
       body: payload,
     }),
   interrupt: (executionId: string, payload: TestExecutionInterruptPayload) =>
-    apiRequest<TestExecution>(`/executions/${executionId}/interrupt`, {
+    request<TestExecution>(`/executions/${executionId}/interrupt`, {
       method: "POST",
       body: payload,
     }),
