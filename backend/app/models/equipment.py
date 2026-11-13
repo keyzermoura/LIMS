@@ -47,7 +47,6 @@ class LaboratoryEquipment(
         equipment_calibration_status_type,
         nullable=False,
         default=EquipmentCalibrationStatus.CALIBRADO,
-        server_default="CALIBRADO",
         index=True,
     )
     last_calibration_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -55,7 +54,7 @@ class LaboratoryEquipment(
     certificate_number: Mapped[str | None] = mapped_column(String(120))
     calibration_agency: Mapped[str | None] = mapped_column(String(200))
     notes: Mapped[str | None] = mapped_column(Text)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     executions: Mapped[list[TestExecution]] = relationship("TestExecution", back_populates="equipment")
 

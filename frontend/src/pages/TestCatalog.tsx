@@ -39,7 +39,7 @@ import type {
 
 export function TestCatalogPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { push } = useToast();
   const queryClient = useQueryClient();
 
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
@@ -69,7 +69,7 @@ export function TestCatalogPage() {
   async function handleCreateMethod(e: React.FormEvent) {
     e.preventDefault();
     if (!form.code.trim() || !form.name.trim() || !form.standard.trim()) {
-      toast({
+      push({
         title: "Campos obrigatórios",
         description: "Código, nome e norma técnica são obrigatórios.",
         variant: "destructive",
@@ -84,7 +84,7 @@ export function TestCatalogPage() {
         default_lower_limit: form.default_lower_limit ? Number(form.default_lower_limit) : null,
         default_upper_limit: form.default_upper_limit ? Number(form.default_upper_limit) : null,
       });
-      toast({
+      push({
         title: "Método cadastrado",
         description: `Método ${form.code} adicionado com sucesso.`,
       });
@@ -102,7 +102,7 @@ export function TestCatalogPage() {
       });
       queryClient.invalidateQueries({ queryKey: ["methods"] });
     } catch (err) {
-      toast({
+      push({
         title: "Erro ao cadastrar método",
         description: err instanceof ApiError ? err.message : "Falha na comunicação.",
         variant: "destructive",
@@ -116,13 +116,13 @@ export function TestCatalogPage() {
     setIsSeeding(true);
     try {
       const seeded = await methodsApi.seedStandards();
-      toast({
+      push({
         title: "Catálogo inicializado",
         description: `${seeded.length} métodos normativos padrão da SEFI carregados.`,
       });
       queryClient.invalidateQueries({ queryKey: ["methods"] });
     } catch (err) {
-      toast({
+      push({
         title: "Erro ao inicializar normas",
         description: err instanceof ApiError ? err.message : "Falha ao carregar normas.",
         variant: "destructive",

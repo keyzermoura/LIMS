@@ -32,7 +32,7 @@ class TestMethod(
     code: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     standard: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
-    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     category: Mapped[str | None] = mapped_column(String(100), index=True)
     description: Mapped[str | None] = mapped_column(Text)
 
@@ -43,7 +43,7 @@ class TestMethod(
     default_lower_limit: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
     default_upper_limit: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
     default_acceptance_criteria: Mapped[str | None] = mapped_column(Text)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     # Relacionamento com os ensaios planejados que usam este método
     lab_tests: Mapped[list[LabTest]] = relationship("LabTest", back_populates="test_method")

@@ -58,7 +58,6 @@ class TestExecution(
         execution_status_type,
         nullable=False,
         default=ExecutionStatus.EM_ANDAMENTO,
-        server_default="EM_ANDAMENTO",
         index=True,
     )
     equipment_id: Mapped[UUID | None] = mapped_column(

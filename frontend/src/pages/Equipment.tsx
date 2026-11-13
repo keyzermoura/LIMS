@@ -51,7 +51,7 @@ import { formatDateTime } from "@/lib/utils";
 
 export function EquipmentPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { push } = useToast();
   const queryClient = useQueryClient();
 
   const [statusFilter, setStatusFilter] = React.useState<string>("TODOS");
@@ -98,7 +98,7 @@ export function EquipmentPage() {
   async function handleCreateEquipment(e: React.FormEvent) {
     e.preventDefault();
     if (!createForm.code.trim() || !createForm.name.trim()) {
-      toast({
+      push({
         title: "Campos obrigatórios",
         description: "Código e nome do equipamento são obrigatórios.",
         variant: "destructive",
@@ -113,7 +113,7 @@ export function EquipmentPage() {
         last_calibration_at: lastCalibDate ? new Date(lastCalibDate).toISOString() : null,
         calibration_due_date: dueCalibDate ? new Date(dueCalibDate).toISOString() : null,
       });
-      toast({
+      push({
         title: "Equipamento cadastrado",
         description: `Instrumento ${createForm.code} adicionado com sucesso.`,
       });
@@ -135,7 +135,7 @@ export function EquipmentPage() {
       setDueCalibDate("");
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
     } catch (err) {
-      toast({
+      push({
         title: "Erro ao cadastrar",
         description: err instanceof ApiError ? err.message : "Falha na comunicação.",
         variant: "destructive",
@@ -149,7 +149,7 @@ export function EquipmentPage() {
     e.preventDefault();
     if (!selectedEquipment) return;
     if (!calibForm.last_calibration_at || !calibForm.calibration_due_date || !calibForm.certificate_number) {
-      toast({
+      push({
         title: "Campos obrigatórios",
         description: "Preencha datas e número do certificado de calibração.",
         variant: "destructive",
@@ -164,7 +164,7 @@ export function EquipmentPage() {
         last_calibration_at: new Date(calibForm.last_calibration_at).toISOString(),
         calibration_due_date: new Date(calibForm.calibration_due_date).toISOString(),
       });
-      toast({
+      push({
         title: "Calibração registrada",
         description: `Certificado ${calibForm.certificate_number} vinculado com sucesso.`,
       });
@@ -172,7 +172,7 @@ export function EquipmentPage() {
       setSelectedEquipment(null);
       queryClient.invalidateQueries({ queryKey: ["equipment"] });
     } catch (err) {
-      toast({
+      push({
         title: "Erro na calibração",
         description: err instanceof ApiError ? err.message : "Falha ao registrar calibração.",
         variant: "destructive",
