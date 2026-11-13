@@ -60,15 +60,25 @@ jobs:
           if ! alembic check; then
             echo "::error title=Alembic Check Falhou::Divergência detectada entre os modelos e migrações!"
             alembic revision --autogenerate -m "drift_diagnostic"
-            DRIFT_FILE=$(ls alembic/versions/*drift_diagnostic*.py | head -n 1)
+            exit 1
+          fi
+        env:
+          DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
+
+      - name: Publicar Drift no Job Summary e Anotacoes se falhar
+        if: failure()
+        run: |
+          DRIFT_FILE=$(ls alembic/versions/*drift_diagnostic*.py 2>/dev/null | head -n 1)
+          if [ -n "$DRIFT_FILE" ] && [ -f "$DRIFT_FILE" ]; then
             echo "### ⚠️ Relatório de Divergência do Alembic (alembic check)" >> $GITHUB_STEP_SUMMARY
             echo '```python' >> $GITHUB_STEP_SUMMARY
             cat "$DRIFT_FILE" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 255
+
+            while IFS= read -r line; do
+              echo "::notice title=DriftLine::$line"
+            done < "$DRIFT_FILE"
           fi
-        env:
-          DATABASE_URL: postgresql+asyncpg://lims:lims@localhost:5432/lims_test
 
       - name: Upload Drift Diagnostic se falhar
         if: failure()
