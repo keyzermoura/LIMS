@@ -8,9 +8,11 @@ import { AuditTrailPage } from "@/pages/AuditTrail";
 import { CapasPage } from "@/pages/Capas";
 import { CoordinationReviewsPage } from "@/pages/CoordinationReviews";
 import { DashboardPage } from "@/pages/Dashboard";
+import { EquipmentPage } from "@/pages/Equipment";
 import { LoginPage } from "@/pages/Login";
 import { ReceiptsPage } from "@/pages/Receipts";
 import { SolicitationsPage } from "@/pages/Solicitations";
+import { TestCatalogPage } from "@/pages/TestCatalog";
 import { TestsPage } from "@/pages/Tests";
 
 function FullScreenLoader() {
@@ -70,6 +72,8 @@ export default function App() {
         <Route path="/receipts" element={<ReceiptsPage />} />
         <Route path="/coordination-reviews" element={<CoordinationRoute />} />
         <Route path="/tests" element={<TestsPage />} />
+        <Route path="/equipment" element={<EquipmentPage />} />
+        <Route path="/methods" element={<TestCatalogPage />} />
         <Route path="/capas" element={<CapasPage />} />
         <Route path="/audit" element={<AuditRoute />} />
       </Route>

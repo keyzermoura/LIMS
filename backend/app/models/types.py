@@ -18,6 +18,8 @@ from app.models.enums import (
     CriterionClass,
     CustodyEventType,
     CustodyObjectStatus,
+    EquipmentCalibrationStatus,
+    ExecutionStatus,
     PresentationStatus,
     ReceiptDecisionEnum,
     ReceiptStatus,
@@ -63,4 +65,10 @@ criterion_class_type = SAEnum(CriterionClass, name="criterion_class", validate_s
 checklist_result_type = SAEnum(ChecklistResult, name="checklist_result", validate_strings=True)
 coordination_review_status_type = SAEnum(
     CoordinationReviewStatus, name="coordination_review_status", validate_strings=True
+)
+equipment_calibration_status_type = SAEnum(
+    EquipmentCalibrationStatus, name="equipment_calibration_status", validate_strings=True
+)
+execution_status_type = SAEnum(
+    ExecutionStatus, name="execution_status", validate_strings=True
 )

@@ -3,17 +3,24 @@ import { AlertTriangle, CheckCircle2, Info, ShieldAlert, X } from "lucide-react"
 
 import { cn } from "@/lib/utils";
 
-type ToastVariant = "default" | "success" | "warning" | "destructive";
+export type ToastVariant = "default" | "success" | "warning" | "destructive";
 
-interface ToastItem {
+export interface ToastItem {
   id: number;
   title: string;
   description?: string;
   variant: ToastVariant;
 }
 
-interface ToastApi {
-  push: (toast: Omit<ToastItem, "id">) => void;
+export interface ToastInput {
+  title: string;
+  description?: string;
+  variant?: ToastVariant;
+}
+
+export interface ToastApi {
+  push: (toast: ToastInput) => void;
+  toast: (toast: ToastInput) => void;
 }
 
 const ToastContext = React.createContext<ToastApi | null>(null);
@@ -46,12 +53,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const push = React.useCallback(
-    (toast: Omit<ToastItem, "id">) => {
+    (input: ToastInput) => {
       const id = Date.now() + Math.random();
-      setToasts((current) => [...current.slice(-3), { ...toast, id }]);
+      const item: ToastItem = {
+        id,
+        title: input.title,
+        description: input.description,
+        variant: input.variant ?? "default",
+      };
+      setToasts((current) => [...current.slice(-3), item]);
       const timer = window.setTimeout(
         () => dismiss(id),
-        toast.variant === "destructive" ? 12000 : 6000,
+        item.variant === "destructive" ? 12000 : 6000,
       );
       timers.current.set(id, timer);
     },
@@ -66,8 +79,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const value = React.useMemo<ToastApi>(() => ({ push, toast: push }), [push]);
+
   return (
-    <ToastContext.Provider value={{ push }}>
+    <ToastContext.Provider value={value}>
       {children}
       <div
         aria-live="polite"

@@ -3,10 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ClipboardCheck,
   FileCheck2,
+  FileText,
   FlaskConical,
   Loader2,
   LockKeyhole,
+  Paperclip,
   Plus,
+  Send,
   ShieldCheck,
   Sigma,
   TriangleAlert,
@@ -40,13 +43,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
+import { ExecutionBenchDialog } from "@/components/ExecutionBenchDialog";
+import { OfficialReportModal } from "@/components/OfficialReportModal";
+import { TestAttachmentsDialog } from "@/components/TestAttachmentsDialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useESignature } from "@/hooks/use-esignature";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, methodsApi, reviewsApi } from "@/lib/api";
 import type {
   DeviceSample,
   LabTest,
   Page,
+  TestExecution,
+  TestMethod,
   TestOutcome,
   TestResultResponse,
   UserBrief,
@@ -63,6 +71,7 @@ export function TestsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedId = searchParams.get("sample");
   const [newTestOpen, setNewTestOpen] = React.useState(false);
+  const [reportModalOpen, setReportModalOpen] = React.useState(false);
 
   const canWrite =
     user?.role === "ADMIN" || user?.role === "TECNICO" || user?.role === "FISCAL";
@@ -137,6 +146,16 @@ export function TestsPage() {
               >
                 <Plus className="h-4 w-4" />
                 Novo ensaio
+              </Button>
+            ) : null}
+            {sample ? (
+              <Button
+                variant="outline"
+                onClick={() => setReportModalOpen(true)}
+                className="border-primary/40 text-primary hover:bg-primary/5"
+              >
+                <FileText className="h-4 w-4 mr-1.5" />
+                Emitir Laudo Oficial
               </Button>
             ) : null}
           </div>
@@ -229,16 +248,28 @@ export function TestsPage() {
       )}
 
       {sample ? (
-        <NewTestDialog
-          open={newTestOpen}
-          onOpenChange={setNewTestOpen}
-          sample={sample}
-          onCreated={() => {
-            void queryClient.invalidateQueries({ queryKey: ["tests", selectedId] });
-            void queryClient.invalidateQueries({ queryKey: ["samples"] });
-            void queryClient.invalidateQueries({ queryKey: ["timeline", selectedId] });
-          }}
-        />
+        <>
+          <NewTestDialog
+            open={newTestOpen}
+            onOpenChange={setNewTestOpen}
+            sample={sample}
+            onCreated={() => {
+              void queryClient.invalidateQueries({ queryKey: ["tests", selectedId] });
+              void queryClient.invalidateQueries({ queryKey: ["samples"] });
+              void queryClient.invalidateQueries({ queryKey: ["timeline", selectedId] });
+            }}
+          />
+          <OfficialReportModal
+            open={reportModalOpen}
+            onOpenChange={setReportModalOpen}
+            sample={sample}
+            tests={tests}
+            onReportIssued={() => {
+              void queryClient.invalidateQueries({ queryKey: ["tests", selectedId] });
+              void queryClient.invalidateQueries({ queryKey: ["samples"] });
+            }}
+          />
+        </>
       ) : null}
     </div>
   );
@@ -278,6 +309,48 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
   const [amendmentReason, setAmendmentReason] = React.useState("");
   const [amending, setAmending] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
+  const [benchOpen, setBenchOpen] = React.useState(false);
+  const [attachmentsOpen, setAttachmentsOpen] = React.useState(false);
+  const [submittingReview, setSubmittingReview] = React.useState(false);
+
+  async function handleSubmitForReview() {
+    try {
+      setSubmittingReview(true);
+      await reviewsApi.submit(test.id);
+      push({
+        title: "Ensaio submetido",
+        description: "Ensaio encaminhado para revisão técnica independente por pares.",
+        variant: "success",
+      });
+      onSaved();
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Falha ao submeter ensaio.";
+      push({ title: "Erro na submissão", description: msg, variant: "destructive" });
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
+
+  function handleImportFromExecution(execution: TestExecution) {
+    if (execution.result_value !== null) {
+      setValue(String(execution.result_value));
+    }
+    if (execution.result_text) {
+      setResultText(execution.result_text);
+    }
+    if (execution.outcome) {
+      setOutcome(execution.outcome);
+    }
+    const envInfo = [
+      execution.temperature_celsius ? `Temp: ${execution.temperature_celsius}°C` : null,
+      execution.humidity_percent ? `UR: ${execution.humidity_percent}%` : null,
+      execution.pressure_hpa ? `Pressão: ${execution.pressure_hpa} hPa` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    const notePrefix = `Importado da Execução #${execution.execution_number}${envInfo ? ` (${envInfo})` : ""}.`;
+    setNotes((prev) => (prev ? `${notePrefix}\n${prev}` : notePrefix));
+  }
 
   // O backend só permite que o testador designado (ou ADMIN) assine — e um
   // designado sem competência para assinar (ex.: FISCAL em registro legado)
@@ -421,7 +494,50 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
           {test.acceptance_criteria ? (
             <span className="line-clamp-1">{test.acceptance_criteria}</span>
           ) : null}
-          <span className="ml-auto font-mono">v{test.result_version}</span>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border/40">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setBenchOpen(true)}
+              className="h-7 text-xs font-medium border-primary/30 hover:border-primary text-primary"
+            >
+              <FlaskConical className="mr-1.5 h-3.5 w-3.5" />
+              Bancada
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setAttachmentsOpen(true)}
+              className="h-7 text-xs font-medium"
+            >
+              <Paperclip className="mr-1.5 h-3.5 w-3.5" />
+              Evidências
+            </Button>
+            {isSigned && test.status === "CONCLUIDO" && (!test.review_status || test.review_status === "PENDENTE" || test.review_status === "DEVOLVIDO") && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSubmitForReview}
+                disabled={submittingReview || test.review_status === "PENDENTE"}
+                className="h-7 text-xs font-medium text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <Send className="mr-1.5 h-3.5 w-3.5" />
+                {test.review_status === "PENDENTE" ? "Em Revisão" : "Submeter Revisão"}
+              </Button>
+            )}
+            {test.review_status === "APROVADO" && (
+              <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900 border border-emerald-200">
+                <ShieldCheck className="h-3 w-3" />
+                Homologado (Peer Review)
+              </span>
+            )}
+          </div>
+          <span className="font-mono text-[11px] text-muted-foreground">v{test.result_version}</span>
         </div>
       </CardHeader>
 
@@ -613,6 +729,20 @@ function TestCard({ test, onSaved }: { test: LabTest; onSaved: () => void }) {
           )}
         </form>
       </CardContent>
+
+      <ExecutionBenchDialog
+        open={benchOpen}
+        onOpenChange={setBenchOpen}
+        test={test}
+        sampleCode={test.name}
+        onImportToReport={handleImportFromExecution}
+      />
+
+      <TestAttachmentsDialog
+        open={attachmentsOpen}
+        onOpenChange={setAttachmentsOpen}
+        test={test}
+      />
     </Card>
   );
 }
@@ -638,6 +768,28 @@ function NewTestDialog({
   const [criteria, setCriteria] = React.useState("");
   const [assignedTo, setAssignedTo] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
+  const [selectedMethodId, setSelectedMethodId] = React.useState<string>("");
+
+  const methodsQuery = useQuery({
+    queryKey: ["catalog", "methods", "active"],
+    queryFn: () => methodsApi.list({ activeOnly: true }),
+    enabled: open,
+  });
+  const standardMethods = methodsQuery.data ?? [];
+
+  function handleSelectStandardMethod(methodId: string) {
+    setSelectedMethodId(methodId);
+    if (!methodId) return;
+    const m = standardMethods.find((item) => item.id === methodId);
+    if (m) {
+      setName(m.name);
+      setMethod(`${m.code} — ${m.standard}`);
+      setUnit(m.default_unit);
+      setLower(m.default_lower_limit !== null ? String(m.default_lower_limit) : "");
+      setUpper(m.default_upper_limit !== null ? String(m.default_upper_limit) : "");
+      setCriteria(m.default_acceptance_criteria ?? "");
+    }
+  }
 
   const usersQuery = useQuery({
     queryKey: ["users", "testers"],
@@ -658,6 +810,7 @@ function NewTestDialog({
     setUpper("");
     setCriteria("");
     setAssignedTo("");
+    setSelectedMethodId("");
   }, [open]);
 
   async function handleCreate(event: React.FormEvent) {
@@ -688,6 +841,7 @@ function NewTestDialog({
           device_sample_id: sample.id,
           name: name.trim(),
           method: method.trim() || null,
+          method_id: selectedMethodId || null,
           parameters: {},
           unit: unit.trim(),
           lower_limit: lower.trim() ? Number(lower.replace(",", ".")) : null,
@@ -730,6 +884,26 @@ function NewTestDialog({
         </DialogHeader>
 
         <form onSubmit={handleCreate} className="grid gap-4">
+          {standardMethods.length > 0 ? (
+            <div className="grid gap-1.5 rounded-md border border-primary/20 bg-primary/[0.03] p-2.5">
+              <Label htmlFor="standard-method" className="text-xs text-primary font-semibold">
+                Importar do Catálogo de Métodos / Normas da SEFI (Opcional)
+              </Label>
+              <Select value={selectedMethodId} onValueChange={handleSelectStandardMethod}>
+                <SelectTrigger id="standard-method" className="h-8 text-xs bg-background">
+                  <SelectValue placeholder="Selecione um método normativo padronizado..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {standardMethods.map((m) => (
+                    <SelectItem key={m.id} value={m.id} className="text-xs">
+                      <span className="font-mono font-medium">{m.code}</span> — {m.name} ({m.standard})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+
           <div className="grid gap-1.5">
             <Label htmlFor="test-name">Nome do ensaio *</Label>
             <Input

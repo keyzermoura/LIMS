@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 from sqlalchemy import (
@@ -33,8 +33,21 @@ from app.models.base import (
     UUIDPrimaryKeyMixin,
     utcnow,
 )
-from app.models.enums import TestOutcome, TestStatus
-from app.models.types import test_outcome_type, test_status_type
+from app.models.enums import CoordinationReviewStatus, TestOutcome, TestStatus
+from app.models.types import (
+    coordination_review_status_type,
+    test_outcome_type,
+    test_status_type,
+)
+
+if TYPE_CHECKING:
+    from app.models.device_sample import DeviceSample
+    from app.models.equipment import LaboratoryEquipment
+    from app.models.test_attachment import TestAttachment
+    from app.models.test_execution import TestExecution
+    from app.models.test_method import TestMethod
+    from app.models.test_review import TestReview
+    from app.models.user import User
 
 
 class LabTest(
@@ -52,6 +65,12 @@ class LabTest(
     )
     name: Mapped[str] = mapped_column(String(160), nullable=False)
     method: Mapped[str | None] = mapped_column(String(200))
+    method_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("test_methods.id", ondelete="SET NULL"), index=True
+    )
+    equipment_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("laboratory_equipment.id", ondelete="SET NULL"), index=True
+    )
     parameters: Mapped[dict[str, Any]] = mapped_column(
         nullable=False, default=dict, server_default="{}"
     )
@@ -73,6 +92,12 @@ class LabTest(
         default=TestStatus.PENDENTE,
         index=True,
     )
+    review_status: Mapped[CoordinationReviewStatus] = mapped_column(
+        coordination_review_status_type,
+        nullable=False,
+        default=CoordinationReviewStatus.PENDENTE,
+        index=True,
+    )
     assigned_to_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT")
     )
@@ -91,11 +116,41 @@ class LabTest(
         Integer, nullable=False, default=0, server_default="0"
     )
 
-    tested_by = relationship(
+    sample: Mapped[DeviceSample] = relationship(
+        "DeviceSample", foreign_keys=[device_sample_id], lazy="selectin"
+    )
+    tested_by: Mapped[User | None] = relationship(
         "User", foreign_keys=[tested_by_id], lazy="selectin"
     )
-    signed_by = relationship(
+    signed_by: Mapped[User | None] = relationship(
         "User", foreign_keys=[signed_by_id], lazy="selectin"
+    )
+    test_method: Mapped[TestMethod | None] = relationship(
+        "TestMethod", back_populates="lab_tests", lazy="selectin"
+    )
+    equipment: Mapped[LaboratoryEquipment | None] = relationship(
+        "LaboratoryEquipment", lazy="selectin"
+    )
+    executions: Mapped[list[TestExecution]] = relationship(
+        "TestExecution",
+        back_populates="lab_test",
+        cascade="all, delete-orphan",
+        order_by="TestExecution.execution_number",
+        lazy="selectin",
+    )
+    reviews: Mapped[list[TestReview]] = relationship(
+        "TestReview",
+        back_populates="lab_test",
+        cascade="all, delete-orphan",
+        order_by="TestReview.review_number",
+        lazy="selectin",
+    )
+    attachments: Mapped[list[TestAttachment]] = relationship(
+        "TestAttachment",
+        back_populates="lab_test",
+        cascade="all, delete-orphan",
+        order_by="TestAttachment.created_at",
+        lazy="selectin",
     )
     @property
     def is_signed(self) -> bool:

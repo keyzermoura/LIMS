@@ -9,7 +9,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.models.enums import TestOutcome, TestStatus
+from app.models.enums import CoordinationReviewStatus, TestOutcome, TestStatus
 from app.schemas.common import UserBrief
 
 
@@ -18,6 +18,8 @@ class LabTestCreate(BaseModel):
     device_sample_id: UUID
     name: str = Field(min_length=2, max_length=160)
     method: str | None = Field(default=None, max_length=200)
+    method_id: UUID | None = None
+    equipment_id: UUID | None = None
     parameters: dict[str, Any] = Field(default_factory=dict)
     unit: str = Field(min_length=1, max_length=32)
     lower_limit: Decimal | None = None
@@ -52,6 +54,8 @@ class LabTestOut(BaseModel):
     device_sample_id: UUID
     name: str
     method: str | None
+    method_id: UUID | None = None
+    equipment_id: UUID | None = None
     parameters: dict[str, Any]
     unit: str
     lower_limit: Decimal | None
@@ -62,6 +66,7 @@ class LabTestOut(BaseModel):
     outcome: TestOutcome | None = None
     notes: str | None
     status: TestStatus
+    review_status: CoordinationReviewStatus | None = None
     assigned_to_id: UUID | None
     tested_by: UserBrief | None = None
     tested_at: datetime | None

@@ -6,6 +6,8 @@ import {
   COORDINATION_STATUS_LABELS,
   CRITERION_CLASS_LABELS,
   CUSTODY_OBJECT_STATUS_LABELS,
+  EQUIPMENT_CALIBRATION_LABELS,
+  EXECUTION_STATUS_LABELS,
   OUTCOME_LABELS,
   RECEIPT_DECISION_LABELS,
   RECEIPT_STATUS_LABELS,
@@ -28,7 +30,9 @@ type Kind =
   | "criterion_class"
   | "checklist_result"
   | "coordination"
-  | "decision";
+  | "decision"
+  | "equipment"
+  | "execution";
 
 const LABELS: Record<Kind, Record<string, string>> = {
   sample: SAMPLE_STATUS_LABELS,
@@ -43,6 +47,8 @@ const LABELS: Record<Kind, Record<string, string>> = {
   checklist_result: CHECKLIST_RESULT_LABELS,
   coordination: COORDINATION_STATUS_LABELS,
   decision: RECEIPT_DECISION_LABELS,
+  equipment: EQUIPMENT_CALIBRATION_LABELS,
+  execution: EXECUTION_STATUS_LABELS,
 };
 
 export function StatusBadge({

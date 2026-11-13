@@ -111,6 +111,8 @@ export interface LabTest {
   device_sample_id: string;
   name: string;
   method: string | null;
+  method_id?: string | null;
+  equipment_id?: string | null;
   parameters: Record<string, unknown>;
   unit: string;
   lower_limit: string | null;
@@ -121,6 +123,7 @@ export interface LabTest {
   outcome: TestOutcome | null;
   notes: string | null;
   status: TestStatus;
+  review_status?: CoordinationReviewStatus | null;
   assigned_to_id: string | null;
   tested_by: UserBrief | null;
   tested_at: string | null;
@@ -516,4 +519,237 @@ export interface ReceiptDecision {
   version: number;
   created_at: string;
   updated_at: string;
+}
+
+// ============================================================================
+// Fase 2: Métodos de Ensaio, Equipamentos Metrológicos e Execuções de Bancada
+// ============================================================================
+
+export type EquipmentCalibrationStatus =
+  | "CALIBRADO"
+  | "VENCIDO"
+  | "EM_MANUTENCAO"
+  | "NAO_APLICAVEL";
+
+export type ExecutionStatus =
+  | "EM_ANDAMENTO"
+  | "CONCLUIDA"
+  | "INTERROMPIDA"
+  | "CANCELADA";
+
+export interface LaboratoryEquipment {
+  id: string;
+  code: string;
+  name: string;
+  equipment_type: string | null;
+  manufacturer: string | null;
+  model: string | null;
+  serial_number: string | null;
+  location: string | null;
+  calibration_status: EquipmentCalibrationStatus;
+  last_calibration_at: string | null;
+  calibration_due_date: string | null;
+  certificate_number: string | null;
+  calibration_agency: string | null;
+  notes: string | null;
+  is_active: boolean;
+  is_calibration_valid: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EquipmentCreatePayload {
+  code: string;
+  name: string;
+  equipment_type?: string | null;
+  manufacturer?: string | null;
+  model?: string | null;
+  serial_number?: string | null;
+  location?: string | null;
+  calibration_status?: EquipmentCalibrationStatus;
+  last_calibration_at?: string | null;
+  calibration_due_date?: string | null;
+  certificate_number?: string | null;
+  calibration_agency?: string | null;
+  notes?: string | null;
+  is_active?: boolean;
+}
+
+export interface EquipmentCalibrationPayload {
+  last_calibration_at: string;
+  calibration_due_date: string;
+  certificate_number: string;
+  calibration_agency: string;
+  calibration_status?: EquipmentCalibrationStatus;
+  notes?: string | null;
+}
+
+export interface TestMethod {
+  id: string;
+  code: string;
+  name: string;
+  standard: string;
+  version: number;
+  category: string | null;
+  description: string | null;
+  parameters_schema: Record<string, unknown>;
+  default_unit: string;
+  default_lower_limit: number | string | null;
+  default_upper_limit: number | string | null;
+  default_acceptance_criteria: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TestMethodCreatePayload {
+  code: string;
+  name: string;
+  standard: string;
+  category?: string | null;
+  description?: string | null;
+  default_unit?: string;
+  default_lower_limit?: number | string | null;
+  default_upper_limit?: number | string | null;
+  default_acceptance_criteria?: string | null;
+  parameters_schema?: Record<string, unknown>;
+  is_active?: boolean;
+}
+
+export interface TestExecution {
+  id: string;
+  lab_test_id: string;
+  execution_number: number;
+  attempt_label: string;
+  status: ExecutionStatus;
+  equipment_id: string | null;
+  equipment?: LaboratoryEquipment | null;
+  executed_by_id: string | null;
+  executed_by: UserBrief | null;
+  started_at: string;
+  finished_at: string | null;
+  temperature_celsius: number | string | null;
+  humidity_percent: number | string | null;
+  pressure_hpa: number | string | null;
+  raw_data: Record<string, unknown>;
+  result_value: number | string | null;
+  result_text: string | null;
+  outcome: TestOutcome | null;
+  interruption_reason: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TestExecutionStartPayload {
+  equipment_id?: string | null;
+  temperature_celsius?: number | null;
+  humidity_percent?: number | null;
+  pressure_hpa?: number | null;
+  notes?: string | null;
+}
+
+export interface TestExecutionRecordDataPayload {
+  raw_data?: Record<string, unknown>;
+  temperature_celsius?: number | null;
+  humidity_percent?: number | null;
+  pressure_hpa?: number | null;
+  result_value?: number | null;
+  result_text?: string | null;
+  notes?: string | null;
+}
+
+export interface TestExecutionCompletePayload {
+  raw_data: Record<string, unknown>;
+  result_value?: number | null;
+  result_text?: string | null;
+  outcome: TestOutcome;
+  temperature_celsius?: number | null;
+  humidity_percent?: number | null;
+  pressure_hpa?: number | null;
+  notes?: string | null;
+}
+
+export interface TestExecutionInterruptPayload {
+  reason: string;
+}
+
+// =============================================================================
+// FASE 3: Revisão por Pares, Laudos Periciais e Evidências (M3)
+// =============================================================================
+
+export interface TestReview {
+  id: string;
+  lab_test_id: string;
+  review_number: number;
+  reviewed_by_id: string;
+  reviewed_by: UserBrief | null;
+  status: CoordinationReviewStatus;
+  justification: string | null;
+  notes: string | null;
+  signature_id: string | null;
+  reviewed_at: string;
+  created_at: string;
+}
+
+export interface TestSubmitReviewPayload {
+  notes?: string | null;
+}
+
+export interface TestReviewDecisionPayload {
+  status: CoordinationReviewStatus;
+  justification?: string | null;
+  notes?: string | null;
+  findings?: Record<string, unknown>;
+}
+
+export interface OfficialReport {
+  id: string;
+  report_number: string;
+  device_sample_id: string;
+  title: string;
+  conclusion: TestOutcome;
+  summary: string | null;
+  sha256_hash: string;
+  auth_token: string;
+  issued_by_id: string;
+  issued_by: UserBrief | null;
+  signature_id: string;
+  issued_at: string;
+  created_at: string;
+}
+
+export interface OfficialReportGeneratePayload {
+  device_sample_id: string;
+  test_ids: string[];
+  title?: string;
+  conclusion?: TestOutcome;
+  summary?: string | null;
+  observations?: string | null;
+}
+
+export interface OfficialReportPublicVerify {
+  is_valid: boolean;
+  report_number: string;
+  sample_acc_number: string;
+  sample_commercial_name: string;
+  sample_serial_number: string | null;
+  sample_lot_number: string | null;
+  conclusion: TestOutcome;
+  sha256_hash: string;
+  issued_by_name: string;
+  issued_at: string;
+}
+
+export interface TestAttachment {
+  id: string;
+  lab_test_id: string;
+  filename: string;
+  content_type: string;
+  file_size: number;
+  sha256_hash: string;
+  description: string | null;
+  uploaded_by_id: string;
+  uploaded_by: UserBrief | null;
+  created_at: string;
 }

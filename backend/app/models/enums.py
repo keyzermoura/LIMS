@@ -94,6 +94,12 @@ class AuditEntity(str, Enum):
     CHECKLIST = "Checklist"
     RECEIPT_DECISION = "ReceiptDecision"
     COORDINATION_REVIEW = "CoordinationReview"
+    TEST_METHOD = "TestMethod"
+    LABORATORY_EQUIPMENT = "LaboratoryEquipment"
+    TEST_EXECUTION = "TestExecution"
+    TEST_REVIEW = "TestReview"
+    OFFICIAL_REPORT = "OfficialReport"
+    TEST_ATTACHMENT = "TestAttachment"
 
 
 class SolicitationStatus(str, Enum):
@@ -165,3 +171,17 @@ class CoordinationReviewStatus(str, Enum):
     APROVADO = "APROVADO"
     DEVOLVIDO = "DEVOLVIDO"
     REJEITADO = "REJEITADO"
+
+
+class EquipmentCalibrationStatus(str, Enum):
+    CALIBRADO = "CALIBRADO"
+    VENCIDO = "VENCIDO"
+    EM_MANUTENCAO = "EM_MANUTENCAO"
+    NAO_APLICAVEL = "NAO_APLICAVEL"
+
+
+class ExecutionStatus(str, Enum):
+    EM_ANDAMENTO = "EM_ANDAMENTO"
+    CONCLUIDA = "CONCLUIDA"
+    INTERROMPIDA = "INTERROMPIDA"
+    CANCELADA = "CANCELADA"

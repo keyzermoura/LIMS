@@ -85,7 +85,7 @@ async function refreshSession(): Promise<boolean> {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   form?: URLSearchParams;
   formData?: FormData;
@@ -315,3 +315,177 @@ export function buildQuery(
   const query = search.toString();
   return query ? `?${query}` : "";
 }
+
+// ============================================================================
+// Fase 2 APIs: Métodos, Equipamentos e Execuções de Bancada
+// ============================================================================
+
+import type {
+  EquipmentCalibrationPayload,
+  EquipmentCreatePayload,
+  LaboratoryEquipment,
+  TestMethod,
+  TestMethodCreatePayload,
+  TestExecution,
+  TestExecutionCompletePayload,
+  TestExecutionInterruptPayload,
+  TestExecutionRecordDataPayload,
+  TestExecutionStartPayload,
+  LabTest,
+  TestReview,
+  TestSubmitReviewPayload,
+  TestReviewDecisionPayload,
+  OfficialReport,
+  OfficialReportGeneratePayload,
+  OfficialReportPublicVerify,
+  TestAttachment,
+} from "./types";
+
+export const methodsApi = {
+  list: (
+    options?: { category?: string; activeOnly?: boolean } | string,
+    activeOnly = true,
+  ) => {
+    let cat: string | undefined;
+    let act = activeOnly;
+    if (typeof options === "object" && options !== null) {
+      cat = options.category;
+      act = options.activeOnly ?? true;
+    } else {
+      cat = options;
+    }
+    return request<TestMethod[]>(
+      `/catalog/methods${buildQuery({ category: cat, active_only: act })}`,
+    );
+  },
+  get: (id: string) => request<TestMethod>(`/catalog/methods/${id}`),
+  create: (payload: TestMethodCreatePayload) =>
+    request<TestMethod>("/catalog/methods", {
+      method: "POST",
+      body: payload,
+    }),
+  update: (id: string, payload: Partial<TestMethodCreatePayload>) =>
+    request<TestMethod>(`/catalog/methods/${id}`, {
+      method: "PUT",
+      body: payload,
+    }),
+  seedStandards: () =>
+    request<TestMethod[]>("/catalog/methods/seed-standards", {
+      method: "POST",
+    }),
+};
+
+export const equipmentApi = {
+  list: (
+    options?: { status?: string; activeOnly?: boolean } | string,
+    activeOnly = true,
+  ) => {
+    let st: string | undefined;
+    let act = activeOnly;
+    if (typeof options === "object" && options !== null) {
+      st = options.status;
+      act = options.activeOnly ?? true;
+    } else {
+      st = options;
+    }
+    return request<LaboratoryEquipment[]>(
+      `/equipment${buildQuery({ calibration_status: st, active_only: act })}`,
+    );
+  },
+  get: (id: string) => request<LaboratoryEquipment>(`/equipment/${id}`),
+  create: (payload: EquipmentCreatePayload) =>
+    request<LaboratoryEquipment>("/equipment", {
+      method: "POST",
+      body: payload,
+    }),
+  update: (id: string, payload: Partial<EquipmentCreatePayload>) =>
+    request<LaboratoryEquipment>(`/equipment/${id}`, {
+      method: "PUT",
+      body: payload,
+    }),
+  calibrate: (id: string, payload: EquipmentCalibrationPayload) =>
+    request<LaboratoryEquipment>(`/equipment/${id}/calibration`, {
+      method: "POST",
+      body: payload,
+    }),
+};
+
+export const executionsApi = {
+  list: (testId: string) =>
+    request<TestExecution[]>(`/tests/${testId}/executions`),
+  listForTest: (testId: string) =>
+    request<TestExecution[]>(`/tests/${testId}/executions`),
+  start: (testId: string, payload: TestExecutionStartPayload) =>
+    request<TestExecution>(`/tests/${testId}/executions`, {
+      method: "POST",
+      body: payload,
+    }),
+  get: (executionId: string) =>
+    request<TestExecution>(`/executions/${executionId}`),
+  recordReadings: (executionId: string, payload: TestExecutionRecordDataPayload) =>
+    request<TestExecution>(`/executions/${executionId}/readings`, {
+      method: "POST",
+      body: payload,
+    }),
+  complete: (executionId: string, payload: TestExecutionCompletePayload) =>
+    request<TestExecution>(`/executions/${executionId}/complete`, {
+      method: "POST",
+      body: payload,
+    }),
+  interrupt: (executionId: string, payload: TestExecutionInterruptPayload) =>
+    request<TestExecution>(`/executions/${executionId}/interrupt`, {
+      method: "POST",
+      body: payload,
+    }),
+};
+
+// ============================================================================
+// Fase 3 APIs: Revisão por Pares, Laudos Periciais Oficiais e Evidências
+// ============================================================================
+
+export const reviewsApi = {
+  listPending: () => request<LabTest[]>("/reviews/tests/pending"),
+  submit: (testId: string, payload?: TestSubmitReviewPayload) =>
+    request<LabTest>(`/reviews/tests/${testId}/submit`, {
+      method: "POST",
+      body: payload ?? {},
+    }),
+  decide: (testId: string, payload: TestReviewDecisionPayload, signatureToken?: string) =>
+    request<TestReview>(`/reviews/tests/${testId}/decide`, {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  getHistory: (testId: string) =>
+    request<TestReview[]>(`/reviews/tests/${testId}`),
+};
+
+export const reportsApi = {
+  generateOfficial: (payload: OfficialReportGeneratePayload, signatureToken: string) =>
+    request<OfficialReport>("/reports/official", {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  getOfficial: (reportId: string) =>
+    request<OfficialReport>(`/reports/official/${reportId}`),
+  listForSample: (sampleId: string) =>
+    request<OfficialReport[]>(`/reports/official/sample/${sampleId}`),
+  verifyPublic: (authToken: string) =>
+    request<OfficialReportPublicVerify>(`/reports/verify/${authToken}`),
+};
+
+export const attachmentsApi = {
+  upload: (testId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return request<TestAttachment>(`/attachments/tests/${testId}`, {
+      method: "POST",
+      formData,
+    });
+  },
+  list: (testId: string) =>
+    request<TestAttachment[]>(`/attachments/tests/${testId}`),
+  getDownloadUrl: (attachmentId: string) =>
+    `${API_BASE}/attachments/${attachmentId}/download`,
+};
