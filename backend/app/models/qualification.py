@@ -13,7 +13,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, Index, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import (
@@ -41,7 +41,6 @@ class AnalystQualification(
     __tablename__ = "analyst_qualifications"
     __table_args__ = (
         UniqueConstraint("user_id", "method_id", name="uq_analyst_qualifications_user_method"),
-        Index("ix_analyst_qualifications_status", "status"),
     )
 
     user_id: Mapped[UUID] = mapped_column(

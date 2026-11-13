@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.context import RequestContext
-from app.core.errors import NotFoundError, PermissionDeniedError, ValidationDomainError
+from app.core.errors import ForbiddenError, NotFoundError, ValidationDomainError
 from app.models.base import utcnow
 from app.models.electronic_signature import ElectronicSignature
 from app.models.enums import (
@@ -109,7 +109,7 @@ async def grant_analyst_qualification(
     """Concede ou renova habilitação técnica formal de um analista com assinatura eletrônica Part 11."""
     # Apenas Gerência Técnica / Inspetor / Admin podem autorizar
     if authorizer.role not in (UserRole.ADMIN, UserRole.FISCAL):
-        raise PermissionDeniedError(
+        raise ForbiddenError(
             "Apenas administradores ou fiscais/responsáveis técnicos podem conceder qualificações analíticas."
         )
 
@@ -221,7 +221,7 @@ async def revoke_or_suspend_qualification(
 ) -> tuple[AnalystQualification, int]:
     """Suspende ou revoga a qualificação analítica de um operador com justificativa mandatória."""
     if authorizer.role not in (UserRole.ADMIN, UserRole.FISCAL):
-        raise PermissionDeniedError("Apenas fiscais ou administradores podem suspender habilitações.")
+        raise ForbiddenError("Apenas fiscais ou administradores podem suspender habilitações.")
 
     stmt = (
         select(AnalystQualification)

@@ -5,13 +5,11 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Header, Query, status
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import CurrentUser, DbSession
 from app.models.enums import QualificationStatus
 from app.models.qualification import AnalystQualification
-from app.models.user import User
 from app.schemas.qualification import (
     AnalystQualificationGrantIn,
     AnalystQualificationOut,
@@ -52,8 +50,8 @@ async def list_qualifications(
     user_id: UUID | None = None,
     method_id: UUID | None = None,
     status_filter: QualificationStatus | None = Query(None, alias="status"),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession = None,  # type: ignore[assignment]
+    current_user: CurrentUser = None,  # type: ignore[assignment]
 ) -> list[AnalystQualificationOut]:
     """Lista as habilitações técnicas e qualificações da equipe analítica."""
     quals = await qualification_service.list_analyst_qualifications(
@@ -66,8 +64,8 @@ async def list_qualifications(
 async def check_qualification(
     user_id: UUID,
     method_id: UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession = None,  # type: ignore[assignment]
+    current_user: CurrentUser = None,  # type: ignore[assignment]
 ) -> QualificationCheckOut:
     """Verifica em tempo de execução se um analista está formalmente habilitado e vigente para o método."""
     return await qualification_service.check_analyst_qualification(
@@ -78,8 +76,8 @@ async def check_qualification(
 @router.post("/grant", response_model=AnalystQualificationOut, status_code=status.HTTP_201_CREATED)
 async def grant_qualification(
     payload: AnalystQualificationGrantIn,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession = None,  # type: ignore[assignment]
+    current_user: CurrentUser = None,  # type: ignore[assignment]
     x_signature_token: Annotated[str | None, Header(alias="X-Signature-Token")] = None,
 ) -> AnalystQualificationOut:
     """Concede ou renova habilitação técnica a um analista com assinatura eletrônica e auditoria Part 11."""
@@ -96,8 +94,8 @@ async def grant_qualification(
 async def revoke_qualification(
     qualification_id: UUID,
     payload: AnalystQualificationRevokeIn,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession = None,  # type: ignore[assignment]
+    current_user: CurrentUser = None,  # type: ignore[assignment]
     x_signature_token: Annotated[str | None, Header(alias="X-Signature-Token")] = None,
 ) -> AnalystQualificationOut:
     """Suspende ou revoga a qualificação analítica de um operador com justificativa obrigatória."""
@@ -116,8 +114,8 @@ async def record_training(
     user_id: UUID,
     payload: TrainingRecordCreate,
     qualification_id: UUID | None = None,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession = None,  # type: ignore[assignment]
+    current_user: CurrentUser = None,  # type: ignore[assignment]
 ) -> TrainingRecordOut:
     """Registra treinamento técnico ou comprovação de horas práticas de bancada."""
     tr, _ = await qualification_service.record_training(

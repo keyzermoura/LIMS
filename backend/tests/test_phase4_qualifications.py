@@ -79,7 +79,7 @@ async def test_analyst_qualification_lifecycle_and_execution_guard(
     # 1. Cadastra um Método Analítico padronizado
     method_code = f"MET-COMP-{uuid4().hex[:6].upper()}"
     method_res = await client.post(
-        f"{API}/methods",
+        f"{API}/catalog/methods",
         headers=auth(fiscal_auth["access_token"]),
         json={
             "code": method_code,
