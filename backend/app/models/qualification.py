@@ -92,9 +92,7 @@ class AnalystQualification(
     def is_active(self) -> bool:
         if self.status != QualificationStatus.QUALIFICADO:
             return False
-        if self.expires_at and self.expires_at < utcnow():
-            return False
-        return True
+        return not (self.expires_at and self.expires_at < utcnow())
 
     def __repr__(self) -> str:
         return f"<AnalystQualification user={self.user_id} method={self.method_id} status={self.status.value}>"
