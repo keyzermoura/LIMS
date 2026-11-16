@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.Column("url", sa.String(500), nullable=False),
         sa.Column("secret", sa.String(255), nullable=False),
         sa.Column("description", sa.String(255), nullable=True),
-        sa.Column("events", json_type, nullable=False),
+        sa.Column("events", json_type, nullable=False, server_default="[]"),
         sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")),
         sa.Column("created_by_id", uuid_type, nullable=False),
         sa.Column("metadata", json_type, server_default="{}", nullable=False),
