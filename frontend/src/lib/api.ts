@@ -352,6 +352,9 @@ import type {
   UncertaintySimulatePayload,
   OperationalAnalytics,
   QualityControlAnalytics,
+  NotificationItem,
+  NotificationSummary,
+  AlertCheckResult,
 } from "./types";
 
 export const methodsApi = {
@@ -619,5 +622,35 @@ export const analyticsApi = {
     return request<QualityControlAnalytics>(`/analytics/quality-control${qs}`);
   },
 };
+
+export const notificationsApi = {
+  list: (params?: { unread_only?: boolean; severity?: string; limit?: number }) => {
+    const qs = buildQuery({
+      unread_only: params?.unread_only,
+      severity: params?.severity,
+      limit: params?.limit ?? 50,
+    });
+    return request<NotificationItem[]>(`/notifications${qs}`);
+  },
+  getSummary: () => request<NotificationSummary>("/notifications/summary"),
+  markAsRead: (notificationId: string) =>
+    request<NotificationItem>(`/notifications/${notificationId}/read`, {
+      method: "PATCH",
+    }),
+  markAllAsRead: () =>
+    request<{ marked_count: number }>("/notifications/read-all", {
+      method: "POST",
+    }),
+  checkAlerts: () =>
+    request<AlertCheckResult>("/notifications/check-alerts", {
+      method: "POST",
+    }),
+  create: (payload: unknown) =>
+    request<NotificationItem>("/notifications", {
+      method: "POST",
+      body: payload,
+    }),
+};
+
 
 

@@ -104,6 +104,7 @@ class AuditEntity(str, Enum):
     TRAINING_RECORD = "TrainingRecord"
     UNCERTAINTY_BUDGET = "UncertaintyBudget"
     CAPA_ACTION_ITEM = "CapaActionItem"
+    NOTIFICATION = "Notification"
 
 
 class SolicitationStatus(str, Enum):
@@ -268,4 +269,24 @@ class CapaEffectivenessStatus(str, Enum):
     PENDENTE = "PENDENTE"
     EFICAZ = "EFICAZ"
     INEFICAZ = "INEFICAZ"
+
+
+class NotificationSeverity(str, Enum):
+    """Severidade de notificações e alertas operacionais (Fase 5 / Sprint 5.2)."""
+
+    INFO = "INFO"
+    WARNING = "WARNING"
+    CRITICAL = "CRITICAL"
+
+
+class NotificationCategory(str, Enum):
+    """Categoria do evento gerador de alerta no laboratório."""
+
+    CALIBRATION = "CALIBRATION"
+    COMPETENCE = "COMPETENCE"
+    CAPA = "CAPA"
+    TAT = "TAT"
+    SAMPLE_ISSUE = "SAMPLE_ISSUE"
+    SYSTEM = "SYSTEM"
+
 

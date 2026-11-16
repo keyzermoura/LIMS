@@ -11,6 +11,7 @@ from app.models.device_sample import DeviceSample
 from app.models.electronic_signature import ElectronicSignature
 from app.models.equipment import LaboratoryEquipment
 from app.models.lab_test import LabTest, LabTestResult
+from app.models.notification import Notification
 from app.models.official_report import OfficialReport
 from app.models.qualification import AnalystQualification, TrainingRecord
 from app.models.receipt import CustodyEvent, CustodyObject, Receipt, ReceiptItem
@@ -40,6 +41,7 @@ __all__ = [
     "LabTest",
     "LabTestResult",
     "LaboratoryEquipment",
+    "Notification",
     "OfficialReport",
     "Receipt",
     "ReceiptDecision",

@@ -1048,3 +1048,43 @@ export interface QualityControlAnalytics {
   data_points: QualityControlPoint[];
   violations: WestgardViolation[];
 }
+
+// ---------------------------------------------------------------------------
+// Notificações e Alertas em Tempo Real (Fase 5 / Sprint 5.2)
+// ---------------------------------------------------------------------------
+
+export type NotificationSeverity = "INFO" | "WARNING" | "CRITICAL";
+
+export type NotificationCategory =
+  | "CALIBRATION"
+  | "COMPETENCE"
+  | "CAPA"
+  | "TAT"
+  | "SAMPLE_ISSUE"
+  | "SYSTEM";
+
+export interface NotificationItem {
+  id: string;
+  user_id: string | null;
+  target_role: UserRole | null;
+  title: string;
+  message: string;
+  severity: NotificationSeverity;
+  category: NotificationCategory;
+  link_url: string | null;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationSummary {
+  unread_count: number;
+  critical_count: number;
+  warning_count: number;
+  info_count: number;
+}
+
+export interface AlertCheckResult {
+  alerts_generated: number;
+  details: string[];
+}
