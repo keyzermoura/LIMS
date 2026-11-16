@@ -20,6 +20,7 @@ from app.api.v1.routes import (
     samples,
     solicitations,
     tests,
+    uncertainty,
     users,
 )
 
@@ -40,6 +41,7 @@ api_router.include_router(reviews.reviews_router)
 api_router.include_router(reports.reports_router)
 api_router.include_router(attachments.attachments_router)
 api_router.include_router(qualifications.router)
+api_router.include_router(uncertainty.router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)

@@ -342,6 +342,10 @@ import type {
   AnalystQualification,
   QualificationCheck,
   TrainingRecord,
+  UncertaintyBudget,
+  UncertaintyBudgetCreatePayload,
+  UncertaintyCalculation,
+  UncertaintySimulatePayload,
 } from "./types";
 
 export const methodsApi = {
@@ -524,4 +528,34 @@ export const qualificationsApi = {
       body: payload,
     });
   },
+};
+
+export const uncertaintyApi = {
+  simulate: (payload: UncertaintySimulatePayload) =>
+    request<UncertaintyCalculation>("/uncertainty/simulate", {
+      method: "POST",
+      body: payload,
+    }),
+  createBudget: (payload: UncertaintyBudgetCreatePayload, signatureToken?: string) =>
+    request<UncertaintyBudget>("/uncertainty/budgets", {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  listBudgets: (params?: {
+    lab_test_id?: string;
+    method_id?: string;
+    execution_id?: string;
+    conformity_status?: string;
+  }) => {
+    const qs = buildQuery({
+      lab_test_id: params?.lab_test_id,
+      method_id: params?.method_id,
+      execution_id: params?.execution_id,
+      conformity_status: params?.conformity_status,
+    });
+    return request<UncertaintyBudget[]>(`/uncertainty/budgets${qs}`);
+  },
+  getBudget: (budgetId: string) =>
+    request<UncertaintyBudget>(`/uncertainty/budgets/${budgetId}`),
 };

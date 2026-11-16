@@ -81,9 +81,12 @@ PHASE3_TABLES = {
 PHASE4_TABLES = {
     "analyst_qualifications",
     "training_records",
+    "uncertainty_budgets",
 }
 PHASE4_ENUMS = {
     "qualification_status",
+    "decision_rule_type",
+    "conformity_status",
 }
 
 

@@ -14,10 +14,12 @@ from app.models.enums import (
     CapaStatus,
     ChecklistResult,
     ConferenceStatus,
+    ConformityStatus,
     CoordinationReviewStatus,
     CriterionClass,
     CustodyEventType,
     CustodyObjectStatus,
+    DecisionRuleType,
     EquipmentCalibrationStatus,
     ExecutionStatus,
     PresentationStatus,
@@ -75,4 +77,10 @@ execution_status_type = SAEnum(
 )
 qualification_status_type = SAEnum(
     QualificationStatus, name="qualification_status", validate_strings=True
+)
+decision_rule_type = SAEnum(
+    DecisionRuleType, name="decision_rule_type", validate_strings=True
+)
+conformity_status_type = SAEnum(
+    ConformityStatus, name="conformity_status", validate_strings=True
 )

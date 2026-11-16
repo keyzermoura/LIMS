@@ -13,6 +13,7 @@ import {
   Scale,
   ScrollText,
   ShieldCheck,
+  Sigma,
   Timer,
   UserRound,
   X,
@@ -45,6 +46,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/equipment", label: "Controle de Equipamentos", icon: Gauge },
   { to: "/methods", label: "Catálogo de Métodos", icon: BookOpen },
   { to: "/qualifications", label: "Qualificação de Analistas", icon: GraduationCap },
+  { to: "/uncertainty", label: "Incerteza & ILAC-G8", icon: Sigma },
   { to: "/capas", label: "CAPA", icon: ClipboardCheck },
   {
     to: "/audit",

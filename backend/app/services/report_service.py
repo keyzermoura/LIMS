@@ -26,6 +26,7 @@ from app.models.enums import (
 )
 from app.models.lab_test import LabTest
 from app.models.official_report import OfficialReport
+from app.models.uncertainty import UncertaintyBudget
 from app.models.user import User
 from app.schemas.official_report import OfficialReportGenerateIn
 from app.services import audit_service, signature_service
@@ -83,20 +84,36 @@ async def generate_official_report(
     # Monta payload consolidado para cálculo do hash SHA-256 criptográfico
     tests_manifest: list[dict[str, Any]] = []
     for t in sorted(tests, key=lambda x: x.name):
-        tests_manifest.append(
-            {
-                "id": str(t.id),
-                "name": t.name,
-                "unit": t.unit,
-                "result_value": str(t.result_value) if t.result_value is not None else None,
-                "result_text": t.result_text,
-                "outcome": t.outcome.value if t.outcome else None,
-                "lower_limit": str(t.lower_limit) if t.lower_limit is not None else None,
-                "upper_limit": str(t.upper_limit) if t.upper_limit is not None else None,
-                "tested_by": t.tested_by.full_name if t.tested_by else None,
-                "tested_at": t.tested_at.isoformat() if t.tested_at else None,
-            }
+        entry: dict[str, Any] = {
+            "id": str(t.id),
+            "name": t.name,
+            "unit": t.unit,
+            "result_value": str(t.result_value) if t.result_value is not None else None,
+            "result_text": t.result_text,
+            "outcome": t.outcome.value if t.outcome else None,
+            "lower_limit": str(t.lower_limit) if t.lower_limit is not None else None,
+            "upper_limit": str(t.upper_limit) if t.upper_limit is not None else None,
+            "tested_by": t.tested_by.full_name if t.tested_by else None,
+            "tested_at": t.tested_at.isoformat() if t.tested_at else None,
+        }
+        budget = await db.scalar(
+            select(UncertaintyBudget)
+            .where(UncertaintyBudget.lab_test_id == t.id)
+            .order_by(UncertaintyBudget.created_at.desc())
         )
+        if budget is not None:
+            entry["uncertainty"] = {
+                "budget_id": str(budget.id),
+                "combined_uncertainty": str(budget.combined_uncertainty),
+                "expanded_uncertainty": str(budget.expanded_uncertainty),
+                "coverage_factor": str(budget.coverage_factor),
+                "confidence_level": str(budget.confidence_level),
+                "guard_band_width": str(budget.guard_band_width),
+                "decision_rule": budget.decision_rule.value,
+                "conformity_status": budget.conformity_status.value,
+                "conformity_statement": budget.conformity_statement,
+            }
+        tests_manifest.append(entry)
 
     manifest: dict[str, Any] = {
         "report_number": report_number,

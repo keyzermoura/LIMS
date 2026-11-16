@@ -18,6 +18,7 @@ from app.models.test_attachment import TestAttachment
 from app.models.test_execution import TestExecution
 from app.models.test_method import TestMethod
 from app.models.test_review import TestReview
+from app.models.uncertainty import UncertaintyBudget
 from app.models.user import RefreshToken, User
 
 __all__ = [
@@ -49,5 +50,6 @@ __all__ = [
     "TestMethod",
     "TestReview",
     "TrainingRecord",
+    "UncertaintyBudget",
     "User",
 ]

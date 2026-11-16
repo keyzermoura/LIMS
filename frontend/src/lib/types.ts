@@ -802,3 +802,115 @@ export interface QualificationCheck {
   method_code: string;
   reason?: string | null;
 }
+
+// =============================================================================
+// FASE 4 - Sprint 4.2: Incerteza de Medição GUM & Regras de Decisão ILAC-G8
+// =============================================================================
+
+export type UncertaintySourceType = "TYPE_A" | "TYPE_B";
+
+export type UncertaintyDistribution =
+  | "NORMAL"
+  | "RECTANGULAR"
+  | "TRIANGULAR"
+  | "U_SHAPED";
+
+export type DecisionRuleType =
+  | "SIMPLE_ACCEPTANCE"
+  | "GUARD_BAND_CONSERVATIVE"
+  | "GUARD_BAND_NON_BINARY";
+
+export type ConformityStatus =
+  | "CONFORME"
+  | "CONFORME_CONDICIONAL"
+  | "NAO_CONFORME_CONDICIONAL"
+  | "NAO_CONFORME";
+
+export interface UncertaintyComponentIn {
+  name: string;
+  symbol?: string | null;
+  source_type: UncertaintySourceType;
+  distribution: UncertaintyDistribution;
+  half_width: number;
+  divisor?: number | null;
+  sensitivity_coefficient?: number;
+  degrees_of_freedom?: number | null;
+}
+
+export interface UncertaintyComponentOut {
+  name: string;
+  symbol?: string | null;
+  source_type: UncertaintySourceType;
+  distribution: UncertaintyDistribution;
+  half_width: number | string;
+  divisor: number | string;
+  sensitivity_coefficient: number | string;
+  degrees_of_freedom?: number | null;
+  standard_uncertainty: number | string;
+  combined_contribution: number | string;
+  weight_percent: number | string;
+}
+
+export interface UncertaintySimulatePayload {
+  unit: string;
+  measured_value?: number | null;
+  repeatability_readings: number[];
+  lower_limit?: number | null;
+  upper_limit?: number | null;
+  components: UncertaintyComponentIn[];
+  coverage_factor?: number | null;
+  confidence_level?: number;
+  guard_band_multiplier?: number;
+  decision_rule: DecisionRuleType;
+}
+
+export interface UncertaintyBudgetCreatePayload extends UncertaintySimulatePayload {
+  method_id?: string | null;
+  lab_test_id?: string | null;
+  execution_id?: string | null;
+  equipment_id?: string | null;
+  notes?: string | null;
+}
+
+export interface UncertaintyCalculation {
+  unit: string;
+  measured_value: number | string;
+  lower_limit: number | string | null;
+  upper_limit: number | string | null;
+  lower_acceptance_limit: number | string | null;
+  upper_acceptance_limit: number | string | null;
+  repeatability_mean: number | string | null;
+  repeatability_std_dev: number | string | null;
+  repeatability_count: number;
+  components: UncertaintyComponentOut[];
+  combined_uncertainty: number | string;
+  effective_df: number | string | null;
+  coverage_factor: number | string;
+  confidence_level: number | string;
+  expanded_uncertainty: number | string;
+  guard_band_multiplier: number | string;
+  guard_band_width: number | string;
+  decision_rule: DecisionRuleType;
+  conformity_status: ConformityStatus;
+  recommended_outcome: TestOutcome;
+  conformity_statement: string;
+  formatted_result: string;
+}
+
+export interface UncertaintyBudget extends UncertaintyCalculation {
+  id: string;
+  method_id: string | null;
+  lab_test_id: string | null;
+  execution_id: string | null;
+  equipment_id: string | null;
+  repeatability_readings: Array<number | string>;
+  calculated_by_id: string;
+  calculated_by_name?: string | null;
+  method_code?: string | null;
+  test_name?: string | null;
+  equipment_code?: string | null;
+  signature_id: string | null;
+  notes: string | null;
+  version: number;
+  created_at: string;
+}

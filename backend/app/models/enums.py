@@ -102,6 +102,7 @@ class AuditEntity(str, Enum):
     TEST_ATTACHMENT = "TestAttachment"
     ANALYST_QUALIFICATION = "AnalystQualification"
     TRAINING_RECORD = "TrainingRecord"
+    UNCERTAINTY_BUDGET = "UncertaintyBudget"
 
 
 class SolicitationStatus(str, Enum):
@@ -196,3 +197,36 @@ class QualificationStatus(str, Enum):
     EM_SUPERVISAO = "EM_SUPERVISAO"
     SUSPENSO = "SUSPENSO"
     EXPIRADO = "EXPIRADO"
+
+
+class UncertaintySourceType(str, Enum):
+    """Classificação GUM das componentes de incerteza (JCGM 100:2008 §4)."""
+
+    TYPE_A = "TYPE_A"
+    TYPE_B = "TYPE_B"
+
+
+class UncertaintyDistribution(str, Enum):
+    """Distribuição de probabilidade associada à fonte de incerteza."""
+
+    NORMAL = "NORMAL"
+    RECTANGULAR = "RECTANGULAR"
+    TRIANGULAR = "TRIANGULAR"
+    U_SHAPED = "U_SHAPED"
+
+
+class DecisionRuleType(str, Enum):
+    """Regra de decisão metrológica para declaração de conformidade (ILAC-G8:09/2019)."""
+
+    SIMPLE_ACCEPTANCE = "SIMPLE_ACCEPTANCE"
+    GUARD_BAND_CONSERVATIVE = "GUARD_BAND_CONSERVATIVE"
+    GUARD_BAND_NON_BINARY = "GUARD_BAND_NON_BINARY"
+
+
+class ConformityStatus(str, Enum):
+    """Status metrológico detalhado frente aos limites e faixa de guarda (ISO 17025 §7.8.6)."""
+
+    CONFORME = "CONFORME"
+    CONFORME_CONDICIONAL = "CONFORME_CONDICIONAL"
+    NAO_CONFORME_CONDICIONAL = "NAO_CONFORME_CONDICIONAL"
+    NAO_CONFORME = "NAO_CONFORME"
