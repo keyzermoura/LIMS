@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, LargeBinary, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import (
@@ -56,9 +56,7 @@ class OfficialReport(
     pdf_data: Mapped[bytes | None] = mapped_column(LargeBinary)
 
     # Versionamento e Emendas Regulamentares (ISO/IEC 17025:2017 §7.8.8)
-    version: Mapped[int] = mapped_column(
-        Integer, default=1, server_default="1", nullable=False
-    )
+    # Nota: 'version' é herdado de OptimisticLockMixin (default=1, nullable=False).
     root_report_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("official_reports.id", ondelete="RESTRICT"),
         nullable=True,
