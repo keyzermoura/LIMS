@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.routes import (
+    analytics,
     attachments,
     audit,
     auth,
@@ -12,7 +13,10 @@ from app.api.v1.routes import (
     decisions,
     equipment,
     executions,
+    instrument_data,
     methods,
+    notifications,
+    public_reports,
     qualifications,
     receipts,
     reports,
@@ -22,6 +26,7 @@ from app.api.v1.routes import (
     tests,
     uncertainty,
     users,
+    webhooks,
 )
 
 api_router = APIRouter()
@@ -42,6 +47,11 @@ api_router.include_router(reports.reports_router)
 api_router.include_router(attachments.attachments_router)
 api_router.include_router(qualifications.router)
 api_router.include_router(uncertainty.router)
+api_router.include_router(analytics.router)
+api_router.include_router(notifications.router)
+api_router.include_router(instrument_data.router)
+api_router.include_router(webhooks.webhooks_router)
+api_router.include_router(public_reports.public_reports_router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)

@@ -60,6 +60,7 @@ class AuditAction(str, Enum):
     INTEGRITY_CHECK = "INTEGRITY_CHECK"
     EXPORT = "EXPORT"
     EXPORT_VERIFIED = "EXPORT_VERIFIED"
+    DATA_ACQUISITION = "DATA_ACQUISITION"
 
 
 class SignatureMeaning(str, Enum):
@@ -104,6 +105,8 @@ class AuditEntity(str, Enum):
     TRAINING_RECORD = "TrainingRecord"
     UNCERTAINTY_BUDGET = "UncertaintyBudget"
     CAPA_ACTION_ITEM = "CapaActionItem"
+    NOTIFICATION = "Notification"
+    INSTRUMENT_DATA_IMPORT = "InstrumentDataImport"
 
 
 class SolicitationStatus(str, Enum):
@@ -268,4 +271,41 @@ class CapaEffectivenessStatus(str, Enum):
     PENDENTE = "PENDENTE"
     EFICAZ = "EFICAZ"
     INEFICAZ = "INEFICAZ"
+
+
+class NotificationSeverity(str, Enum):
+    """Severidade de notificações e alertas operacionais (Fase 5 / Sprint 5.2)."""
+
+    INFO = "INFO"
+    WARNING = "WARNING"
+    CRITICAL = "CRITICAL"
+
+
+class NotificationCategory(str, Enum):
+    """Categoria do evento gerador de alerta no laboratório."""
+
+    CALIBRATION = "CALIBRATION"
+    COMPETENCE = "COMPETENCE"
+    CAPA = "CAPA"
+    TAT = "TAT"
+    SAMPLE_ISSUE = "SAMPLE_ISSUE"
+    SYSTEM = "SYSTEM"
+
+
+class InstrumentFileFormat(str, Enum):
+    """Formatos de arquivos suportados pelos conectores de instrumentos (Sprint 5.3)."""
+
+    BALANCA_ASCII = "BALANCA_ASCII"
+    UV_VIS_CSV = "UV_VIS_CSV"
+    CHROMATOGRAPHY_CSV = "CHROMATOGRAPHY_CSV"
+    GENERIC_JSON = "GENERIC_JSON"
+
+
+class InstrumentImportStatus(str, Enum):
+    """Status do ciclo de vida da importação direta de instrumento (ALCOA+)."""
+
+    IMPORTED = "IMPORTED"
+    MAPPED = "MAPPED"
+    REJECTED = "REJECTED"
+
 

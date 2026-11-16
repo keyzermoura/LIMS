@@ -78,6 +78,7 @@ async def init_db() -> None:
     if not _IS_SQLITE:
         await apply_sql_file(SQL_DIR / "001_immutability.sql")
         await apply_sql_file(SQL_DIR / "002_indexes.sql")
+        await apply_sql_file(SQL_DIR / "003_integridade_fase5.sql")
 
 
 async def apply_sql_file(path: Path) -> None:

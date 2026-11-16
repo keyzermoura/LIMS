@@ -26,6 +26,10 @@ from app.models.enums import (
     DecisionRuleType,
     EquipmentCalibrationStatus,
     ExecutionStatus,
+    InstrumentFileFormat,
+    InstrumentImportStatus,
+    NotificationCategory,
+    NotificationSeverity,
     PresentationStatus,
     QualificationStatus,
     ReceiptDecisionEnum,
@@ -99,4 +103,16 @@ capa_item_status = SAEnum(
 )
 capa_effectiveness_status = SAEnum(
     CapaEffectivenessStatus, name="capa_effectiveness_status", validate_strings=True
+)
+notification_severity_type = SAEnum(
+    NotificationSeverity, name="notification_severity", validate_strings=True
+)
+notification_category_type = SAEnum(
+    NotificationCategory, name="notification_category", validate_strings=True
+)
+instrument_file_format_type = SAEnum(
+    InstrumentFileFormat, name="instrument_file_format", validate_strings=True
+)
+instrument_import_status_type = SAEnum(
+    InstrumentImportStatus, name="instrument_import_status", validate_strings=True
 )

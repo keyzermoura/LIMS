@@ -965,3 +965,201 @@ export interface UncertaintyBudget extends UncertaintyCalculation {
   version: number;
   created_at: string;
 }
+
+// ---------------------------------------------------------------------------
+// BI e Controle Metrológico (Fase 5 / Sprint 5.1)
+// ---------------------------------------------------------------------------
+
+export interface TurnaroundTimeMetrics {
+  global_avg_hours: number | null;
+  receipt_to_testing_avg_hours: number | null;
+  testing_to_review_avg_hours: number | null;
+  review_to_report_avg_hours: number | null;
+  samples_measured_count: number;
+  data_quality?: string;
+}
+
+export interface SampleBacklogMetrics {
+  age_0_to_5_days: number;
+  age_6_to_15_days: number;
+  age_above_15_days: number;
+  total_active: number;
+}
+
+export interface TestConformityMetrics {
+  total_tests: number;
+  conforming_count: number;
+  non_conforming_count: number;
+  inconclusive_count: number;
+  pending_count: number;
+  conformity_rate_pct: number | null;
+  data_quality?: string;
+}
+
+export interface CapaMetrics {
+  total_capas: number;
+  open_capas: number;
+  closed_capas: number;
+  effective_capas: number;
+  ineffective_capas: number;
+  effectiveness_rate_pct: number | null;
+  data_quality?: string;
+}
+
+export interface AnalystWorkloadItem {
+  user_id: string;
+  full_name: string;
+  active_tests_count: number;
+  completed_tests_count: number;
+}
+
+export interface OperationalAnalytics {
+  turnaround_time: TurnaroundTimeMetrics;
+  sample_backlog: SampleBacklogMetrics;
+  test_conformity: TestConformityMetrics;
+  capa_metrics: CapaMetrics;
+  analysts_workload: AnalystWorkloadItem[];
+  equipment_status_summary: Record<string, number>;
+}
+
+export interface QualityControlPoint {
+  run_number: number;
+  measured_at: string;
+  value: number;
+  operator_name: string;
+  violation?: string | null;
+}
+
+export interface WestgardViolation {
+  rule_code: string;
+  description: string;
+  run_numbers: number[];
+  severity: "WARNING" | "ALARM";
+}
+
+export interface QualityControlAnalytics {
+  method_id?: string | null;
+  method_name: string;
+  parameter_name: string;
+  unit: string;
+  mean: number | null;
+  standard_deviation: number | null;
+  warning_limit_upper: number | null;
+  warning_limit_lower: number | null;
+  action_limit_upper: number | null;
+  action_limit_lower: number | null;
+  data_points: QualityControlPoint[];
+  violations: WestgardViolation[];
+  data_quality?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Notificações e Alertas em Tempo Real (Fase 5 / Sprint 5.2)
+// ---------------------------------------------------------------------------
+
+export type NotificationSeverity = "INFO" | "WARNING" | "CRITICAL";
+
+export type NotificationCategory =
+  | "CALIBRATION"
+  | "COMPETENCE"
+  | "CAPA"
+  | "TAT"
+  | "SAMPLE_ISSUE"
+  | "SYSTEM";
+
+export interface NotificationItem {
+  id: string;
+  user_id: string | null;
+  target_role: UserRole | null;
+  title: string;
+  message: string;
+  severity: NotificationSeverity;
+  category: NotificationCategory;
+  link_url: string | null;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationSummary {
+  unread_count: number;
+  critical_count: number;
+  warning_count: number;
+  info_count: number;
+}
+
+export interface AlertCheckResult {
+  alerts_generated: number;
+  details: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Conectores e Aquisição de Instrumentos (Fase 5 / Sprint 5.3)
+// ---------------------------------------------------------------------------
+
+export type InstrumentFileFormat =
+  | "BALANCA_ASCII"
+  | "UV_VIS_CSV"
+  | "CHROMATOGRAPHY_CSV"
+  | "GENERIC_JSON";
+
+export type InstrumentImportStatus = "IMPORTED" | "MAPPED" | "REJECTED";
+
+export interface InstrumentDataImport {
+  id: string;
+  equipment_id: string;
+  test_execution_id: string | null;
+  imported_by_id: string;
+  file_name: string;
+  file_format: InstrumentFileFormat;
+  raw_file_hash_sha256: string;
+  raw_content?: string;
+  parsed_data: Record<string, any>;
+  status: InstrumentImportStatus;
+  rejection_reason: string | null;
+  mapped_at: string | null;
+  created_at: string;
+}
+
+export interface InstrumentDataSummary {
+  total_imports: number;
+  mapped_imports: number;
+  unmapped_imports: number;
+}
+
+// ---------------------------------------------------------------------------
+// Webhooks e Interoperabilidade (Fase 5 / Sprint 5.4)
+// ---------------------------------------------------------------------------
+
+export interface WebhookSubscription {
+  id: string;
+  url: string;
+  description?: string | null;
+  events: string[];
+  is_active: boolean;
+  created_by_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  subscription_id: string;
+  event: string;
+  payload: Record<string, unknown>;
+  status: string;
+  status_code?: number | null;
+  response_body?: string | null;
+  attempt_count: number;
+  delivered_at?: string | null;
+  created_at: string;
+}
+
+export interface WebhookPingResponse {
+  subscription_id: string;
+  delivery_id: string;
+  event: string;
+  status: string;
+  status_code?: number | null;
+  signature_header: string;
+}

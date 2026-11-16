@@ -5,11 +5,12 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Header, Query, Request, status
+from fastapi import APIRouter, Depends, Header, Query, Request, status
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentUser, DbSession, require_roles
 from app.core.context import RequestContext
-from app.models.enums import ConformityStatus
+from app.models.enums import ConformityStatus, UserRole
+from app.models.user import User
 from app.schemas.uncertainty import (
     UncertaintyBudgetCreateIn,
     UncertaintyBudgetOut,
@@ -22,6 +23,8 @@ router = APIRouter(
     prefix="/uncertainty",
     tags=["Incerteza de Medição & ILAC-G8 (Fase 4)"],
 )
+
+WRITE_ROLES = (UserRole.ADMIN, UserRole.FISCAL, UserRole.TECNICO)
 
 
 @router.post("/simulate", response_model=UncertaintyCalculationOut)
@@ -42,7 +45,7 @@ async def create_uncertainty_budget(
     payload: UncertaintyBudgetCreateIn,
     request: Request,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: User = Depends(require_roles(*WRITE_ROLES)),
     x_signature_token: Annotated[str | None, Header(alias="X-Signature-Token")] = None,
 ) -> UncertaintyBudgetOut:
     """Calcula, persiste e audita o orçamento de incerteza metrológica vinculado ao ensaio."""

@@ -4,14 +4,18 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, File, Request, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Request, Response, UploadFile
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentUser, DbSession, require_roles
 from app.core.context import RequestContext
+from app.models.enums import UserRole
+from app.models.user import User
 from app.schemas.test_attachment import TestAttachmentOut
 from app.services import attachment_service
 
 attachments_router = APIRouter(prefix="/attachments", tags=["Evidências e Anexos de Bancada"])
+
+WRITE_ROLES = (UserRole.ADMIN, UserRole.FISCAL, UserRole.TECNICO)
 
 
 @attachments_router.post(
@@ -24,7 +28,7 @@ async def upload_test_attachment(
     request: Request,
     response: Response,
     db: DbSession,
-    user: CurrentUser,
+    user: User = Depends(require_roles(*WRITE_ROLES)),
     file: UploadFile = File(...),
 ) -> TestAttachmentOut:
     context = RequestContext.from_request(request)

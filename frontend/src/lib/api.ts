@@ -350,6 +350,16 @@ import type {
   UncertaintyBudgetCreatePayload,
   UncertaintyCalculation,
   UncertaintySimulatePayload,
+  OperationalAnalytics,
+  QualityControlAnalytics,
+  NotificationItem,
+  NotificationSummary,
+  AlertCheckResult,
+  InstrumentDataImport,
+  InstrumentDataSummary,
+  WebhookSubscription,
+  WebhookDelivery,
+  WebhookPingResponse,
 } from "./types";
 
 export const methodsApi = {
@@ -482,8 +492,8 @@ export const reportsApi = {
     request<OfficialReport>(`/reports/official/${reportId}`),
   listForSample: (sampleId: string) =>
     request<OfficialReport[]>(`/reports/official/sample/${sampleId}`),
-  verifyPublic: (authToken: string) =>
-    request<OfficialReportPublicVerify>(`/reports/verify/${authToken}`),
+  verifyPublic: (tokenOrHash: string) =>
+    request<OfficialReportPublicVerify>(`/public/reports/verify/${tokenOrHash}`),
 };
 
 export const attachmentsApi = {
@@ -609,4 +619,121 @@ export const capasApi = {
       signatureToken,
     }),
 };
+
+export const analyticsApi = {
+  getOperational: () => request<OperationalAnalytics>("/analytics/operational"),
+  getQualityControl: (methodId?: string) => {
+    const qs = buildQuery({ method_id: methodId });
+    return request<QualityControlAnalytics>(`/analytics/quality-control${qs}`);
+  },
+};
+
+export const notificationsApi = {
+  list: (params?: { unread_only?: boolean; severity?: string; limit?: number }) => {
+    const qs = buildQuery({
+      unread_only: params?.unread_only,
+      severity: params?.severity,
+      limit: params?.limit ?? 50,
+    });
+    return request<NotificationItem[]>(`/notifications${qs}`);
+  },
+  getSummary: () => request<NotificationSummary>("/notifications/summary"),
+  markAsRead: (notificationId: string) =>
+    request<NotificationItem>(`/notifications/${notificationId}/read`, {
+      method: "PATCH",
+    }),
+  markAllAsRead: () =>
+    request<{ marked_count: number }>("/notifications/read-all", {
+      method: "POST",
+    }),
+  checkAlerts: () =>
+    request<AlertCheckResult>("/notifications/check-alerts", {
+      method: "POST",
+    }),
+  create: (payload: unknown) =>
+    request<NotificationItem>("/notifications", {
+      method: "POST",
+      body: payload,
+    }),
+};
+
+export const instrumentDataApi = {
+  list: (params?: {
+    equipment_id?: string;
+    test_execution_id?: string;
+    status?: string;
+    limit?: number;
+  }) => {
+    const qs = buildQuery({
+      equipment_id: params?.equipment_id,
+      test_execution_id: params?.test_execution_id,
+      status: params?.status,
+      limit: params?.limit ?? 50,
+    });
+    return request<InstrumentDataImport[]>(`/instrument-data${qs}`);
+  },
+  getSummary: () => request<InstrumentDataSummary>("/instrument-data/summary"),
+  getById: (id: string) => request<InstrumentDataImport>(`/instrument-data/${id}`),
+  uploadRaw: (payload: {
+    equipment_id: string;
+    file_name: string;
+    file_format: string;
+    raw_content: string;
+    test_execution_id?: string;
+  }) =>
+    request<InstrumentDataImport>("/instrument-data/upload-raw", {
+      method: "POST",
+      body: payload,
+    }),
+  uploadMultipart: (
+    equipmentId: string,
+    fileFormat: string,
+    file: File,
+    testExecutionId?: string,
+  ) => {
+    const formData = new FormData();
+    formData.append("equipment_id", equipmentId);
+    formData.append("file_format", fileFormat);
+    if (testExecutionId) {
+      formData.append("test_execution_id", testExecutionId);
+    }
+    formData.append("file", file);
+    return request<InstrumentDataImport>("/instrument-data/upload", {
+      method: "POST",
+      formData,
+    });
+  },
+  mapToExecution: (importId: string, executionId: string) =>
+    request<InstrumentDataImport>(`/instrument-data/${importId}/map-to-execution`, {
+      method: "POST",
+      body: { execution_id: executionId },
+    }),
+};
+
+export const webhooksApi = {
+  listSubscriptions: () => request<WebhookSubscription[]>("/webhooks/subscriptions"),
+  getSubscription: (id: string) => request<WebhookSubscription>(`/webhooks/subscriptions/${id}`),
+  createSubscription: (payload: { url: string; description?: string; events?: string[]; secret?: string }) =>
+    request<WebhookSubscription>("/webhooks/subscriptions", {
+      method: "POST",
+      body: payload,
+    }),
+  deleteSubscription: (id: string) =>
+    request<void>(`/webhooks/subscriptions/${id}`, {
+      method: "DELETE",
+    }),
+  pingSubscription: (id: string) =>
+    request<WebhookPingResponse>(`/webhooks/subscriptions/${id}/ping`, {
+      method: "POST",
+    }),
+  listDeliveries: (params?: { subscription_id?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.subscription_id) query.set("subscription_id", params.subscription_id);
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    return request<WebhookDelivery[]>(`/webhooks/deliveries${qs ? `?${qs}` : ""}`);
+  },
+};
+
+
 

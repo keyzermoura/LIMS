@@ -10,7 +10,9 @@ from app.models.decision import CoordinationReview, ReceiptDecision
 from app.models.device_sample import DeviceSample
 from app.models.electronic_signature import ElectronicSignature
 from app.models.equipment import LaboratoryEquipment
+from app.models.instrument_data import InstrumentDataImport
 from app.models.lab_test import LabTest, LabTestResult
+from app.models.notification import Notification
 from app.models.official_report import OfficialReport
 from app.models.qualification import AnalystQualification, TrainingRecord
 from app.models.receipt import CustodyEvent, CustodyObject, Receipt, ReceiptItem
@@ -21,6 +23,7 @@ from app.models.test_method import TestMethod
 from app.models.test_review import TestReview
 from app.models.uncertainty import UncertaintyBudget
 from app.models.user import RefreshToken, User
+from app.models.webhook import WebhookDelivery, WebhookSubscription
 
 __all__ = [
     "AnalystQualification",
@@ -37,9 +40,11 @@ __all__ = [
     "CustodyObject",
     "DeviceSample",
     "ElectronicSignature",
+    "InstrumentDataImport",
     "LabTest",
     "LabTestResult",
     "LaboratoryEquipment",
+    "Notification",
     "OfficialReport",
     "Receipt",
     "ReceiptDecision",
@@ -54,4 +59,6 @@ __all__ = [
     "TrainingRecord",
     "UncertaintyBudget",
     "User",
+    "WebhookDelivery",
+    "WebhookSubscription",
 ]

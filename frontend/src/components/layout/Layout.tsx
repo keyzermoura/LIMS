@@ -1,9 +1,12 @@
 import * as React from "react";
 import {
+  BarChart3,
+  Bell,
   BookOpen,
   Boxes,
   ClipboardCheck,
   ClipboardList,
+  Cpu,
   FlaskConical,
   Gauge,
   GraduationCap,
@@ -21,6 +24,7 @@ import {
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/hooks/use-auth";
 import { ROLE_LABELS, cn, initials } from "@/lib/utils";
 
@@ -48,6 +52,9 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/qualifications", label: "Qualificação de Analistas", icon: GraduationCap },
   { to: "/uncertainty", label: "Incerteza & ILAC-G8", icon: Sigma },
   { to: "/capas", label: "CAPA", icon: ClipboardCheck },
+  { to: "/analytics", label: "Painel BI & Metrologia", icon: BarChart3 },
+  { to: "/notifications", label: "Central de Notificações", icon: Bell },
+  { to: "/instruments", label: "Aquisição de Instrumentos", icon: Cpu },
   {
     to: "/audit",
     label: "Trilha de auditoria",
@@ -199,6 +206,8 @@ export function Layout() {
           </div>
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <NotificationBell />
+
             <div
               className={cn(
                 "hidden items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium sm:flex",

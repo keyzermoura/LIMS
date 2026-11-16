@@ -36,6 +36,10 @@ PHASE1 = "0004_fase1_solic_receb"
 PHASE2 = "0005_fase2_execucao_lab"
 PHASE3 = "0006_fase3_revisao_laudos"
 PHASE4 = "0008_fase4_capa"
+PHASE5 = "0009_fase5_notifications"
+PHASE5_2 = "0010_fase5_instrument_data"
+PHASE5_3 = "0011_fase5_guards_integridade"
+PHASE5_HEAD = "0012_fase5_webhooks"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -92,6 +96,18 @@ PHASE4_ENUMS = {
     "capa_action_type",
     "capa_item_status",
     "capa_effectiveness_status",
+}
+PHASE5_TABLES = {
+    "notifications",
+    "instrument_data_imports",
+    "webhook_subscriptions",
+    "webhook_deliveries",
+}
+PHASE5_ENUMS = {
+    "notification_severity",
+    "notification_category",
+    "instrument_file_format",
+    "instrument_import_status",
 }
 
 
@@ -201,12 +217,20 @@ async def _insert_legacy_sample(url: str, *, serial: str | None, lot: str | None
 async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> None:
     _ok(migration_url, "upgrade", "head")
 
-    assert await _tables(migration_url) >= (PHASE1_TABLES | PHASE2_TABLES | PHASE3_TABLES)
+    assert await _tables(migration_url) >= (
+        PHASE1_TABLES
+        | PHASE2_TABLES
+        | PHASE3_TABLES
+        | PHASE4_TABLES
+        | PHASE5_TABLES
+    )
 
     # Cada enum nativo deve existir exatamente uma vez (regressão: receipt_decision
     # é compartilhado por duas tabelas e já foi criado em duplicidade).
     counts = await _enum_counts(migration_url)
-    for enum_name in (PHASE1_ENUMS | PHASE2_ENUMS):
+    for enum_name in (
+        PHASE1_ENUMS | PHASE2_ENUMS | PHASE4_ENUMS | PHASE5_ENUMS
+    ):
         assert counts.get(enum_name) == 1, f"enum {enum_name}: {counts.get(enum_name)}"
 
     # Guardas de imutabilidade da migração 0002 continuam presentes.
@@ -216,7 +240,7 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
     )
     assert triggers
 
-    assert PHASE4 in _ok(migration_url, "current")
+    assert PHASE5_HEAD in _ok(migration_url, "current")
     # Paridade metadata x migrações: acusa índices, defaults ou tipos divergentes.
     _ok(migration_url, "check")
 
@@ -226,10 +250,27 @@ async def test_downgrade_is_reversible(migration_url: str) -> None:
     _ok(migration_url, "downgrade", PRE_PHASE1)
 
     tables = await _tables(migration_url)
-    assert not ((PHASE1_TABLES | PHASE2_TABLES | PHASE3_TABLES | PHASE4_TABLES) & tables)
+    assert not (
+        (
+            PHASE1_TABLES
+            | PHASE2_TABLES
+            | PHASE3_TABLES
+            | PHASE4_TABLES
+            | PHASE5_TABLES
+        )
+        & tables
+    )
     assert {"users", "device_samples", "audit_logs"} <= tables
     counts = await _enum_counts(migration_url)
-    assert not ((PHASE1_ENUMS | PHASE2_ENUMS | PHASE4_ENUMS) & set(counts))
+    assert not (
+        (
+            PHASE1_ENUMS
+            | PHASE2_ENUMS
+            | PHASE4_ENUMS
+            | PHASE5_ENUMS
+        )
+        & set(counts)
+    )
 
     nullable = await _scalars(
         migration_url,
@@ -270,4 +311,13 @@ async def test_downgrade_refuses_when_it_would_lose_data(migration_url: str) -> 
     # A falha é transacional: nada foi desfeito pela metade.
     assert await _tables(migration_url) >= PHASE1_TABLES
     current = _ok(migration_url, "current")
-    assert PHASE1 in current or PHASE2 in current or PHASE3 in current or PHASE4 in current
+    assert (
+        PHASE1 in current
+        or PHASE2 in current
+        or PHASE3 in current
+        or PHASE4 in current
+        or PHASE5 in current
+        or PHASE5_2 in current
+        or PHASE5_3 in current
+        or PHASE5_HEAD in current
+    )
