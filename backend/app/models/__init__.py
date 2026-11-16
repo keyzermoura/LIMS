@@ -10,6 +10,7 @@ from app.models.decision import CoordinationReview, ReceiptDecision
 from app.models.device_sample import DeviceSample
 from app.models.electronic_signature import ElectronicSignature
 from app.models.equipment import LaboratoryEquipment
+from app.models.instrument_data import InstrumentDataImport
 from app.models.lab_test import LabTest, LabTestResult
 from app.models.notification import Notification
 from app.models.official_report import OfficialReport
@@ -38,6 +39,7 @@ __all__ = [
     "CustodyObject",
     "DeviceSample",
     "ElectronicSignature",
+    "InstrumentDataImport",
     "LabTest",
     "LabTestResult",
     "LaboratoryEquipment",

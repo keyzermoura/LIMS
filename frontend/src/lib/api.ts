@@ -355,6 +355,8 @@ import type {
   NotificationItem,
   NotificationSummary,
   AlertCheckResult,
+  InstrumentDataImport,
+  InstrumentDataSummary,
 } from "./types";
 
 export const methodsApi = {
@@ -649,6 +651,59 @@ export const notificationsApi = {
     request<NotificationItem>("/notifications", {
       method: "POST",
       body: payload,
+    }),
+};
+
+export const instrumentDataApi = {
+  list: (params?: {
+    equipment_id?: string;
+    test_execution_id?: string;
+    status?: string;
+    limit?: number;
+  }) => {
+    const qs = buildQuery({
+      equipment_id: params?.equipment_id,
+      test_execution_id: params?.test_execution_id,
+      status: params?.status,
+      limit: params?.limit ?? 50,
+    });
+    return request<InstrumentDataImport[]>(`/instrument-data${qs}`);
+  },
+  getSummary: () => request<InstrumentDataSummary>("/instrument-data/summary"),
+  getById: (id: string) => request<InstrumentDataImport>(`/instrument-data/${id}`),
+  uploadRaw: (payload: {
+    equipment_id: string;
+    file_name: string;
+    file_format: string;
+    raw_content: string;
+    test_execution_id?: string;
+  }) =>
+    request<InstrumentDataImport>("/instrument-data/upload-raw", {
+      method: "POST",
+      body: payload,
+    }),
+  uploadMultipart: (
+    equipmentId: string,
+    fileFormat: string,
+    file: File,
+    testExecutionId?: string,
+  ) => {
+    const formData = new FormData();
+    formData.append("equipment_id", equipmentId);
+    formData.append("file_format", fileFormat);
+    if (testExecutionId) {
+      formData.append("test_execution_id", testExecutionId);
+    }
+    formData.append("file", file);
+    return request<InstrumentDataImport>("/instrument-data/upload", {
+      method: "POST",
+      formData,
+    });
+  },
+  mapToExecution: (importId: string, executionId: string) =>
+    request<InstrumentDataImport>(`/instrument-data/${importId}/map-to-execution`, {
+      method: "POST",
+      body: { execution_id: executionId },
     }),
 };
 

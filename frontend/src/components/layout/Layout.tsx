@@ -6,6 +6,7 @@ import {
   Boxes,
   ClipboardCheck,
   ClipboardList,
+  Cpu,
   FlaskConical,
   Gauge,
   GraduationCap,
@@ -53,6 +54,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/capas", label: "CAPA", icon: ClipboardCheck },
   { to: "/analytics", label: "Painel BI & Metrologia", icon: BarChart3 },
   { to: "/notifications", label: "Central de Notificações", icon: Bell },
+  { to: "/instruments", label: "Aquisição de Instrumentos", icon: Cpu },
   {
     to: "/audit",
     label: "Trilha de auditoria",

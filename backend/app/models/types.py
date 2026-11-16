@@ -26,6 +26,8 @@ from app.models.enums import (
     DecisionRuleType,
     EquipmentCalibrationStatus,
     ExecutionStatus,
+    InstrumentFileFormat,
+    InstrumentImportStatus,
     NotificationCategory,
     NotificationSeverity,
     PresentationStatus,
@@ -107,4 +109,10 @@ notification_severity_type = SAEnum(
 )
 notification_category_type = SAEnum(
     NotificationCategory, name="notification_category", validate_strings=True
+)
+instrument_file_format_type = SAEnum(
+    InstrumentFileFormat, name="instrument_file_format", validate_strings=True
+)
+instrument_import_status_type = SAEnum(
+    InstrumentImportStatus, name="instrument_import_status", validate_strings=True
 )

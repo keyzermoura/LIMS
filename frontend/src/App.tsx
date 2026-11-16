@@ -18,6 +18,7 @@ import { QualificationsPage } from "@/pages/Qualifications";
 import { UncertaintyPage } from "@/pages/Uncertainty";
 import { AnalyticsPage } from "@/pages/Analytics";
 import { NotificationsPage } from "@/pages/Notifications";
+import InstrumentAcquisition from "@/pages/InstrumentAcquisition";
 
 function FullScreenLoader() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="/capas" element={<CapasPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/instruments" element={<InstrumentAcquisition />} />
         <Route path="/audit" element={<AuditRoute />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

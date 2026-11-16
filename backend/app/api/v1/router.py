@@ -13,6 +13,7 @@ from app.api.v1.routes import (
     decisions,
     equipment,
     executions,
+    instrument_data,
     methods,
     notifications,
     qualifications,
@@ -46,6 +47,7 @@ api_router.include_router(qualifications.router)
 api_router.include_router(uncertainty.router)
 api_router.include_router(analytics.router)
 api_router.include_router(notifications.router)
+api_router.include_router(instrument_data.router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)

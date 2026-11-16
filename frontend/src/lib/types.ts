@@ -1088,3 +1088,36 @@ export interface AlertCheckResult {
   alerts_generated: number;
   details: string[];
 }
+
+// ---------------------------------------------------------------------------
+// Conectores e Aquisição de Instrumentos (Fase 5 / Sprint 5.3)
+// ---------------------------------------------------------------------------
+
+export type InstrumentFileFormat =
+  | "BALANCA_ASCII"
+  | "UV_VIS_CSV"
+  | "CHROMATOGRAPHY_CSV"
+  | "GENERIC_JSON";
+
+export type InstrumentImportStatus = "IMPORTED" | "MAPPED" | "REJECTED";
+
+export interface InstrumentDataImport {
+  id: string;
+  equipment_id: string;
+  test_execution_id: string | null;
+  imported_by_id: string;
+  file_name: string;
+  file_format: InstrumentFileFormat;
+  raw_file_hash_sha256: string;
+  parsed_data: Record<string, any>;
+  status: InstrumentImportStatus;
+  rejection_reason: string | null;
+  mapped_at: string | null;
+  created_at: string;
+}
+
+export interface InstrumentDataSummary {
+  total_imports: number;
+  mapped_imports: number;
+  unmapped_imports: number;
+}

@@ -60,6 +60,7 @@ class AuditAction(str, Enum):
     INTEGRITY_CHECK = "INTEGRITY_CHECK"
     EXPORT = "EXPORT"
     EXPORT_VERIFIED = "EXPORT_VERIFIED"
+    DATA_ACQUISITION = "DATA_ACQUISITION"
 
 
 class SignatureMeaning(str, Enum):
@@ -105,6 +106,7 @@ class AuditEntity(str, Enum):
     UNCERTAINTY_BUDGET = "UncertaintyBudget"
     CAPA_ACTION_ITEM = "CapaActionItem"
     NOTIFICATION = "Notification"
+    INSTRUMENT_DATA_IMPORT = "InstrumentDataImport"
 
 
 class SolicitationStatus(str, Enum):
@@ -288,5 +290,22 @@ class NotificationCategory(str, Enum):
     TAT = "TAT"
     SAMPLE_ISSUE = "SAMPLE_ISSUE"
     SYSTEM = "SYSTEM"
+
+
+class InstrumentFileFormat(str, Enum):
+    """Formatos de arquivos suportados pelos conectores de instrumentos (Sprint 5.3)."""
+
+    BALANCA_ASCII = "BALANCA_ASCII"
+    UV_VIS_CSV = "UV_VIS_CSV"
+    CHROMATOGRAPHY_CSV = "CHROMATOGRAPHY_CSV"
+    GENERIC_JSON = "GENERIC_JSON"
+
+
+class InstrumentImportStatus(str, Enum):
+    """Status do ciclo de vida da importação direta de instrumento (ALCOA+)."""
+
+    IMPORTED = "IMPORTED"
+    MAPPED = "MAPPED"
+    REJECTED = "REJECTED"
 
 
