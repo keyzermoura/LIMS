@@ -84,12 +84,7 @@ def upgrade() -> None:
         sa.Column("link_url", sa.String(length=255), nullable=True),
         sa.Column("is_read", sa.Boolean(), nullable=False, server_default=sa.text("false")),
         sa.Column("read_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column(
-            "metadata_json",
-            json_type,
-            nullable=False,
-            server_default=sa.text("'{}'::jsonb") if is_pg else "{}",
-        ),
+        sa.Column("metadata", json_type, server_default="{}", nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.ForeignKeyConstraint(
@@ -105,7 +100,6 @@ def upgrade() -> None:
     op.create_index(op.f("ix_notifications_severity"), "notifications", ["severity"], unique=False)
     op.create_index(op.f("ix_notifications_category"), "notifications", ["category"], unique=False)
     op.create_index(op.f("ix_notifications_is_read"), "notifications", ["is_read"], unique=False)
-    op.create_index(op.f("ix_notifications_created_at"), "notifications", ["created_at"], unique=False)
     op.create_index("ix_notifications_user_unread", "notifications", ["user_id", "is_read"], unique=False)
     op.create_index("ix_notifications_role_unread", "notifications", ["target_role", "is_read"], unique=False)
 
@@ -113,7 +107,6 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("ix_notifications_role_unread", table_name="notifications")
     op.drop_index("ix_notifications_user_unread", table_name="notifications")
-    op.drop_index(op.f("ix_notifications_created_at"), table_name="notifications")
     op.drop_index(op.f("ix_notifications_is_read"), table_name="notifications")
     op.drop_index(op.f("ix_notifications_category"), table_name="notifications")
     op.drop_index(op.f("ix_notifications_severity"), table_name="notifications")
