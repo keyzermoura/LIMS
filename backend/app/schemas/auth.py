@@ -58,6 +58,29 @@ class ESignatureIssueRequest(BaseModel):
     entity_type: str = Field(min_length=2, max_length=64)
     entity_id: str = Field(min_length=1, max_length=64)
     action: SignatureAction
+    totp_code: str | None = Field(default=None, max_length=64)
+
+
+class MfaSetupResponse(BaseModel):
+    secret: str
+    otpauth_url: str
+    qr_code_base64: str
+
+
+class MfaEnableRequest(BaseModel):
+    secret: str = Field(min_length=16, max_length=64)
+    code: str = Field(min_length=6, max_length=32)
+    password: str = Field(min_length=1, max_length=256)
+
+
+class MfaEnableResponse(BaseModel):
+    recovery_codes: list[str]
+    message: str
+
+
+class MfaDisableRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=256)
+    code: str = Field(min_length=6, max_length=32)
 
 
 class ESignatureIssueResponse(BaseModel):

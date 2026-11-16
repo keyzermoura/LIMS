@@ -1190,3 +1190,29 @@ export interface WebhookPingResponse {
   status_code?: number | null;
   signature_header: string;
 }
+
+// ---------------------------------------------------------------------------
+// MFA TOTP e Segurança Reforçada (Horizonte 1 / Sprint 6.2 - 21 CFR Part 11)
+// ---------------------------------------------------------------------------
+
+export interface MfaSetupResponse {
+  secret: string;
+  otpauth_url: string;
+  qr_code_base64: string;
+}
+
+export interface MfaEnableRequest {
+  secret: string;
+  code: string;
+  password: string;
+}
+
+export interface MfaEnableResponse {
+  recovery_codes: string[];
+  message: string;
+}
+
+export interface MfaDisableRequest {
+  password: string;
+  code: string;
+}

@@ -35,7 +35,7 @@ GENESIS_HASH = "0" * 64
 AUDIT_LOCK_KEY = 728341  # chave arbitrária e estável do advisory lock
 
 # Campos que nunca podem ser auditados em claro.
-_SENSITIVE_FIELDS = {"hashed_password"}
+_SENSITIVE_FIELDS = {"hashed_password", "mfa_secret", "mfa_recovery_codes"}
 
 
 # --------------------------------------------------------------------------

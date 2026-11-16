@@ -361,6 +361,10 @@ import type {
   WebhookSubscription,
   WebhookDelivery,
   WebhookPingResponse,
+  MfaSetupResponse,
+  MfaEnableRequest,
+  MfaEnableResponse,
+  MfaDisableRequest,
 } from "./types";
 
 export const methodsApi = {
@@ -742,6 +746,20 @@ export const webhooksApi = {
     const qs = query.toString();
     return request<WebhookDelivery[]>(`/webhooks/deliveries${qs ? `?${qs}` : ""}`);
   },
+};
+
+export const mfaApi = {
+  setup: () => request<MfaSetupResponse>("/auth/mfa/setup", { method: "POST" }),
+  enable: (payload: MfaEnableRequest) =>
+    request<MfaEnableResponse>("/auth/mfa/enable", {
+      method: "POST",
+      body: payload,
+    }),
+  disable: (payload: MfaDisableRequest) =>
+    request<void>("/auth/mfa/disable", {
+      method: "POST",
+      body: payload,
+    }),
 };
 
 
