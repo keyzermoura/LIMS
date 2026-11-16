@@ -25,10 +25,7 @@ def upgrade() -> None:
     uuid_type = postgresql.UUID(as_uuid=True) if is_pg else sa.Uuid()
 
     # 1. Adicionar colunas de versionamento e emenda em official_reports
-    op.add_column(
-        "official_reports",
-        sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
-    )
+    # Nota: a coluna 'version' já existe desde a migração 0006 (OptimisticLockMixin).
     op.add_column(
         "official_reports",
         sa.Column("root_report_id", uuid_type, nullable=True),
@@ -146,4 +143,3 @@ def downgrade() -> None:
     op.drop_column("official_reports", "is_latest")
     op.drop_column("official_reports", "supersedes_id")
     op.drop_column("official_reports", "root_report_id")
-    op.drop_column("official_reports", "version")
