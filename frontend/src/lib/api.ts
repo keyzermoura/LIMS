@@ -321,6 +321,10 @@ export function buildQuery(
 // ============================================================================
 
 import type {
+  Capa,
+  CapaActionItem,
+  CapaCreateResponse,
+  Page,
   EquipmentCalibrationPayload,
   EquipmentCreatePayload,
   LaboratoryEquipment,

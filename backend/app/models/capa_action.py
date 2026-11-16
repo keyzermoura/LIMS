@@ -56,6 +56,7 @@ class CapaAction(
         capa_source_type,
         nullable=False,
         default=CapaSourceType.ENSAIO_REPROVADO,
+        server_default="ENSAIO_REPROVADO",
         index=True,
     )
     containment_action: Mapped[str | None] = mapped_column(Text)
@@ -95,6 +96,7 @@ class CapaAction(
         capa_effectiveness_status,
         nullable=False,
         default=CapaEffectivenessStatus.PENDENTE,
+        server_default="PENDENTE",
         index=True,
     )
     effectiveness_evaluator_id: Mapped[UUID | None] = mapped_column(

@@ -32,6 +32,7 @@ class CapaActionItem(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         capa_item_status,
         nullable=False,
         default=CapaItemStatus.PENDENTE,
+        server_default="PENDENTE",
         index=True,
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

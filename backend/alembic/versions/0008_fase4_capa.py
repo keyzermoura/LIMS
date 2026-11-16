@@ -62,50 +62,44 @@ def upgrade() -> None:
 
     if is_pg:
         op.execute(
-            """
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'capa_source_type') THEN
-                    CREATE TYPE capa_source_type AS ENUM (
-                        'ENSAIO_REPROVADO', 'INCERTEZA_METROLOGICA', 'EQUIPAMENTO_DESVIO',
-                        'AUDITORIA_INTERNA', 'RECLAMACAO_CLIENTE', 'CONTROLE_QUALIDADE', 'OUTRO'
-                    );
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'capa_action_type') THEN
-                    CREATE TYPE capa_action_type AS ENUM ('CONTENCAO', 'CORRETIVA', 'PREVENTIVA');
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'capa_item_status') THEN
-                    CREATE TYPE capa_item_status AS ENUM ('PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA');
-                END IF;
-                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'capa_effectiveness_status') THEN
-                    CREATE TYPE capa_effectiveness_status AS ENUM ('PENDENTE', 'EFICAZ', 'INEFICAZ');
-                END IF;
-            END$$;
-            """
+            "DO $$ BEGIN "
+            "CREATE TYPE capa_source_type AS ENUM ("
+            "'ENSAIO_REPROVADO', 'INCERTEZA_METROLOGICA', 'EQUIPAMENTO_DESVIO', "
+            "'AUDITORIA_INTERNA', 'RECLAMACAO_CLIENTE', 'CONTROLE_QUALIDADE', 'OUTRO'); "
+            "EXCEPTION WHEN duplicate_object THEN null; "
+            "END $$;"
+        )
+        op.execute(
+            "DO $$ BEGIN "
+            "CREATE TYPE capa_action_type AS ENUM ('CONTENCAO', 'CORRETIVA', 'PREVENTIVA'); "
+            "EXCEPTION WHEN duplicate_object THEN null; "
+            "END $$;"
+        )
+        op.execute(
+            "DO $$ BEGIN "
+            "CREATE TYPE capa_item_status AS ENUM ('PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDA', 'CANCELADA'); "
+            "EXCEPTION WHEN duplicate_object THEN null; "
+            "END $$;"
+        )
+        op.execute(
+            "DO $$ BEGIN "
+            "CREATE TYPE capa_effectiveness_status AS ENUM ('PENDENTE', 'EFICAZ', 'INEFICAZ'); "
+            "EXCEPTION WHEN duplicate_object THEN null; "
+            "END $$;"
         )
 
     json_type = postgresql.JSONB(astext_type=sa.Text()) if is_pg else sa.JSON()
-    source_enum = CAPA_SOURCE_TYPE if is_pg else sa.Enum(
-        "ENSAIO_REPROVADO", "INCERTEZA_METROLOGICA", "EQUIPAMENTO_DESVIO",
-        "AUDITORIA_INTERNA", "RECLAMACAO_CLIENTE", "CONTROLE_QUALIDADE", "OUTRO",
-        name="capa_source_type"
-    )
-    action_type_enum = CAPA_ACTION_TYPE if is_pg else sa.Enum(
-        "CONTENCAO", "CORRETIVA", "PREVENTIVA", name="capa_action_type"
-    )
-    item_status_enum = CAPA_ITEM_STATUS if is_pg else sa.Enum(
-        "PENDENTE", "EM_ANDAMENTO", "CONCLUIDA", "CANCELADA", name="capa_item_status"
-    )
-    eff_status_enum = CAPA_EFFECTIVENESS_STATUS if is_pg else sa.Enum(
-        "PENDENTE", "EFICAZ", "INEFICAZ", name="capa_effectiveness_status"
-    )
+    source_type_col = CAPA_SOURCE_TYPE if is_pg else sa.String(32)
+    action_type_col = CAPA_ACTION_TYPE if is_pg else sa.String(32)
+    item_status_col = CAPA_ITEM_STATUS if is_pg else sa.String(32)
+    eff_status_col = CAPA_EFFECTIVENESS_STATUS if is_pg else sa.String(32)
 
     # 1. Novas colunas em capa_actions
     op.add_column(
         "capa_actions",
         sa.Column(
             "source_type",
-            source_enum,
+            source_type_col,
             nullable=False,
             server_default="ENSAIO_REPROVADO",
         ),
@@ -118,12 +112,12 @@ def upgrade() -> None:
         "capa_actions",
         sa.Column(
             "effectiveness_status",
-            eff_status_enum,
+            eff_status_col,
             nullable=False,
             server_default="PENDENTE",
         ),
     )
-    op.add_column("capa_actions", sa.Column("effectiveness_evaluator_id", sa.Uuid(), nullable=True))
+    op.add_column("capa_actions", sa.Column("effectiveness_evaluator_id", sa.UUID(), nullable=True))
     op.add_column("capa_actions", sa.Column("effectiveness_evaluated_at", sa.DateTime(timezone=True), nullable=True))
     op.add_column(
         "capa_actions",
@@ -144,18 +138,18 @@ def upgrade() -> None:
     # 2. Tabela capa_action_items
     op.create_table(
         "capa_action_items",
-        sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("capa_id", sa.Uuid(), nullable=False),
+        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column("capa_id", sa.UUID(), nullable=False),
         sa.Column("title", sa.String(length=200), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("action_type", action_type_enum, nullable=False),
-        sa.Column("assigned_to_id", sa.Uuid(), nullable=False),
+        sa.Column("action_type", action_type_col, nullable=False),
+        sa.Column("assigned_to_id", sa.UUID(), nullable=False),
         sa.Column("due_date", sa.Date(), nullable=False),
-        sa.Column("status", item_status_enum, nullable=False, server_default="PENDENTE"),
+        sa.Column("status", item_status_col, nullable=False, server_default="PENDENTE"),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completion_evidence", sa.Text(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.ForeignKeyConstraint(
             ["assigned_to_id"],
             ["users.id"],
