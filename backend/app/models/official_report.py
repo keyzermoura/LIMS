@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, LargeBinary, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import (
@@ -55,6 +55,25 @@ class OfficialReport(
     sha256_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     pdf_data: Mapped[bytes | None] = mapped_column(LargeBinary)
 
+    # Versionamento e Emendas Regulamentares (ISO/IEC 17025:2017 §7.8.8)
+    version: Mapped[int] = mapped_column(
+        Integer, default=1, server_default="1", nullable=False
+    )
+    root_report_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("official_reports.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    supersedes_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("official_reports.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    is_latest: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False, index=True
+    )
+    amendment_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     issued_by_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
@@ -76,6 +95,18 @@ class OfficialReport(
     )
     signature: Mapped[ElectronicSignature] = relationship(
         "ElectronicSignature", foreign_keys=[signature_id], lazy="selectin"
+    )
+    root_report: Mapped[OfficialReport | None] = relationship(
+        "OfficialReport",
+        remote_side="OfficialReport.id",
+        foreign_keys=[root_report_id],
+        lazy="selectin",
+    )
+    superseded_report: Mapped[OfficialReport | None] = relationship(
+        "OfficialReport",
+        remote_side="OfficialReport.id",
+        foreign_keys=[supersedes_id],
+        lazy="selectin",
     )
 
     def __repr__(self) -> str:

@@ -163,7 +163,16 @@ export function OfficialReportModal({
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
+              <a
+                href={reportsApi.getPdfUrl(issuedReport.id)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+              >
+                <FileText className="h-4 w-4" />
+                Baixar Laudo Pericial em PDF
+              </a>
               <Button onClick={() => onOpenChange(false)}>Fechar</Button>
             </DialogFooter>
           </div>

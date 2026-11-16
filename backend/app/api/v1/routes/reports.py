@@ -1,4 +1,4 @@
-"""Rotas de Emissão e Validação Pública de Laudos Oficiais (Sprint 3.2 / ISO/IEC 17025)."""
+"""Rotas de Emissão, Emenda e Validação de Laudos Oficiais (ISO/IEC 17025 §7.8 e §7.8.8)."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from app.core.context import RequestContext
 from app.models.enums import UserRole
 from app.models.user import User
 from app.schemas.official_report import (
+    OfficialReportAmendIn,
     OfficialReportGenerateIn,
     OfficialReportOut,
     OfficialReportPublicVerifyOut,
@@ -25,7 +26,7 @@ ISSUER_ROLES = (UserRole.ADMIN, UserRole.FISCAL)
 @reports_router.post(
     "/official",
     response_model=OfficialReportOut,
-    summary="Emitir Laudo Pericial Oficial consolidado com assinatura e hash SHA-256",
+    summary="Emitir Laudo Pericial Oficial consolidado com assinatura e PDF assinado",
 )
 async def create_official_report(
     payload: OfficialReportGenerateIn,
@@ -47,6 +48,37 @@ async def create_official_report(
     return OfficialReportOut.model_validate(report)
 
 
+@reports_router.post(
+    "/official/{report_id}/amend",
+    response_model=OfficialReportOut,
+    summary="Emitir Emenda Formal Retificadora ao Laudo Oficial (ISO/IEC 17025 §7.8.8)",
+)
+async def amend_official_report(
+    report_id: UUID,
+    payload: OfficialReportAmendIn,
+    request: Request,
+    response: Response,
+    db: DbSession,
+    user: User = Depends(require_roles(*ISSUER_ROLES)),
+    x_signature_token: str | None = Header(None, alias="X-Signature-Token"),
+) -> OfficialReportOut:
+    """Emite uma nova versão do laudo (vN+1) registrando a justificativa técnica da emenda."""
+    context = RequestContext.from_request(request)
+    amended_report, audit_seq = await report_service.amend_official_report(
+        db,
+        report_id=report_id,
+        amendment_reason=payload.amendment_reason,
+        title=payload.title,
+        conclusion=payload.conclusion,
+        summary=payload.summary,
+        issuer=user,
+        signature_token=x_signature_token,
+        context=context,
+    )
+    response.headers["X-Audit-Sequence"] = str(audit_seq)
+    return OfficialReportOut.model_validate(amended_report)
+
+
 @reports_router.get(
     "/official/{report_id}",
     response_model=OfficialReportOut,
@@ -59,6 +91,23 @@ async def get_official_report(
 ) -> OfficialReportOut:
     report = await report_service.get_report_by_id(db, report_id)
     return OfficialReportOut.model_validate(report)
+
+
+@reports_router.get(
+    "/official/{report_id}/pdf",
+    summary="Download do PDF binário do Laudo Pericial Oficial",
+)
+async def download_report_pdf(
+    report_id: UUID,
+    db: DbSession,
+    _: CurrentUser,
+) -> Response:
+    pdf_bytes, filename = await report_service.get_report_pdf(db, report_id)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
 
 
 @reports_router.get(

@@ -341,6 +341,7 @@ import type {
   TestReviewDecisionPayload,
   OfficialReport,
   OfficialReportGeneratePayload,
+  OfficialReportAmendPayload,
   OfficialReportPublicVerify,
   TestAttachment,
   AnalystQualification,
@@ -488,12 +489,20 @@ export const reportsApi = {
       body: payload,
       signatureToken,
     }),
+  amendOfficial: (reportId: string, payload: OfficialReportAmendPayload, signatureToken: string) =>
+    request<OfficialReport>(`/reports/official/${reportId}/amend`, {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
   getOfficial: (reportId: string) =>
     request<OfficialReport>(`/reports/official/${reportId}`),
   listForSample: (sampleId: string) =>
     request<OfficialReport[]>(`/reports/official/sample/${sampleId}`),
   verifyPublic: (tokenOrHash: string) =>
     request<OfficialReportPublicVerify>(`/public/reports/verify/${tokenOrHash}`),
+  getPdfUrl: (reportId: string) => `/api/v1/reports/official/${reportId}/pdf`,
+  getPublicPdfUrl: (tokenOrHash: string) => `/api/v1/public/reports/${tokenOrHash}/pdf`,
 };
 
 export const attachmentsApi = {

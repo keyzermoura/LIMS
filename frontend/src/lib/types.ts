@@ -763,6 +763,11 @@ export interface OfficialReport {
   summary: string | null;
   sha256_hash: string;
   auth_token: string;
+  version: number;
+  root_report_id?: string | null;
+  supersedes_id?: string | null;
+  is_latest: boolean;
+  amendment_reason?: string | null;
   issued_by_id: string;
   issued_by: UserBrief | null;
   signature_id: string;
@@ -779,9 +784,30 @@ export interface OfficialReportGeneratePayload {
   observations?: string | null;
 }
 
+export interface OfficialReportAmendPayload {
+  amendment_reason: string;
+  title?: string;
+  conclusion?: TestOutcome;
+  summary?: string | null;
+}
+
+export interface OfficialReportHistoryItem {
+  version: number;
+  report_number: string;
+  is_latest: boolean;
+  amendment_reason?: string | null;
+  issued_at: string;
+  sha256_hash: string;
+}
+
 export interface OfficialReportPublicVerify {
   is_valid: boolean;
   report_number: string;
+  version: number;
+  is_latest: boolean;
+  amendment_reason?: string | null;
+  supersedes_number?: string | null;
+  latest_report_number?: string | null;
   sample_acc_number: string;
   sample_commercial_name: string;
   sample_serial_number: string | null;
@@ -790,6 +816,7 @@ export interface OfficialReportPublicVerify {
   sha256_hash: string;
   issued_by_name: string;
   issued_at: string;
+  history?: OfficialReportHistoryItem[];
 }
 
 export interface TestAttachment {
