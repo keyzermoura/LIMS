@@ -965,3 +965,86 @@ export interface UncertaintyBudget extends UncertaintyCalculation {
   version: number;
   created_at: string;
 }
+
+// ---------------------------------------------------------------------------
+// BI e Controle Metrológico (Fase 5 / Sprint 5.1)
+// ---------------------------------------------------------------------------
+
+export interface TurnaroundTimeMetrics {
+  global_avg_hours: number;
+  receipt_to_testing_avg_hours: number;
+  testing_to_review_avg_hours: number;
+  review_to_report_avg_hours: number;
+  samples_measured_count: number;
+}
+
+export interface SampleBacklogMetrics {
+  age_0_to_5_days: number;
+  age_6_to_15_days: number;
+  age_above_15_days: number;
+  total_active: number;
+}
+
+export interface TestConformityMetrics {
+  total_tests: number;
+  conforming_count: number;
+  non_conforming_count: number;
+  inconclusive_count: number;
+  pending_count: number;
+  conformity_rate_pct: number;
+}
+
+export interface CapaMetrics {
+  total_capas: number;
+  open_capas: number;
+  closed_capas: number;
+  effective_capas: number;
+  ineffective_capas: number;
+  effectiveness_rate_pct: number;
+}
+
+export interface AnalystWorkloadItem {
+  user_id: string;
+  full_name: string;
+  active_tests_count: number;
+  completed_tests_count: number;
+}
+
+export interface OperationalAnalytics {
+  turnaround_time: TurnaroundTimeMetrics;
+  sample_backlog: SampleBacklogMetrics;
+  test_conformity: TestConformityMetrics;
+  capa_metrics: CapaMetrics;
+  analysts_workload: AnalystWorkloadItem[];
+  equipment_status_summary: Record<string, number>;
+}
+
+export interface QualityControlPoint {
+  run_number: number;
+  measured_at: string;
+  value: number;
+  operator_name: string;
+  violation?: string | null;
+}
+
+export interface WestgardViolation {
+  rule_code: string;
+  description: string;
+  run_numbers: number[];
+  severity: "WARNING" | "ALARM";
+}
+
+export interface QualityControlAnalytics {
+  method_id?: string | null;
+  method_name: string;
+  parameter_name: string;
+  unit: string;
+  mean: number;
+  standard_deviation: number;
+  warning_limit_upper: number;
+  warning_limit_lower: number;
+  action_limit_upper: number;
+  action_limit_lower: number;
+  data_points: QualityControlPoint[];
+  violations: WestgardViolation[];
+}

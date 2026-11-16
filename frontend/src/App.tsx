@@ -16,6 +16,7 @@ import { TestCatalogPage } from "@/pages/TestCatalog";
 import { TestsPage } from "@/pages/Tests";
 import { QualificationsPage } from "@/pages/Qualifications";
 import { UncertaintyPage } from "@/pages/Uncertainty";
+import { AnalyticsPage } from "@/pages/Analytics";
 
 function FullScreenLoader() {
   return (
@@ -79,6 +80,7 @@ export default function App() {
         <Route path="/qualifications" element={<QualificationsPage />} />
         <Route path="/uncertainty" element={<UncertaintyPage />} />
         <Route path="/capas" element={<CapasPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/audit" element={<AuditRoute />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

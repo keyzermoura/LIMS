@@ -350,6 +350,8 @@ import type {
   UncertaintyBudgetCreatePayload,
   UncertaintyCalculation,
   UncertaintySimulatePayload,
+  OperationalAnalytics,
+  QualityControlAnalytics,
 } from "./types";
 
 export const methodsApi = {
@@ -609,4 +611,13 @@ export const capasApi = {
       signatureToken,
     }),
 };
+
+export const analyticsApi = {
+  getOperational: () => request<OperationalAnalytics>("/analytics/operational"),
+  getQualityControl: (methodId?: string) => {
+    const qs = buildQuery({ method_id: methodId });
+    return request<QualityControlAnalytics>(`/analytics/quality-control${qs}`);
+  },
+};
+
 

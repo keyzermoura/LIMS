@@ -1,5 +1,6 @@
 import * as React from "react";
 import {
+  BarChart3,
   BookOpen,
   Boxes,
   ClipboardCheck,
@@ -48,6 +49,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/qualifications", label: "Qualificação de Analistas", icon: GraduationCap },
   { to: "/uncertainty", label: "Incerteza & ILAC-G8", icon: Sigma },
   { to: "/capas", label: "CAPA", icon: ClipboardCheck },
+  { to: "/analytics", label: "Painel BI & Metrologia", icon: BarChart3 },
   {
     to: "/audit",
     label: "Trilha de auditoria",
