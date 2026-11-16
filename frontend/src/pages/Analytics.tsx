@@ -171,12 +171,21 @@ export function AnalyticsPage() {
                   </div>
                 </div>
                 <CardTitle className="text-3xl font-extrabold text-foreground">
-                  {opData.turnaround_time.global_avg_hours.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">horas</span>
+                  {opData.turnaround_time.global_avg_hours != null ? (
+                    <>
+                      {opData.turnaround_time.global_avg_hours.toFixed(1)}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">horas</span>
+                    </>
+                  ) : (
+                    <span className="text-2xl font-semibold text-muted-foreground">—</span>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-xs text-muted-foreground">
-                  Tempo médio desde o recebimento até a emissão do laudo pericial oficial.
+                  {opData.turnaround_time.samples_measured_count > 0
+                    ? `Tempo médio calculado sobre ${opData.turnaround_time.samples_measured_count} laudos concluídos.`
+                    : "Dados insuficientes para cálculo de TAT."}
                 </div>
               </CardContent>
             </Card>
@@ -193,12 +202,25 @@ export function AnalyticsPage() {
                   </div>
                 </div>
                 <CardTitle className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                  {opData.test_conformity.conformity_rate_pct.toFixed(1)}%
+                  {opData.test_conformity.conformity_rate_pct != null ? (
+                    `${opData.test_conformity.conformity_rate_pct.toFixed(1)}%`
+                  ) : (
+                    <span className="text-2xl font-semibold text-muted-foreground">—</span>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">{opData.test_conformity.conforming_count}</span> ensaios conformes de {opData.test_conformity.total_tests} avaliados.
+                  {opData.test_conformity.total_tests > 0 ? (
+                    <>
+                      <span className="font-semibold text-foreground">
+                        {opData.test_conformity.conforming_count}
+                      </span>{" "}
+                      ensaios conformes de {opData.test_conformity.total_tests} avaliados.
+                    </>
+                  ) : (
+                    "Nenhum ensaio concluído para cálculo de conformidade."
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -243,12 +265,25 @@ export function AnalyticsPage() {
                   </div>
                 </div>
                 <CardTitle className="text-3xl font-extrabold text-purple-600 dark:text-purple-400">
-                  {opData.capa_metrics.effectiveness_rate_pct.toFixed(1)}%
+                  {opData.capa_metrics.effectiveness_rate_pct != null ? (
+                    `${opData.capa_metrics.effectiveness_rate_pct.toFixed(1)}%`
+                  ) : (
+                    <span className="text-2xl font-semibold text-muted-foreground">—</span>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">{opData.capa_metrics.effective_capas}</span> ações eficazes avaliadas temporalmente.
+                  {opData.capa_metrics.effective_capas + opData.capa_metrics.ineffective_capas > 0 ? (
+                    <>
+                      <span className="font-semibold text-foreground">
+                        {opData.capa_metrics.effective_capas}
+                      </span>{" "}
+                      ações eficazes avaliadas temporalmente.
+                    </>
+                  ) : (
+                    "Nenhuma ação CAPA avaliada quanto à eficácia até o momento."
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -268,89 +303,103 @@ export function AnalyticsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {/* Etapa 1 */}
-                  <div>
-                    <div className="flex justify-between text-xs font-medium mb-1">
-                      <span className="text-muted-foreground">1. Recebimento $\rightarrow$ Execução do Ensaio</span>
-                      <span className="font-semibold text-foreground">
-                        {opData.turnaround_time.receipt_to_testing_avg_hours.toFixed(1)}h
-                      </span>
-                    </div>
-                    <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            (opData.turnaround_time.receipt_to_testing_avg_hours /
-                              opData.turnaround_time.global_avg_hours) *
-                              100 || 30
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
+                {opData.turnaround_time.global_avg_hours != null ? (
+                  <>
+                    <div className="space-y-3">
+                      {/* Etapa 1 */}
+                      <div>
+                        <div className="flex justify-between text-xs font-medium mb-1">
+                          <span className="text-muted-foreground">1. Recebimento $\rightarrow$ Execução do Ensaio</span>
+                          <span className="font-semibold text-foreground">
+                            {opData.turnaround_time.receipt_to_testing_avg_hours != null
+                              ? `${opData.turnaround_time.receipt_to_testing_avg_hours.toFixed(1)}h`
+                              : "—"}
+                          </span>
+                        </div>
+                        <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                ((opData.turnaround_time.receipt_to_testing_avg_hours ?? 0) /
+                                  (opData.turnaround_time.global_avg_hours || 1)) *
+                                  100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
 
-                  {/* Etapa 2 */}
-                  <div>
-                    <div className="flex justify-between text-xs font-medium mb-1">
-                      <span className="text-muted-foreground">2. Execução $\rightarrow$ Revisão Técnica</span>
-                      <span className="font-semibold text-foreground">
-                        {opData.turnaround_time.testing_to_review_avg_hours.toFixed(1)}h
-                      </span>
-                    </div>
-                    <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-indigo-500 rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            (opData.turnaround_time.testing_to_review_avg_hours /
-                              opData.turnaround_time.global_avg_hours) *
-                              100 || 30
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
+                      {/* Etapa 2 */}
+                      <div>
+                        <div className="flex justify-between text-xs font-medium mb-1">
+                          <span className="text-muted-foreground">2. Execução $\rightarrow$ Revisão Técnica</span>
+                          <span className="font-semibold text-foreground">
+                            {opData.turnaround_time.testing_to_review_avg_hours != null
+                              ? `${opData.turnaround_time.testing_to_review_avg_hours.toFixed(1)}h`
+                              : "—"}
+                          </span>
+                        </div>
+                        <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-indigo-500 rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                ((opData.turnaround_time.testing_to_review_avg_hours ?? 0) /
+                                  (opData.turnaround_time.global_avg_hours || 1)) *
+                                  100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
 
-                  {/* Etapa 3 */}
-                  <div>
-                    <div className="flex justify-between text-xs font-medium mb-1">
-                      <span className="text-muted-foreground">3. Revisão $\rightarrow$ Emissão do Laudo</span>
-                      <span className="font-semibold text-foreground">
-                        {opData.turnaround_time.review_to_report_avg_hours.toFixed(1)}h
-                      </span>
+                      {/* Etapa 3 */}
+                      <div>
+                        <div className="flex justify-between text-xs font-medium mb-1">
+                          <span className="text-muted-foreground">3. Revisão $\rightarrow$ Emissão do Laudo</span>
+                          <span className="font-semibold text-foreground">
+                            {opData.turnaround_time.review_to_report_avg_hours != null
+                              ? `${opData.turnaround_time.review_to_report_avg_hours.toFixed(1)}h`
+                              : "—"}
+                          </span>
+                        </div>
+                        <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-emerald-500 rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                ((opData.turnaround_time.review_to_report_avg_hours ?? 0) /
+                                  (opData.turnaround_time.global_avg_hours || 1)) *
+                                  100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(
-                            100,
-                            (opData.turnaround_time.review_to_report_avg_hours /
-                              opData.turnaround_time.global_avg_hours) *
-                              100 || 40
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground mt-4">
-                  💡 <strong>Análise de Eficiência:</strong> A etapa de conferência e recebimento até início de ensaio consome{" "}
-                  <strong>
-                    {(
-                      (opData.turnaround_time.receipt_to_testing_avg_hours /
-                        opData.turnaround_time.global_avg_hours) *
-                      100
-                    ).toFixed(0)}
-                    %
-                  </strong>{" "}
-                  do tempo total do ciclo analítico.
-                </div>
+                    <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground mt-4">
+                      💡 <strong>Análise de Eficiência:</strong> A etapa de conferência e recebimento até início de ensaio consome{" "}
+                      <strong>
+                        {(
+                          ((opData.turnaround_time.receipt_to_testing_avg_hours ?? 0) /
+                            (opData.turnaround_time.global_avg_hours || 1)) *
+                          100
+                        ).toFixed(0)}
+                        %
+                      </strong>{" "}
+                      do tempo total do ciclo analítico.
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-8 text-center text-xs text-muted-foreground">
+                    Dados insuficientes de ciclo (TAT). São necessários laudos concluídos para estratificação por etapa.
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -520,7 +569,12 @@ export function AnalyticsPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                {qcData.violations.length === 0 ? (
+                {qcData.mean == null ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    DADOS INSUFICIENTES
+                  </span>
+                ) : qcData.violations.length === 0 ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     PROCESSO SOB CONTROLE ESTATÍSTICO
@@ -536,238 +590,256 @@ export function AnalyticsPage() {
           </Card>
 
           {/* Parâmetros Estatísticos da Carta de Controle */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-lg border bg-card p-3 shadow-sm">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase">Média ($\mu$)</span>
-              <p className="text-xl font-bold text-foreground mt-0.5">
-                {qcData.mean.toFixed(3)} <span className="text-xs font-normal text-muted-foreground">{qcData.unit}</span>
-              </p>
-            </div>
-            <div className="rounded-lg border bg-card p-3 shadow-sm">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase">Desvio-Padrão ($\sigma$)</span>
-              <p className="text-xl font-bold text-foreground mt-0.5">
-                {qcData.standard_deviation.toFixed(3)}
-              </p>
-            </div>
-            <div className="rounded-lg border bg-card p-3 shadow-sm border-l-4 border-l-amber-500">
-              <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 uppercase">Faixa de Alerta (±2$\sigma$)</span>
-              <p className="text-sm font-semibold text-foreground mt-1">
-                [{qcData.warning_limit_lower.toFixed(2)} ; {qcData.warning_limit_upper.toFixed(2)}]
-              </p>
-            </div>
-            <div className="rounded-lg border bg-card p-3 shadow-sm border-l-4 border-l-rose-500">
-              <span className="text-[11px] font-semibold text-rose-700 dark:text-rose-300 uppercase">Faixa de Ação (±3$\sigma$)</span>
-              <p className="text-sm font-semibold text-foreground mt-1">
-                [{qcData.action_limit_lower.toFixed(2)} ; {qcData.action_limit_upper.toFixed(2)}]
-              </p>
-            </div>
-          </div>
-
-          {/* Gráfico Visual da Carta de Controle de Shewhart / Levey-Jennings em SVG */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <LineChart className="h-4 w-4 text-primary" />
-                    Carta de Controle de Levey-Jennings ({qcData.method_name})
-                  </CardTitle>
-                  <CardDescription>
-                    Série temporal das corridas de controle com limites $\pm 1\sigma, \pm 2\sigma, \pm 3\sigma$ (ISO 17025 §7.7).
-                  </CardDescription>
+          {qcData.mean != null && qcData.standard_deviation != null ? (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-lg border bg-card p-3 shadow-sm">
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase">Média ($\mu$)</span>
+                  <p className="text-xl font-bold text-foreground mt-0.5">
+                    {qcData.mean.toFixed(3)} <span className="text-xs font-normal text-muted-foreground">{qcData.unit}</span>
+                  </p>
                 </div>
-                <div className="flex items-center gap-4 text-[11px] font-medium text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block h-2 w-2 rounded-full bg-blue-600" />
-                    Média ($\mu$)
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
-                    Alerta ($\pm 2\sigma$)
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block h-2 w-2 rounded-full bg-rose-600" />
-                    Ação / Rejeição ($\pm 3\sigma$)
-                  </span>
+                <div className="rounded-lg border bg-card p-3 shadow-sm">
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase">Desvio-Padrão ($\sigma$)</span>
+                  <p className="text-xl font-bold text-foreground mt-0.5">
+                    {qcData.standard_deviation.toFixed(3)}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-card p-3 shadow-sm border-l-4 border-l-amber-500">
+                  <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 uppercase">Faixa de Alerta (±2$\sigma$)</span>
+                  <p className="text-sm font-semibold text-foreground mt-1">
+                    [{qcData.warning_limit_lower?.toFixed(2) ?? "—"} ; {qcData.warning_limit_upper?.toFixed(2) ?? "—"}]
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-card p-3 shadow-sm border-l-4 border-l-rose-500">
+                  <span className="text-[11px] font-semibold text-rose-700 dark:text-rose-300 uppercase">Faixa de Ação (±3$\sigma$)</span>
+                  <p className="text-sm font-semibold text-foreground mt-1">
+                    [{qcData.action_limit_lower?.toFixed(2) ?? "—"} ; {qcData.action_limit_upper?.toFixed(2) ?? "—"}]
+                  </p>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              {/* SVG Gráfico */}
-              <div className="relative w-full h-[280px] bg-slate-950/5 dark:bg-slate-950/40 rounded-lg p-2 border">
-                {(() => {
-                  const pts = qcData.data_points;
-                  if (!pts || pts.length === 0) return null;
 
-                  const minVal = qcData.action_limit_lower - 0.5 * qcData.standard_deviation;
-                  const maxVal = qcData.action_limit_upper + 0.5 * qcData.standard_deviation;
-                  const range = maxVal - minVal;
+              {/* Gráfico Visual da Carta de Controle de Shewhart / Levey-Jennings em SVG */}
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <LineChart className="h-4 w-4 text-primary" />
+                        Carta de Controle de Levey-Jennings ({qcData.method_name})
+                      </CardTitle>
+                      <CardDescription>
+                        Série temporal das corridas de controle com limites $\pm 1\sigma, \pm 2\sigma, \pm 3\sigma$ (ISO 17025 §7.7).
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-4 text-[11px] font-medium text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block h-2 w-2 rounded-full bg-blue-600" />
+                        Média ($\mu$)
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                        Alerta ($\pm 2\sigma$)
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="inline-block h-2 w-2 rounded-full bg-rose-600" />
+                        Ação / Rejeição ($\pm 3\sigma$)
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* SVG Gráfico */}
+                  <div className="relative w-full h-[280px] bg-slate-950/5 dark:bg-slate-950/40 rounded-lg p-2 border">
+                    {(() => {
+                      const pts = qcData.data_points;
+                      if (!pts || pts.length === 0 || qcData.action_limit_lower == null || qcData.action_limit_upper == null || qcData.standard_deviation == null) return null;
 
-                  const getY = (val: number) => {
-                    const norm = (val - minVal) / range;
-                    return 240 - norm * 200; // Inverte Y para SVG (20px top, 240px bottom)
-                  };
+                      const minVal = qcData.action_limit_lower - 0.5 * qcData.standard_deviation;
+                      const maxVal = qcData.action_limit_upper + 0.5 * qcData.standard_deviation;
+                      const range = maxVal - minVal || 1;
 
-                  const getX = (idx: number) => {
-                    const step = 700 / (pts.length + 1);
-                    return 50 + (idx + 1) * step;
-                  };
+                      const getY = (val: number) => {
+                        const norm = (val - minVal) / range;
+                        return 240 - norm * 200; // Inverte Y para SVG (20px top, 240px bottom)
+                      };
 
-                  return (
-                    <svg viewBox="0 0 800 260" className="w-full h-full">
-                      {/* Linhas de Grade e Limites */}
-                      {/* +3s Ação Superior */}
-                      <line
-                        x1="40"
-                        y1={getY(qcData.action_limit_upper)}
-                        x2="780"
-                        y2={getY(qcData.action_limit_upper)}
-                        stroke="#e11d48"
-                        strokeDasharray="4 4"
-                        strokeWidth="1.5"
-                      />
-                      <text
-                        x="785"
-                        y={getY(qcData.action_limit_upper) + 3}
-                        fill="#e11d48"
-                        fontSize="9"
-                        fontWeight="bold"
-                      >
-                        +3σ ({qcData.action_limit_upper.toFixed(1)})
-                      </text>
+                      const getX = (idx: number) => {
+                        const step = 700 / (pts.length + 1);
+                        return 50 + (idx + 1) * step;
+                      };
 
-                      {/* +2s Alerta Superior */}
-                      <line
-                        x1="40"
-                        y1={getY(qcData.warning_limit_upper)}
-                        x2="780"
-                        y2={getY(qcData.warning_limit_upper)}
-                        stroke="#f59e0b"
-                        strokeDasharray="3 3"
-                        strokeWidth="1.2"
-                      />
-                      <text
-                        x="785"
-                        y={getY(qcData.warning_limit_upper) + 3}
-                        fill="#f59e0b"
-                        fontSize="9"
-                      >
-                        +2σ ({qcData.warning_limit_upper.toFixed(1)})
-                      </text>
+                      return (
+                        <svg viewBox="0 0 800 260" className="w-full h-full">
+                          {/* Linhas de Grade e Limites */}
+                          {/* +3s Ação Superior */}
+                          <line
+                            x1="40"
+                            y1={getY(qcData.action_limit_upper)}
+                            x2="780"
+                            y2={getY(qcData.action_limit_upper)}
+                            stroke="#e11d48"
+                            strokeDasharray="4 4"
+                            strokeWidth="1.5"
+                          />
+                          <text
+                            x="785"
+                            y={getY(qcData.action_limit_upper) + 3}
+                            fill="#e11d48"
+                            fontSize="9"
+                            fontWeight="bold"
+                          >
+                            +3σ ({qcData.action_limit_upper.toFixed(1)})
+                          </text>
 
-                      {/* Linha Central (Média) */}
-                      <line
-                        x1="40"
-                        y1={getY(qcData.mean)}
-                        x2="780"
-                        y2={getY(qcData.mean)}
-                        stroke="#2563eb"
-                        strokeWidth="2"
-                      />
-                      <text
-                        x="785"
-                        y={getY(qcData.mean) + 3}
-                        fill="#2563eb"
-                        fontSize="9"
-                        fontWeight="bold"
-                      >
-                        μ ({qcData.mean.toFixed(1)})
-                      </text>
-
-                      {/* -2s Alerta Inferior */}
-                      <line
-                        x1="40"
-                        y1={getY(qcData.warning_limit_lower)}
-                        x2="780"
-                        y2={getY(qcData.warning_limit_lower)}
-                        stroke="#f59e0b"
-                        strokeDasharray="3 3"
-                        strokeWidth="1.2"
-                      />
-                      <text
-                        x="785"
-                        y={getY(qcData.warning_limit_lower) + 3}
-                        fill="#f59e0b"
-                        fontSize="9"
-                      >
-                        -2σ ({qcData.warning_limit_lower.toFixed(1)})
-                      </text>
-
-                      {/* -3s Ação Inferior */}
-                      <line
-                        x1="40"
-                        y1={getY(qcData.action_limit_lower)}
-                        x2="780"
-                        y2={getY(qcData.action_limit_lower)}
-                        stroke="#e11d48"
-                        strokeDasharray="4 4"
-                        strokeWidth="1.5"
-                      />
-                      <text
-                        x="785"
-                        y={getY(qcData.action_limit_lower) + 3}
-                        fill="#e11d48"
-                        fontSize="9"
-                        fontWeight="bold"
-                      >
-                        -3σ ({qcData.action_limit_lower.toFixed(1)})
-                      </text>
-
-                      {/* Linha conectando os pontos */}
-                      <polyline
-                        fill="none"
-                        stroke="#64748b"
-                        strokeWidth="1.5"
-                        points={pts.map((p, i) => `${getX(i)},${getY(p.value)}`).join(" ")}
-                      />
-
-                      {/* Pontos de Dados com Destaque de Violação */}
-                      {pts.map((p, i) => {
-                        const px = getX(i);
-                        const py = getY(p.value);
-                        const isViolation = Boolean(p.violation);
-                        const fillColor = isViolation ? "#e11d48" : "#0284c7";
-
-                        return (
-                          <g key={p.run_number}>
-                            <circle
-                              cx={px}
-                              cy={py}
-                              r={isViolation ? 6 : 4}
-                              fill={fillColor}
-                              stroke="#ffffff"
-                              strokeWidth={isViolation ? 2 : 1}
-                            />
-                            <text
-                              x={px}
-                              y={255}
-                              textAnchor="middle"
-                              fill="#64748b"
-                              fontSize="8"
-                            >
-                              #{p.run_number}
-                            </text>
-                            {isViolation && (
+                          {/* +2s Alerta Superior */}
+                          {qcData.warning_limit_upper != null && (
+                            <>
+                              <line
+                                x1="40"
+                                y1={getY(qcData.warning_limit_upper)}
+                                x2="780"
+                                y2={getY(qcData.warning_limit_upper)}
+                                stroke="#f59e0b"
+                                strokeDasharray="3 3"
+                                strokeWidth="1.2"
+                              />
                               <text
-                                x={px}
-                                y={py - 8}
-                                textAnchor="middle"
-                                fill="#e11d48"
-                                fontSize="8"
+                                x="785"
+                                y={getY(qcData.warning_limit_upper) + 3}
+                                fill="#f59e0b"
+                                fontSize="9"
+                              >
+                                +2σ ({qcData.warning_limit_upper.toFixed(1)})
+                              </text>
+                            </>
+                          )}
+
+                          {/* Linha Central (Média) */}
+                          {qcData.mean != null && (
+                            <>
+                              <line
+                                x1="40"
+                                y1={getY(qcData.mean)}
+                                x2="780"
+                                y2={getY(qcData.mean)}
+                                stroke="#2563eb"
+                                strokeWidth="2"
+                              />
+                              <text
+                                x="785"
+                                y={getY(qcData.mean) + 3}
+                                fill="#2563eb"
+                                fontSize="9"
                                 fontWeight="bold"
                               >
-                                {p.violation}
+                                μ ({qcData.mean.toFixed(1)})
                               </text>
-                            )}
-                          </g>
-                        );
-                      })}
-                    </svg>
-                  );
-                })()}
+                            </>
+                          )}
+
+                          {/* -2s Alerta Inferior */}
+                          {qcData.warning_limit_lower != null && (
+                            <>
+                              <line
+                                x1="40"
+                                y1={getY(qcData.warning_limit_lower)}
+                                x2="780"
+                                y2={getY(qcData.warning_limit_lower)}
+                                stroke="#f59e0b"
+                                strokeDasharray="3 3"
+                                strokeWidth="1.2"
+                              />
+                              <text
+                                x="785"
+                                y={getY(qcData.warning_limit_lower) + 3}
+                                fill="#f59e0b"
+                                fontSize="9"
+                              >
+                                -2σ ({qcData.warning_limit_lower.toFixed(1)})
+                              </text>
+                            </>
+                          )}
+
+                          {/* -3s Ação Inferior */}
+                          {qcData.action_limit_lower != null && (
+                            <>
+                              <line
+                                x1="40"
+                                y1={getY(qcData.action_limit_lower)}
+                                x2="780"
+                                y2={getY(qcData.action_limit_lower)}
+                                stroke="#e11d48"
+                                strokeDasharray="4 4"
+                                strokeWidth="1.5"
+                              />
+                              <text
+                                x="785"
+                                y={getY(qcData.action_limit_lower) + 3}
+                                fill="#e11d48"
+                                fontSize="9"
+                                fontWeight="bold"
+                              >
+                                -3σ ({qcData.action_limit_lower.toFixed(1)})
+                              </text>
+                            </>
+                          )}
+
+                          {/* Linha conectando os pontos */}
+                          <polyline
+                            fill="none"
+                            stroke="#64748b"
+                            strokeWidth="1.5"
+                            points={pts.map((p, i) => `${getX(i)},${getY(p.value)}`).join(" ")}
+                          />
+
+                          {/* Pontos plotados */}
+                          {pts.map((p, i) => {
+                            const isViolated = Boolean(p.violation);
+                            return (
+                              <g key={p.run_number}>
+                                <circle
+                                  cx={getX(i)}
+                                  cy={getY(p.value)}
+                                  r={isViolated ? 6 : 4}
+                                  fill={isViolated ? "#e11d48" : "#2563eb"}
+                                  stroke="#ffffff"
+                                  strokeWidth="1.5"
+                                  className="transition-all hover:scale-125 cursor-pointer"
+                                />
+                                {isViolated && (
+                                  <text
+                                    x={getX(i)}
+                                    y={getY(p.value) - 10}
+                                    fill="#e11d48"
+                                    fontSize="8"
+                                    fontWeight="bold"
+                                    textAnchor="middle"
+                                  >
+                                    {p.violation}
+                                  </text>
+                                )}
+                              </g>
+                            );
+                          })}
+                        </svg>
+                      );
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <div className="rounded-xl border border-dashed p-8 text-center bg-card shadow-sm">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400 mb-3">
+                <AlertCircle className="h-6 w-6" />
               </div>
-            </CardContent>
-          </Card>
+              <h3 className="text-base font-bold text-foreground">Dados Insuficientes para Carta de Controle (ISO/IEC 17025 §7.7)</h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-lg mx-auto">
+                São necessárias corridas analíticas reais cadastradas para este método para calcular a média histórica ($\mu$) e desvio padrão ($\sigma$). {qcData.data_points.length} ponto(s) registrado(s) no momento.
+              </p>
+            </div>
+          )}
 
           {/* Violações de Westgard Detectadas */}
           {qcData.violations.length > 0 && (
@@ -833,8 +905,11 @@ export function AnalyticsPage() {
                   </thead>
                   <tbody className="divide-y">
                     {qcData.data_points.map((p) => {
-                      const diff = p.value - qcData.mean;
-                      const sigmas = qcData.standard_deviation > 0 ? diff / qcData.standard_deviation : 0;
+                      const diff = qcData.mean != null ? p.value - qcData.mean : 0;
+                      const sigmas =
+                        qcData.standard_deviation != null && qcData.standard_deviation > 0
+                          ? diff / qcData.standard_deviation
+                          : 0;
                       return (
                         <tr key={p.run_number} className="hover:bg-muted/30">
                           <td className="py-2 font-bold font-mono">#{p.run_number}</td>
@@ -844,7 +919,11 @@ export function AnalyticsPage() {
                             {p.value.toFixed(3)}
                           </td>
                           <td className="py-2 text-center font-mono text-[11px]">
-                            {sigmas >= 0 ? `+${sigmas.toFixed(2)}σ` : `${sigmas.toFixed(2)}σ`}
+                            {qcData.mean != null && qcData.standard_deviation != null
+                              ? sigmas >= 0
+                                ? `+${sigmas.toFixed(2)}σ`
+                                : `${sigmas.toFixed(2)}σ`
+                              : "—"}
                           </td>
                           <td className="py-2 text-center">
                             {p.violation ? (

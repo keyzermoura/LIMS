@@ -23,6 +23,7 @@ from app.models.test_method import TestMethod
 from app.models.test_review import TestReview
 from app.models.uncertainty import UncertaintyBudget
 from app.models.user import RefreshToken, User
+from app.models.webhook import WebhookDelivery, WebhookSubscription
 
 __all__ = [
     "AnalystQualification",
@@ -58,4 +59,6 @@ __all__ = [
     "TrainingRecord",
     "UncertaintyBudget",
     "User",
+    "WebhookDelivery",
+    "WebhookSubscription",
 ]

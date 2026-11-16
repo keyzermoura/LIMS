@@ -7,13 +7,14 @@ import secrets
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.context import RequestContext
 from app.core.errors import NotFoundError, ValidationDomainError
 from app.core.serialization import canonical_json, jsonable
+from app.db.dialect import next_sequence
 from app.models.base import utcnow
 from app.models.device_sample import DeviceSample
 from app.models.electronic_signature import ElectronicSignature
@@ -76,9 +77,8 @@ async def generate_official_report(
             )
 
     now = utcnow()
-    count_stmt = select(func.count()).select_from(OfficialReport)
-    total_reports = (await db.scalar(count_stmt)) or 0
-    report_number = f"LDO-{now.year}-{total_reports + 1:04d}"
+    seq = await next_sequence(db, "official_report_seq")
+    report_number = f"LDO-{now.year}-{seq:04d}"
     auth_token = secrets.token_urlsafe(24)
 
     # Monta payload consolidado para cálculo do hash SHA-256 criptográfico
@@ -208,20 +208,25 @@ async def get_report_by_id(
 
 async def verify_report_public(
     db: AsyncSession,
-    auth_token: str,
+    token_or_hash: str,
 ) -> dict[str, Any]:
-    """Validação pública de autenticidade via QR Code / auth_token."""
+    """Validação pública de autenticidade via QR Code / auth_token ou Hash SHA-256."""
     stmt = (
         select(OfficialReport)
         .options(
             selectinload(OfficialReport.issued_by),
             selectinload(OfficialReport.device_sample),
         )
-        .where(OfficialReport.auth_token == auth_token)
+        .where(
+            or_(
+                OfficialReport.auth_token == token_or_hash,
+                OfficialReport.sha256_hash == token_or_hash,
+            )
+        )
     )
     report = await db.scalar(stmt)
     if report is None:
-        raise NotFoundError("Laudo não localizado ou token de autenticidade inválido.")
+        raise NotFoundError("Laudo não localizado ou token/hash de autenticidade inválido.")
 
     # Revalida hash SHA-256 a partir do manifesto arquivado
     manifest = report.attributes.get("manifest") if report.attributes else {}

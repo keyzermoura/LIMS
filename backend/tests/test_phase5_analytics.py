@@ -15,6 +15,7 @@ from typing import Any
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.services.analytics_service import _evaluate_westgard
 
@@ -48,7 +49,7 @@ async def test_analytics_requires_authentication(client: AsyncClient) -> None:
 async def test_operational_analytics_payload(
     client: AsyncClient, users: dict[str, Any]
 ) -> None:
-    """Valida a estrutura completa e integridade do payload de métricas operacionais."""
+    """Valida a estrutura completa e integridade do payload de métricas operacionais sem dados fabricados."""
     adm_token = (
         await login(client, "admin", users["admin"]["password"])
     )["access_token"]
@@ -68,12 +69,17 @@ async def test_operational_analytics_payload(
     assert "analysts_workload" in data
     assert "equipment_status_summary" in data
 
-    # Valida TAT
+    # Valida que em banco vazio ou sem dados suficientes, métricas são None (ALCOA+ / H0.6)
     tat = data["turnaround_time"]
-    assert tat["global_avg_hours"] >= 0.0
-    assert tat["receipt_to_testing_avg_hours"] >= 0.0
-    assert tat["testing_to_review_avg_hours"] >= 0.0
-    assert tat["review_to_report_avg_hours"] >= 0.0
+    assert tat["data_quality"] in ("sufficient", "insufficient")
+    if tat["samples_measured_count"] == 0:
+        assert tat["global_avg_hours"] is None
+        assert tat["receipt_to_testing_avg_hours"] is None
+        assert tat["testing_to_review_avg_hours"] is None
+        assert tat["review_to_report_avg_hours"] is None
+        assert tat["data_quality"] == "insufficient"
+    else:
+        assert tat["global_avg_hours"] >= 0.0
 
     # Valida Backlog
     backlog = data["sample_backlog"]
@@ -85,19 +91,27 @@ async def test_operational_analytics_payload(
     # Valida Conformidade
     conf = data["test_conformity"]
     assert conf["total_tests"] >= 0
-    assert 0.0 <= conf["conformity_rate_pct"] <= 100.0
+    if conf["total_tests"] == 0:
+        assert conf["conformity_rate_pct"] is None
+        assert conf["data_quality"] == "insufficient"
+    else:
+        assert 0.0 <= conf["conformity_rate_pct"] <= 100.0
 
     # Valida CAPA
     capa = data["capa_metrics"]
     assert capa["total_capas"] >= 0
-    assert 0.0 <= capa["effectiveness_rate_pct"] <= 100.0
+    if capa["total_capas"] == 0:
+        assert capa["effectiveness_rate_pct"] is None
+        assert capa["data_quality"] == "insufficient"
+    else:
+        assert 0.0 <= capa["effectiveness_rate_pct"] <= 100.0
 
 
 @pytest.mark.asyncio
 async def test_quality_control_chart_payload(
     client: AsyncClient, users: dict[str, Any]
 ) -> None:
-    """Valida os parâmetros da Carta de Controle de Shewhart e limites estatísticos."""
+    """Valida os parâmetros da Carta de Controle de Shewhart sem dados sintéticos simulados."""
     tec_token = (
         await login(client, "tecnico", users["tecnico"]["password"])
     )["access_token"]
@@ -111,21 +125,35 @@ async def test_quality_control_chart_payload(
 
     # Valida parâmetros da carta
     assert "method_name" in data
-    assert "mean" in data
-    assert "standard_deviation" in data
-    assert data["standard_deviation"] > 0
-    assert data["warning_limit_upper"] > data["mean"]
-    assert data["warning_limit_lower"] < data["mean"]
-    assert data["action_limit_upper"] > data["warning_limit_upper"]
-    assert data["action_limit_lower"] < data["warning_limit_lower"]
+    assert "data_points" in data
+    assert "data_quality" in data
+    # Em ambiente sem 20 pontos de ensaio reais, data_quality deve ser insufficient
+    if len(data["data_points"]) < 20:
+        assert data["data_quality"] == "insufficient"
 
-    # Valida pontos de controle
-    assert len(data["data_points"]) >= 8
-    for pt in data["data_points"]:
-        assert "run_number" in pt
-        assert "measured_at" in pt
-        assert "value" in pt
-        assert "operator_name" in pt
+
+@pytest.mark.asyncio
+async def test_empty_database_returns_no_fabricated_metrics(
+    db_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    """Trava de regressão (H0.6 / Risco 2): banco sem dados não inventa números."""
+    from app.services import analytics_service
+
+    async with db_factory() as db:
+        result = await analytics_service.get_operational_analytics(db)
+        assert result.turnaround_time.global_avg_hours is None
+        assert result.turnaround_time.receipt_to_testing_avg_hours is None
+        assert result.turnaround_time.testing_to_review_avg_hours is None
+        assert result.turnaround_time.review_to_report_avg_hours is None
+        assert result.turnaround_time.data_quality == "insufficient"
+        assert result.test_conformity.conformity_rate_pct is None
+        assert result.test_conformity.data_quality == "insufficient"
+        assert result.capa_metrics.effectiveness_rate_pct is None
+        assert result.capa_metrics.data_quality == "insufficient"
+
+        qc = await analytics_service.get_quality_control_analytics(db)
+        assert qc.data_quality == "insufficient"
+        assert len(qc.data_points) == 0
 
 
 def test_westgard_rules_engine() -> None:

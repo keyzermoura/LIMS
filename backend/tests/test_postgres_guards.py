@@ -135,6 +135,8 @@ async def test_native_sequences_are_monotonic(
         assert await next_sequence(db, "sample_accession_seq") == 1
         assert await next_sequence(db, "sample_accession_seq") == 2
         assert await next_sequence(db, "capa_code_seq") == 1
+        assert await next_sequence(db, "official_report_seq") == 1
+        assert await next_sequence(db, "official_report_seq") == 2
         await db.commit()
 
 
@@ -153,3 +155,40 @@ async def test_advisory_lock_serializes_the_hash_chain(
         report = await audit_service.verify_chain(db)
         assert report["ok"] is True
         assert report["checked"] == 8
+
+
+async def test_trigger_parity_phase5(
+    db_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    """Valida paridade total de guardas DDL instaladas no banco PostgreSQL (Risco 1 / ALCOA+)."""
+    expected_triggers = {
+        "trg_audit_logs_append_only",
+        "trg_lab_test_results_append_only",
+        "trg_custody_append_only",
+        "trg_esignature_guard",
+        "trg_device_samples_no_delete",
+        "trg_lab_tests_no_delete",
+        "trg_capa_no_delete",
+        "trg_official_reports_guard",
+        "trg_test_executions_freeze",
+        "trg_test_reviews_freeze",
+        "trg_test_attachments_append_only",
+        "trg_instrument_data_guard",
+        "trg_training_records_append_only",
+        "trg_custody_events_append_only",
+        "trg_solicitations_no_delete",
+        "trg_receipts_no_delete",
+        "trg_custody_objects_no_delete",
+        "trg_receipt_decisions_no_delete",
+        "trg_coordination_reviews_no_delete",
+        "trg_analyst_qualifications_no_delete",
+    }
+    async with db_factory() as db:
+        triggers = set(
+            (
+                await db.scalars(
+                    text("SELECT tgname FROM pg_trigger WHERE tgname LIKE 'trg_%'")
+                )
+            ).all()
+        )
+        assert expected_triggers.issubset(triggers)

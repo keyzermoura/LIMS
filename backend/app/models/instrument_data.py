@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import (
@@ -35,6 +35,11 @@ class InstrumentDataImport(
     """Registro imutável de dados brutos importados de instrumentos laboratoriais."""
 
     __tablename__ = "instrument_data_imports"
+    __table_args__ = (
+        UniqueConstraint(
+            "equipment_id", "raw_file_hash_sha256", name="uq_instrument_import_dedup"
+        ),
+    )
 
     equipment_id: Mapped[UUID] = mapped_column(
         ForeignKey("laboratory_equipment.id", ondelete="RESTRICT"),

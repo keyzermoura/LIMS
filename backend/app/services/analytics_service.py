@@ -88,30 +88,37 @@ async def get_operational_analytics(db: AsyncSession) -> OperationalAnalyticsOut
                     if d_rev >= 0:
                         testing_to_review_deltas.append(d_rev)
 
-    # Médias seguras
+    # Médias seguras (sem dados sintéticos / ALCOA+)
     global_avg = (
         round(sum(tat_global_deltas) / len(tat_global_deltas), 2)
         if tat_global_deltas
-        else 48.5  # Valor de referência padrão
+        else None
     )
     rec_test_avg = (
         round(sum(receipt_to_testing_deltas) / len(receipt_to_testing_deltas), 2)
         if receipt_to_testing_deltas
-        else 18.2
+        else None
     )
     test_rev_avg = (
         round(sum(testing_to_review_deltas) / len(testing_to_review_deltas), 2)
         if testing_to_review_deltas
-        else 14.4
+        else None
     )
-    rev_rep_avg = round(max(0.0, global_avg - (rec_test_avg + test_rev_avg)), 2)
+    rev_rep_avg = (
+        round(max(0.0, global_avg - (rec_test_avg + test_rev_avg)), 2)
+        if (global_avg is not None and rec_test_avg is not None and test_rev_avg is not None)
+        else None
+    )
+
+    tat_data_quality = "sufficient" if len(tat_global_deltas) >= 5 else "insufficient"
 
     tat_metrics = TurnaroundTimeMetrics(
         global_avg_hours=global_avg,
         receipt_to_testing_avg_hours=rec_test_avg,
         testing_to_review_avg_hours=test_rev_avg,
-        review_to_report_avg_hours=rev_rep_avg if rev_rep_avg > 0 else 15.9,
-        samples_measured_count=len(tat_global_deltas) if tat_global_deltas else 12,
+        review_to_report_avg_hours=rev_rep_avg,
+        samples_measured_count=len(tat_global_deltas),
+        data_quality=tat_data_quality,
     )
 
     # 2. Backlog de Amostras
@@ -153,8 +160,9 @@ async def get_operational_analytics(db: AsyncSession) -> OperationalAnalyticsOut
     )
     total_evaluated = conforming + non_conforming + inconclusive
     conf_rate = (
-        round((conforming / total_evaluated) * 100.0, 1) if total_evaluated > 0 else 92.5
+        round((conforming / total_evaluated) * 100.0, 1) if total_evaluated > 0 else None
     )
+    conf_quality = "sufficient" if total_evaluated >= 5 else "insufficient"
 
     conformity_metrics = TestConformityMetrics(
         total_tests=len(all_tests),
@@ -163,6 +171,7 @@ async def get_operational_analytics(db: AsyncSession) -> OperationalAnalyticsOut
         inconclusive_count=inconclusive,
         pending_count=pending,
         conformity_rate_pct=conf_rate,
+        data_quality=conf_quality,
     )
 
     # 4. CAPA Metrics
@@ -180,8 +189,9 @@ async def get_operational_analytics(db: AsyncSession) -> OperationalAnalyticsOut
     eff_rate = (
         round((effective / (effective + ineffective)) * 100.0, 1)
         if (effective + ineffective) > 0
-        else 85.7
+        else None
     )
+    capa_quality = "sufficient" if (effective + ineffective) >= 3 else "insufficient"
 
     capa_metrics = CapaMetrics(
         total_capas=len(all_capas),
@@ -190,6 +200,7 @@ async def get_operational_analytics(db: AsyncSession) -> OperationalAnalyticsOut
         effective_capas=effective,
         ineffective_capas=ineffective,
         effectiveness_rate_pct=eff_rate,
+        data_quality=capa_quality,
     )
 
     # 5. Carga de Trabalho por Analista
@@ -397,46 +408,34 @@ async def get_quality_control_analytics(
                 }
             )
 
-    # Se houver menos de 8 pontos no banco para gerar uma carta estatisticamente válida,
-    # gera uma série metrológica padrão de controle de qualidade para validação / visualização (ISO 17025)
-    if len(values) < 8:
-        # Série padrão de corrida metrológica calibrada (média ~ 100.0, desvio ~ 1.2)
-        simulated_runs = [
-            (1, "01/11 09:00", 100.2, "Analista Principal"),
-            (2, "02/11 10:15", 99.8, "Analista Principal"),
-            (3, "03/11 09:30", 100.7, "Técnico Metrologia"),
-            (4, "04/11 11:00", 99.4, "Analista Principal"),
-            (5, "05/11 14:20", 101.1, "Técnico Metrologia"),
-            (6, "06/11 08:45", 99.9, "Analista Principal"),
-            (7, "07/11 10:30", 100.3, "Analista Principal"),
-            (8, "08/11 11:15", 100.5, "Técnico Metrologia"),
-            (9, "09/11 13:40", 99.6, "Analista Principal"),
-            (10, "10/11 15:00", 100.8, "Técnico Metrologia"),
-            (11, "11/11 09:10", 101.5, "Analista Principal"),
-            (12, "12/11 10:50", 101.8, "Técnico Metrologia"),
-            (13, "13/11 14:00", 102.6, "Analista Principal"),  # Warning +2s
-            (14, "14/11 09:30", 100.4, "Analista Principal"),
-            (15, "15/11 11:00", 99.7, "Técnico Metrologia"),
-            (16, "16/11 08:30", 100.1, "Analista Principal"),
-        ]
-        values = [r[2] for r in simulated_runs]
-        points = [
-            {
-                "run_number": r[0],
-                "measured_at": r[1],
-                "value": r[2],
-                "operator_name": r[3],
-            }
-            for r in simulated_runs
-        ]
-
     n = len(values)
-    mean_val = sum(values) / n
-    variance = sum((x - mean_val) ** 2 for x in values) / (n - 1) if n > 1 else 0.0
-    std_dev = math.sqrt(variance) if variance > 0 else 0.5
+    violations: list[WestgardViolation] = []
+    point_violations: list[str | None] = []
 
-    # Aplica Westgard
-    point_violations, violations = _evaluate_westgard(values, mean_val, std_dev)
+    if n == 0:
+        mean_val = None
+        std_dev = None
+        w_upper = None
+        w_lower = None
+        a_upper = None
+        a_lower = None
+    elif n == 1:
+        mean_val = values[0]
+        std_dev = None
+        w_upper = None
+        w_lower = None
+        a_upper = None
+        a_lower = None
+        point_violations = [None]
+    else:
+        mean_val = sum(values) / n
+        variance = sum((x - mean_val) ** 2 for x in values) / (n - 1)
+        std_dev = math.sqrt(variance)
+        w_upper = round(mean_val + 2.0 * std_dev, 3)
+        w_lower = round(mean_val - 2.0 * std_dev, 3)
+        a_upper = round(mean_val + 3.0 * std_dev, 3)
+        a_lower = round(mean_val - 3.0 * std_dev, 3)
+        point_violations, violations = _evaluate_westgard(values, mean_val, std_dev)
 
     qc_points: list[QualityControlPoint] = []
     for i, p in enumerate(points):
@@ -446,21 +445,24 @@ async def get_quality_control_analytics(
                 measured_at=p["measured_at"],
                 value=p["value"],
                 operator_name=p["operator_name"],
-                violation=point_violations[i],
+                violation=point_violations[i] if i < len(point_violations) else None,
             )
         )
+
+    data_quality = "sufficient" if n >= 20 else "insufficient"
 
     return QualityControlAnalyticsOut(
         method_id=selected_method.id if selected_method else None,
         method_name=method_name,
         parameter_name="Concentração / Determinação Quantitativa",
         unit=unit,
-        mean=round(mean_val, 3),
-        standard_deviation=round(std_dev, 3),
-        warning_limit_upper=round(mean_val + 2.0 * std_dev, 3),
-        warning_limit_lower=round(mean_val - 2.0 * std_dev, 3),
-        action_limit_upper=round(mean_val + 3.0 * std_dev, 3),
-        action_limit_lower=round(mean_val - 3.0 * std_dev, 3),
+        mean=round(mean_val, 3) if mean_val is not None else None,
+        standard_deviation=round(std_dev, 3) if std_dev is not None else None,
+        warning_limit_upper=w_upper,
+        warning_limit_lower=w_lower,
+        action_limit_upper=a_upper,
+        action_limit_lower=a_lower,
         data_points=qc_points,
         violations=violations,
+        data_quality=data_quality,
     )

@@ -38,6 +38,8 @@ PHASE3 = "0006_fase3_revisao_laudos"
 PHASE4 = "0008_fase4_capa"
 PHASE5 = "0009_fase5_notifications"
 PHASE5_2 = "0010_fase5_instrument_data"
+PHASE5_3 = "0011_fase5_guards_integridade"
+PHASE5_HEAD = "0012_fase5_webhooks"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -98,6 +100,8 @@ PHASE4_ENUMS = {
 PHASE5_TABLES = {
     "notifications",
     "instrument_data_imports",
+    "webhook_subscriptions",
+    "webhook_deliveries",
 }
 PHASE5_ENUMS = {
     "notification_severity",
@@ -236,7 +240,7 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
     )
     assert triggers
 
-    assert PHASE5_2 in _ok(migration_url, "current")
+    assert PHASE5_HEAD in _ok(migration_url, "current")
     # Paridade metadata x migrações: acusa índices, defaults ou tipos divergentes.
     _ok(migration_url, "check")
 
@@ -314,4 +318,6 @@ async def test_downgrade_refuses_when_it_would_lose_data(migration_url: str) -> 
         or PHASE4 in current
         or PHASE5 in current
         or PHASE5_2 in current
+        or PHASE5_3 in current
+        or PHASE5_HEAD in current
     )

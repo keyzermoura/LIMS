@@ -8,11 +8,12 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, File, Form, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 from pydantic import BaseModel
 
-from app.api.deps import CurrentUser, DbSession
-from app.models.enums import InstrumentFileFormat, InstrumentImportStatus
+from app.api.deps import CurrentUser, DbSession, require_roles
+from app.models.enums import InstrumentFileFormat, InstrumentImportStatus, UserRole
+from app.models.user import User
 from app.schemas.instrument_data import (
     InstrumentDataImportOut,
     InstrumentDataMapIn,
@@ -24,6 +25,8 @@ router = APIRouter(
     prefix="/instrument-data",
     tags=["Aquisição de Dados de Instrumentos (Fase 5)"],
 )
+
+WRITE_ROLES = (UserRole.ADMIN, UserRole.FISCAL, UserRole.TECNICO)
 
 
 class RawUploadIn(BaseModel):
@@ -42,11 +45,11 @@ class RawUploadIn(BaseModel):
 )
 async def upload_instrument_file(
     db: DbSession,
-    current_user: CurrentUser,
     equipment_id: Annotated[UUID, Form(description="ID do equipamento analítico emissor")],
     file_format: Annotated[InstrumentFileFormat, Form(description="Formato do arquivo")],
     file: UploadFile = File(...),
     test_execution_id: Annotated[UUID | None, Form(description="ID opcional da execução de ensaio")] = None,
+    current_user: User = Depends(require_roles(*WRITE_ROLES)),
 ) -> InstrumentDataImportOut:
     """Ingere arquivo bruto multipart, valida calibração, calcula SHA-256 e extrai medições."""
     content_bytes = await file.read()
@@ -73,7 +76,7 @@ async def upload_instrument_file(
 async def upload_raw_instrument_data(
     payload: RawUploadIn,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: User = Depends(require_roles(*WRITE_ROLES)),
 ) -> InstrumentDataImportOut:
     """Ingere conteúdo bruto de instrumento via corpo JSON estruturado."""
     record = await instrument_parser_service.upload_instrument_data(
@@ -141,7 +144,7 @@ async def map_import_to_execution(
     import_id: UUID,
     payload: InstrumentDataMapIn,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: User = Depends(require_roles(*WRITE_ROLES)),
 ) -> InstrumentDataImportOut:
     """Mapeia os dados brutos de um instrumento diretamente nos resultados da execução."""
     record = await instrument_parser_service.map_import_to_execution(

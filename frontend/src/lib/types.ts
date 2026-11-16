@@ -971,11 +971,12 @@ export interface UncertaintyBudget extends UncertaintyCalculation {
 // ---------------------------------------------------------------------------
 
 export interface TurnaroundTimeMetrics {
-  global_avg_hours: number;
-  receipt_to_testing_avg_hours: number;
-  testing_to_review_avg_hours: number;
-  review_to_report_avg_hours: number;
+  global_avg_hours: number | null;
+  receipt_to_testing_avg_hours: number | null;
+  testing_to_review_avg_hours: number | null;
+  review_to_report_avg_hours: number | null;
   samples_measured_count: number;
+  data_quality?: string;
 }
 
 export interface SampleBacklogMetrics {
@@ -991,7 +992,8 @@ export interface TestConformityMetrics {
   non_conforming_count: number;
   inconclusive_count: number;
   pending_count: number;
-  conformity_rate_pct: number;
+  conformity_rate_pct: number | null;
+  data_quality?: string;
 }
 
 export interface CapaMetrics {
@@ -1000,7 +1002,8 @@ export interface CapaMetrics {
   closed_capas: number;
   effective_capas: number;
   ineffective_capas: number;
-  effectiveness_rate_pct: number;
+  effectiveness_rate_pct: number | null;
+  data_quality?: string;
 }
 
 export interface AnalystWorkloadItem {
@@ -1039,14 +1042,15 @@ export interface QualityControlAnalytics {
   method_name: string;
   parameter_name: string;
   unit: string;
-  mean: number;
-  standard_deviation: number;
-  warning_limit_upper: number;
-  warning_limit_lower: number;
-  action_limit_upper: number;
-  action_limit_lower: number;
+  mean: number | null;
+  standard_deviation: number | null;
+  warning_limit_upper: number | null;
+  warning_limit_lower: number | null;
+  action_limit_upper: number | null;
+  action_limit_lower: number | null;
   data_points: QualityControlPoint[];
   violations: WestgardViolation[];
+  data_quality?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -1121,4 +1125,41 @@ export interface InstrumentDataSummary {
   total_imports: number;
   mapped_imports: number;
   unmapped_imports: number;
+}
+
+// ---------------------------------------------------------------------------
+// Webhooks e Interoperabilidade (Fase 5 / Sprint 5.4)
+// ---------------------------------------------------------------------------
+
+export interface WebhookSubscription {
+  id: string;
+  url: string;
+  description?: string | null;
+  events: string[];
+  is_active: boolean;
+  created_by_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  subscription_id: string;
+  event: string;
+  payload: Record<string, unknown>;
+  status: string;
+  status_code?: number | null;
+  response_body?: string | null;
+  attempt_count: number;
+  delivered_at?: string | null;
+  created_at: string;
+}
+
+export interface WebhookPingResponse {
+  subscription_id: string;
+  delivery_id: string;
+  event: string;
+  status: string;
+  status_code?: number | null;
+  signature_header: string;
 }

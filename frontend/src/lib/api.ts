@@ -357,6 +357,9 @@ import type {
   AlertCheckResult,
   InstrumentDataImport,
   InstrumentDataSummary,
+  WebhookSubscription,
+  WebhookDelivery,
+  WebhookPingResponse,
 } from "./types";
 
 export const methodsApi = {
@@ -489,8 +492,8 @@ export const reportsApi = {
     request<OfficialReport>(`/reports/official/${reportId}`),
   listForSample: (sampleId: string) =>
     request<OfficialReport[]>(`/reports/official/sample/${sampleId}`),
-  verifyPublic: (authToken: string) =>
-    request<OfficialReportPublicVerify>(`/reports/verify/${authToken}`),
+  verifyPublic: (tokenOrHash: string) =>
+    request<OfficialReportPublicVerify>(`/public/reports/verify/${tokenOrHash}`),
 };
 
 export const attachmentsApi = {
@@ -705,6 +708,31 @@ export const instrumentDataApi = {
       method: "POST",
       body: { execution_id: executionId },
     }),
+};
+
+export const webhooksApi = {
+  listSubscriptions: () => request<WebhookSubscription[]>("/webhooks/subscriptions"),
+  getSubscription: (id: string) => request<WebhookSubscription>(`/webhooks/subscriptions/${id}`),
+  createSubscription: (payload: { url: string; description?: string; events?: string[]; secret?: string }) =>
+    request<WebhookSubscription>("/webhooks/subscriptions", {
+      method: "POST",
+      body: payload,
+    }),
+  deleteSubscription: (id: string) =>
+    request<void>(`/webhooks/subscriptions/${id}`, {
+      method: "DELETE",
+    }),
+  pingSubscription: (id: string) =>
+    request<WebhookPingResponse>(`/webhooks/subscriptions/${id}/ping`, {
+      method: "POST",
+    }),
+  listDeliveries: (params?: { subscription_id?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.subscription_id) query.set("subscription_id", params.subscription_id);
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    return request<WebhookDelivery[]>(`/webhooks/deliveries${qs ? `?${qs}` : ""}`);
+  },
 };
 
 
