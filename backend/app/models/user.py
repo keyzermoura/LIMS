@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import (
     Base,
+    PortableJSON,
     TimestampMixin,
     UUIDPrimaryKeyMixin,
     utcnow,
@@ -49,6 +50,8 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     mfa_enabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )
+    mfa_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    mfa_recovery_codes: Mapped[list[str] | None] = mapped_column(PortableJSON, nullable=True)
 
     @property
     def password_version(self) -> int:

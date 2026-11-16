@@ -21,6 +21,17 @@ class OfficialReportGenerateIn(BaseModel):
     observations: str | None = Field(default=None, max_length=2000)
 
 
+class OfficialReportAmendIn(BaseModel):
+    amendment_reason: str = Field(
+        min_length=10,
+        max_length=2000,
+        description="Justificativa formal da retificação/emenda (ISO/IEC 17025:2017 §7.8.8)",
+    )
+    title: str | None = Field(default=None, min_length=3, max_length=200)
+    conclusion: TestOutcome | None = None
+    summary: str | None = Field(default=None, max_length=5000)
+
+
 class OfficialReportOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -32,6 +43,11 @@ class OfficialReportOut(BaseModel):
     summary: str | None = None
     sha256_hash: str
     auth_token: str
+    version: int = 1
+    root_report_id: UUID | None = None
+    supersedes_id: UUID | None = None
+    is_latest: bool = True
+    amendment_reason: str | None = None
     issued_by_id: UUID
     issued_by: UserBrief | None = None
     signature_id: UUID
@@ -51,6 +67,11 @@ class OfficialReportDetailOut(OfficialReportOut):
 class OfficialReportPublicVerifyOut(BaseModel):
     is_valid: bool
     report_number: str
+    version: int = 1
+    is_latest: bool = True
+    amendment_reason: str | None = None
+    supersedes_number: str | None = None
+    latest_report_number: str | None = None
     sample_acc_number: str
     sample_commercial_name: str
     sample_serial_number: str | None = None
@@ -59,3 +80,4 @@ class OfficialReportPublicVerifyOut(BaseModel):
     sha256_hash: str
     issued_by_name: str
     issued_at: datetime
+    history: list[dict[str, Any]] = Field(default_factory=list)

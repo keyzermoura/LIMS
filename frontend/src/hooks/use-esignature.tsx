@@ -1,5 +1,5 @@
 import * as React from "react";
-import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
+import { KeyRound, Loader2, ShieldCheck, Smartphone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -120,6 +120,7 @@ function ESignatureDialog({
 }) {
   const { user } = useAuth();
   const [password, setPassword] = React.useState("");
+  const [totpCode, setTotpCode] = React.useState("");
   const [reason, setReason] = React.useState("");
   const [meaning, setMeaning] = React.useState<SignatureMeaning>(
     "RESPONSABILIDADE_TECNICA",
@@ -130,6 +131,7 @@ function ESignatureDialog({
   React.useEffect(() => {
     if (!intent) return;
     setPassword("");
+    setTotpCode("");
     setReason(intent.suggestedReason ?? "");
     setMeaning(intent.meaning);
     setError(null);
@@ -149,6 +151,10 @@ function ESignatureDialog({
       setError("Informe sua senha para reautenticar.");
       return;
     }
+    if (user?.mfa_enabled && !totpCode.trim()) {
+      setError("Usuário com MFA ativo: informe o token TOTP ou código de backup.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -159,6 +165,7 @@ function ESignatureDialog({
         entity_type: intent.entityType,
         entity_id: intent.entityId,
         action: intent.action,
+        totp_code: totpCode.trim() || undefined,
       });
       onSigned(grant.token);
     } catch (err) {
@@ -272,6 +279,28 @@ function ESignatureDialog({
               />
             </div>
           </div>
+
+          {user?.mfa_enabled ? (
+            <div className="grid gap-1.5">
+              <Label htmlFor="esign-totp">Segundo Fator (TOTP / Código de Backup)</Label>
+              <div className="relative">
+                <Smartphone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="esign-totp"
+                  type="text"
+                  autoComplete="one-time-code"
+                  className="pl-9 font-mono"
+                  value={totpCode}
+                  onChange={(event) => setTotpCode(event.target.value)}
+                  placeholder="6 dígitos (ex: 123456) ou XXXX-XXXX"
+                  required
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Sua conta possui MFA ativo (21 CFR Part 11). Digite o código do autenticador ou um código de backup descartável.
+              </p>
+            </div>
+          ) : null}
 
           {error ? (
             <div

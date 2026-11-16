@@ -18,11 +18,15 @@ from app.schemas.auth import (
     ESignatureIssueResponse,
     LogoutRequest,
     MeOut,
+    MfaDisableRequest,
+    MfaEnableRequest,
+    MfaEnableResponse,
+    MfaSetupResponse,
     RefreshRequest,
     TokenPair,
     UserOut,
 )
-from app.services import auth_service, signature_service
+from app.services import auth_service, mfa_service, signature_service
 
 router = APIRouter(prefix="/auth", tags=["Autenticação e Assinatura"])
 
@@ -138,6 +142,7 @@ async def issue_signature(
         entity_id=payload.entity_id,
         action=payload.action,
         context=RequestContext.from_request(request),
+        totp_code=payload.totp_code,
     )
     return ESignatureIssueResponse(
         token=token,
@@ -164,6 +169,65 @@ async def change_password(
         user=user,
         current_password=payload.current_password,
         new_password=payload.new_password,
+        context=RequestContext.from_request(request),
+    )
+
+
+@router.post(
+    "/mfa/setup",
+    response_model=MfaSetupResponse,
+    summary="Iniciar pareamento de autenticação multifator (MFA TOTP)",
+)
+async def setup_mfa(user: CurrentUser) -> MfaSetupResponse:
+    secret, otpauth_url, qr_code_base64 = mfa_service.setup_mfa(user)
+    return MfaSetupResponse(
+        secret=secret,
+        otpauth_url=otpauth_url,
+        qr_code_base64=qr_code_base64,
+    )
+
+
+@router.post(
+    "/mfa/enable",
+    response_model=MfaEnableResponse,
+    summary="Ativar autenticação multifator (MFA TOTP)",
+)
+async def enable_mfa(
+    payload: MfaEnableRequest,
+    request: Request,
+    db: DbSession,
+    user: CurrentUser,
+) -> MfaEnableResponse:
+    recovery_codes = await mfa_service.enable_mfa(
+        db,
+        user=user,
+        secret=payload.secret,
+        code=payload.code,
+        password=payload.password,
+        context=RequestContext.from_request(request),
+    )
+    return MfaEnableResponse(
+        recovery_codes=recovery_codes,
+        message="MFA ativado com sucesso. Guarde seus códigos de recuperação em local seguro.",
+    )
+
+
+@router.post(
+    "/mfa/disable",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Desativar autenticação multifator (MFA TOTP)",
+)
+async def disable_mfa(
+    payload: MfaDisableRequest,
+    request: Request,
+    db: DbSession,
+    user: CurrentUser,
+) -> None:
+    await mfa_service.disable_mfa(
+        db,
+        user=user,
+        password=payload.password,
+        code=payload.code,
         context=RequestContext.from_request(request),
     )
 

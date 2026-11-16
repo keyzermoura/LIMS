@@ -341,6 +341,7 @@ import type {
   TestReviewDecisionPayload,
   OfficialReport,
   OfficialReportGeneratePayload,
+  OfficialReportAmendPayload,
   OfficialReportPublicVerify,
   TestAttachment,
   AnalystQualification,
@@ -360,6 +361,10 @@ import type {
   WebhookSubscription,
   WebhookDelivery,
   WebhookPingResponse,
+  MfaSetupResponse,
+  MfaEnableRequest,
+  MfaEnableResponse,
+  MfaDisableRequest,
 } from "./types";
 
 export const methodsApi = {
@@ -488,12 +493,20 @@ export const reportsApi = {
       body: payload,
       signatureToken,
     }),
+  amendOfficial: (reportId: string, payload: OfficialReportAmendPayload, signatureToken: string) =>
+    request<OfficialReport>(`/reports/official/${reportId}/amend`, {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
   getOfficial: (reportId: string) =>
     request<OfficialReport>(`/reports/official/${reportId}`),
   listForSample: (sampleId: string) =>
     request<OfficialReport[]>(`/reports/official/sample/${sampleId}`),
   verifyPublic: (tokenOrHash: string) =>
     request<OfficialReportPublicVerify>(`/public/reports/verify/${tokenOrHash}`),
+  getPdfUrl: (reportId: string) => `/api/v1/reports/official/${reportId}/pdf`,
+  getPublicPdfUrl: (tokenOrHash: string) => `/api/v1/public/reports/${tokenOrHash}/pdf`,
 };
 
 export const attachmentsApi = {
@@ -733,6 +746,20 @@ export const webhooksApi = {
     const qs = query.toString();
     return request<WebhookDelivery[]>(`/webhooks/deliveries${qs ? `?${qs}` : ""}`);
   },
+};
+
+export const mfaApi = {
+  setup: () => request<MfaSetupResponse>("/auth/mfa/setup", { method: "POST" }),
+  enable: (payload: MfaEnableRequest) =>
+    request<MfaEnableResponse>("/auth/mfa/enable", {
+      method: "POST",
+      body: payload,
+    }),
+  disable: (payload: MfaDisableRequest) =>
+    request<void>("/auth/mfa/disable", {
+      method: "POST",
+      body: payload,
+    }),
 };
 
 

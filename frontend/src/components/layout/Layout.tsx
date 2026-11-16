@@ -25,6 +25,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/NotificationBell";
+import { MfaConfigModal } from "@/components/MfaConfigModal";
 import { useAuth } from "@/hooks/use-auth";
 import { ROLE_LABELS, cn, initials } from "@/lib/utils";
 
@@ -68,6 +69,7 @@ export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [mfaModalOpen, setMfaModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     setMobileOpen(false);
@@ -239,6 +241,27 @@ export function Layout() {
             </div>
 
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMfaModalOpen(true)}
+              className={cn(
+                "hidden sm:inline-flex items-center gap-1.5 h-8 text-[11px] font-medium rounded-full px-2.5",
+                user.mfa_enabled
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                  : "border-border bg-muted/30 text-muted-foreground hover:bg-muted",
+              )}
+              title="Configurar Autenticação Multifator (21 CFR Part 11)"
+            >
+              <ShieldCheck
+                className={cn(
+                  "h-3.5 w-3.5",
+                  user.mfa_enabled ? "text-emerald-600" : "text-muted-foreground",
+                )}
+              />
+              <span>{user.mfa_enabled ? "MFA Ativo" : "Ativar MFA"}</span>
+            </Button>
+
+            <Button
               variant="ghost"
               size="icon"
               onClick={handleLogout}
@@ -265,6 +288,8 @@ export function Layout() {
           <span className="font-mono">v0.1.0</span>
         </footer>
       </div>
+
+      <MfaConfigModal open={mfaModalOpen} onOpenChange={setMfaModalOpen} />
     </div>
   );
 }

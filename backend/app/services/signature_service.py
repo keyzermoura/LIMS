@@ -42,7 +42,7 @@ from app.models.enums import (
     SignatureMeaning,
 )
 from app.models.user import User
-from app.services import account_lockout, audit_service
+from app.services import account_lockout, audit_service, mfa_service
 from app.services.errors import SignatureRejectedError
 
 MIN_REASON_LENGTH = 10
@@ -59,6 +59,7 @@ async def issue(
     entity_id: str,
     action: SignatureAction,
     context: RequestContext,
+    totp_code: str | None = None,
 ) -> tuple[ElectronicSignature, str]:
     reason = reason.strip()
     if len(reason) < MIN_REASON_LENGTH:
@@ -122,6 +123,37 @@ async def issue(
     # Reautenticação bem-sucedida zera o contador, como no login.
     account_lockout.reset_failures(user)
 
+    # Verificação de Segundo Fator MFA (21 CFR Part 11 / RFC 6238)
+    if user.mfa_enabled:
+        if not totp_code:
+            await _record_rejection(
+                db,
+                user=user,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                action=action,
+                reason="Reautenticação recusada: código MFA/TOTP ausente para usuário com segundo fator ativo.",
+                context=context,
+            )
+            raise SignatureRejectedError(
+                "Usuário com MFA ativo: informe o token TOTP ou código de recuperação para assinar.",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+        if not mfa_service.verify_user_mfa(user, totp_code):
+            await _record_rejection(
+                db,
+                user=user,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                action=action,
+                reason="Reautenticação recusada: código MFA/TOTP inválido.",
+                context=context,
+            )
+            raise SignatureRejectedError(
+                "Código MFA/TOTP ou código de recuperação inválido.",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+
     now = datetime.now(UTC)
     expires_at = now + timedelta(seconds=settings.ESIGNATURE_TTL_SECONDS)
     signature_id = uuid4()
@@ -141,7 +173,8 @@ async def issue(
         "action": action.value,
         "meaning": meaning.value,
         "reason": reason,
-        "method": "PASSWORD",
+        "method": "PASSWORD+MFA_TOTP" if user.mfa_enabled else "PASSWORD",
+        "mfa_verified": bool(user.mfa_enabled),
         "signed_at": now.isoformat(),
         "ip_address": context.ip_address,
         "request_id": context.request_id,

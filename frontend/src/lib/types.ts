@@ -763,6 +763,11 @@ export interface OfficialReport {
   summary: string | null;
   sha256_hash: string;
   auth_token: string;
+  version: number;
+  root_report_id?: string | null;
+  supersedes_id?: string | null;
+  is_latest: boolean;
+  amendment_reason?: string | null;
   issued_by_id: string;
   issued_by: UserBrief | null;
   signature_id: string;
@@ -779,9 +784,30 @@ export interface OfficialReportGeneratePayload {
   observations?: string | null;
 }
 
+export interface OfficialReportAmendPayload {
+  amendment_reason: string;
+  title?: string;
+  conclusion?: TestOutcome;
+  summary?: string | null;
+}
+
+export interface OfficialReportHistoryItem {
+  version: number;
+  report_number: string;
+  is_latest: boolean;
+  amendment_reason?: string | null;
+  issued_at: string;
+  sha256_hash: string;
+}
+
 export interface OfficialReportPublicVerify {
   is_valid: boolean;
   report_number: string;
+  version: number;
+  is_latest: boolean;
+  amendment_reason?: string | null;
+  supersedes_number?: string | null;
+  latest_report_number?: string | null;
   sample_acc_number: string;
   sample_commercial_name: string;
   sample_serial_number: string | null;
@@ -790,6 +816,7 @@ export interface OfficialReportPublicVerify {
   sha256_hash: string;
   issued_by_name: string;
   issued_at: string;
+  history?: OfficialReportHistoryItem[];
 }
 
 export interface TestAttachment {
@@ -1162,4 +1189,30 @@ export interface WebhookPingResponse {
   status: string;
   status_code?: number | null;
   signature_header: string;
+}
+
+// ---------------------------------------------------------------------------
+// MFA TOTP e Segurança Reforçada (Horizonte 1 / Sprint 6.2 - 21 CFR Part 11)
+// ---------------------------------------------------------------------------
+
+export interface MfaSetupResponse {
+  secret: string;
+  otpauth_url: string;
+  qr_code_base64: string;
+}
+
+export interface MfaEnableRequest {
+  secret: string;
+  code: string;
+  password: string;
+}
+
+export interface MfaEnableResponse {
+  recovery_codes: string[];
+  message: string;
+}
+
+export interface MfaDisableRequest {
+  password: string;
+  code: string;
 }
