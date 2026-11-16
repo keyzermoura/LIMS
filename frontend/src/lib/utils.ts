@@ -142,6 +142,35 @@ export const CAPA_STATUS_LABELS: Record<string, string> = {
   CANCELADA: "Cancelada",
 };
 
+export const CAPA_SOURCE_LABELS: Record<string, string> = {
+  ENSAIO_REPROVADO: "Ensaio Reprovado",
+  INCERTEZA_METROLOGICA: "Desvio Metrológico",
+  EQUIPAMENTO_DESVIO: "Desvio de Equipamento",
+  AUDITORIA_INTERNA: "Auditoria Interna",
+  RECLAMACAO_CLIENTE: "Reclamação de Cliente",
+  CONTROLE_QUALIDADE: "Controle de Qualidade",
+  OUTRO: "Outro Desvio",
+};
+
+export const CAPA_ACTION_TYPE_LABELS: Record<string, string> = {
+  CONTENCAO: "Contenção",
+  CORRETIVA: "Corretiva",
+  PREVENTIVA: "Preventiva",
+};
+
+export const CAPA_ITEM_STATUS_LABELS: Record<string, string> = {
+  PENDENTE: "Pendente",
+  EM_ANDAMENTO: "Em andamento",
+  CONCLUIDA: "Concluída",
+  CANCELADA: "Cancelada",
+};
+
+export const CAPA_EFFECTIVENESS_STATUS_LABELS: Record<string, string> = {
+  PENDENTE: "Pendente de Avaliação",
+  EFICAZ: "Eficaz",
+  INEFICAZ: "Ineficaz / Reincidente",
+};
+
 export const SOLICITATION_STATUS_LABELS: Record<string, string> = {
   DRAFT: "Rascunho",
   SUBMITTED: "Submetida",

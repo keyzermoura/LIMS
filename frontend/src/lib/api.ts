@@ -321,6 +321,10 @@ export function buildQuery(
 // ============================================================================
 
 import type {
+  Capa,
+  CapaActionItem,
+  CapaCreateResponse,
+  Page,
   EquipmentCalibrationPayload,
   EquipmentCreatePayload,
   LaboratoryEquipment,
@@ -339,6 +343,13 @@ import type {
   OfficialReportGeneratePayload,
   OfficialReportPublicVerify,
   TestAttachment,
+  AnalystQualification,
+  QualificationCheck,
+  TrainingRecord,
+  UncertaintyBudget,
+  UncertaintyBudgetCreatePayload,
+  UncertaintyCalculation,
+  UncertaintySimulatePayload,
 } from "./types";
 
 export const methodsApi = {
@@ -489,3 +500,113 @@ export const attachmentsApi = {
   getDownloadUrl: (attachmentId: string) =>
     `${API_BASE}/attachments/${attachmentId}/download`,
 };
+
+export const qualificationsApi = {
+  list: (params?: { user_id?: string; method_id?: string; status?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.user_id) query.set("user_id", params.user_id);
+    if (params?.method_id) query.set("method_id", params.method_id);
+    if (params?.status) query.set("status", params.status);
+    const qs = query.toString();
+    return request<AnalystQualification[]>(`/qualifications${qs ? `?${qs}` : ""}`);
+  },
+  check: (userId: string, methodId: string) =>
+    request<QualificationCheck>(`/qualifications/check?user_id=${userId}&method_id=${methodId}`),
+  grant: (payload: unknown, signatureToken?: string) =>
+    request<AnalystQualification>("/qualifications/grant", {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  revoke: (id: string, payload: { status: string; reason: string }, signatureToken?: string) =>
+    request<AnalystQualification>(`/qualifications/${id}/revoke`, {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  recordTraining: (userId: string, payload: unknown, qualificationId?: string) => {
+    const query = new URLSearchParams({ user_id: userId });
+    if (qualificationId) query.set("qualification_id", qualificationId);
+    return request<TrainingRecord>(`/qualifications/trainings?${query.toString()}`, {
+      method: "POST",
+      body: payload,
+    });
+  },
+};
+
+export const uncertaintyApi = {
+  simulate: (payload: UncertaintySimulatePayload) =>
+    request<UncertaintyCalculation>("/uncertainty/simulate", {
+      method: "POST",
+      body: payload,
+    }),
+  createBudget: (payload: UncertaintyBudgetCreatePayload, signatureToken?: string) =>
+    request<UncertaintyBudget>("/uncertainty/budgets", {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  listBudgets: (params?: {
+    lab_test_id?: string;
+    method_id?: string;
+    execution_id?: string;
+    conformity_status?: string;
+  }) => {
+    const qs = buildQuery({
+      lab_test_id: params?.lab_test_id,
+      method_id: params?.method_id,
+      execution_id: params?.execution_id,
+      conformity_status: params?.conformity_status,
+    });
+    return request<UncertaintyBudget[]>(`/uncertainty/budgets${qs}`);
+  },
+  getBudget: (budgetId: string) =>
+    request<UncertaintyBudget>(`/uncertainty/budgets/${budgetId}`),
+};
+
+export const capasApi = {
+  list: (params?: { status?: string; source_type?: string; sample_id?: string; page?: number; size?: number }) => {
+    const qs = buildQuery({
+      status: params?.status,
+      source_type: params?.source_type,
+      sample_id: params?.sample_id,
+      page: params?.page,
+      size: params?.size ?? 50,
+    });
+    return request<Page<Capa>>(`/capas${qs}`);
+  },
+  get: (id: string) => request<Capa>(`/capas/${id}`),
+  create: (payload: unknown, signatureToken: string) =>
+    request<CapaCreateResponse>("/capas", {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  update: (id: string, payload: unknown, signatureToken: string) =>
+    request<Capa>(`/capas/${id}`, {
+      method: "PATCH",
+      body: payload,
+      signatureToken,
+    }),
+  addActionItem: (capaId: string, payload: unknown) =>
+    request<CapaActionItem>(`/capas/${capaId}/items`, {
+      method: "POST",
+      body: payload,
+    }),
+  updateActionItem: (capaId: string, itemId: string, payload: unknown) =>
+    request<CapaActionItem>(`/capas/${capaId}/items/${itemId}`, {
+      method: "PATCH",
+      body: payload,
+    }),
+  deleteActionItem: (capaId: string, itemId: string) =>
+    request<void>(`/capas/${capaId}/items/${itemId}`, {
+      method: "DELETE",
+    }),
+  evaluateEffectiveness: (capaId: string, payload: unknown, signatureToken: string) =>
+    request<Capa>(`/capas/${capaId}/effectiveness`, {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+};
+

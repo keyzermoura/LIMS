@@ -100,6 +100,10 @@ class AuditEntity(str, Enum):
     TEST_REVIEW = "TestReview"
     OFFICIAL_REPORT = "OfficialReport"
     TEST_ATTACHMENT = "TestAttachment"
+    ANALYST_QUALIFICATION = "AnalystQualification"
+    TRAINING_RECORD = "TrainingRecord"
+    UNCERTAINTY_BUDGET = "UncertaintyBudget"
+    CAPA_ACTION_ITEM = "CapaActionItem"
 
 
 class SolicitationStatus(str, Enum):
@@ -185,3 +189,83 @@ class ExecutionStatus(str, Enum):
     CONCLUIDA = "CONCLUIDA"
     INTERROMPIDA = "INTERROMPIDA"
     CANCELADA = "CANCELADA"
+
+
+class QualificationStatus(str, Enum):
+    """Status de habilitação formal do analista para método analítico (ISO/IEC 17025 §6.2)."""
+
+    QUALIFICADO = "QUALIFICADO"
+    EM_SUPERVISAO = "EM_SUPERVISAO"
+    SUSPENSO = "SUSPENSO"
+    EXPIRADO = "EXPIRADO"
+
+
+class UncertaintySourceType(str, Enum):
+    """Classificação GUM das componentes de incerteza (JCGM 100:2008 §4)."""
+
+    TYPE_A = "TYPE_A"
+    TYPE_B = "TYPE_B"
+
+
+class UncertaintyDistribution(str, Enum):
+    """Distribuição de probabilidade associada à fonte de incerteza."""
+
+    NORMAL = "NORMAL"
+    RECTANGULAR = "RECTANGULAR"
+    TRIANGULAR = "TRIANGULAR"
+    U_SHAPED = "U_SHAPED"
+
+
+class DecisionRuleType(str, Enum):
+    """Regra de decisão metrológica para declaração de conformidade (ILAC-G8:09/2019)."""
+
+    SIMPLE_ACCEPTANCE = "SIMPLE_ACCEPTANCE"
+    GUARD_BAND_CONSERVATIVE = "GUARD_BAND_CONSERVATIVE"
+    GUARD_BAND_NON_BINARY = "GUARD_BAND_NON_BINARY"
+
+
+class ConformityStatus(str, Enum):
+    """Status metrológico detalhado frente aos limites e faixa de guarda (ISO 17025 §7.8.6)."""
+
+    CONFORME = "CONFORME"
+    CONFORME_CONDICIONAL = "CONFORME_CONDICIONAL"
+    NAO_CONFORME_CONDICIONAL = "NAO_CONFORME_CONDICIONAL"
+    NAO_CONFORME = "NAO_CONFORME"
+
+
+class CapaSourceType(str, Enum):
+    """Origem da não conformidade ou desvio operacional (ISO/IEC 17025 §8.7)."""
+
+    ENSAIO_REPROVADO = "ENSAIO_REPROVADO"
+    INCERTEZA_METROLOGICA = "INCERTEZA_METROLOGICA"
+    EQUIPAMENTO_DESVIO = "EQUIPAMENTO_DESVIO"
+    AUDITORIA_INTERNA = "AUDITORIA_INTERNA"
+    RECLAMACAO_CLIENTE = "RECLAMACAO_CLIENTE"
+    CONTROLE_QUALIDADE = "CONTROLE_QUALIDADE"
+    OUTRO = "OUTRO"
+
+
+class CapaActionType(str, Enum):
+    """Tipologia de ação no plano CAPA (ISO 17025 §8.7)."""
+
+    CONTENCAO = "CONTENCAO"
+    CORRETIVA = "CORRETIVA"
+    PREVENTIVA = "PREVENTIVA"
+
+
+class CapaItemStatus(str, Enum):
+    """Status de execução de item do plano de ação CAPA."""
+
+    PENDENTE = "PENDENTE"
+    EM_ANDAMENTO = "EM_ANDAMENTO"
+    CONCLUIDA = "CONCLUIDA"
+    CANCELADA = "CANCELADA"
+
+
+class CapaEffectivenessStatus(str, Enum):
+    """Status formal da avaliação de eficácia temporal (ISO 17025 §8.7.3)."""
+
+    PENDENTE = "PENDENTE"
+    EFICAZ = "EFICAZ"
+    INEFICAZ = "INEFICAZ"
+
