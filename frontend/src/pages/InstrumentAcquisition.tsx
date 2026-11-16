@@ -18,20 +18,18 @@ import {
   ShieldCheck,
   UploadCloud,
 } from "lucide-react";
-import { equipmentApi, executionsApi, instrumentDataApi } from "../lib/api";
+import { equipmentApi, instrumentDataApi } from "../lib/api";
 import {
   InstrumentDataImport,
   InstrumentDataSummary,
   InstrumentFileFormat,
   LaboratoryEquipment,
-  TestExecution,
 } from "../lib/types";
 
 export default function InstrumentAcquisition() {
   const [summary, setSummary] = useState<InstrumentDataSummary | null>(null);
   const [imports, setImports] = useState<InstrumentDataImport[]>([]);
   const [equipments, setEquipments] = useState<LaboratoryEquipment[]>([]);
-  const [executions, setExecutions] = useState<TestExecution[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,16 +52,14 @@ export default function InstrumentAcquisition() {
     try {
       setLoading(true);
       setError(null);
-      const [sumRes, impRes, eqRes, exRes] = await Promise.all([
+      const [sumRes, impRes, eqRes] = await Promise.all([
         instrumentDataApi.getSummary().catch(() => ({ total_imports: 0, mapped_imports: 0, unmapped_imports: 0 })),
         instrumentDataApi.list({ limit: 50 }),
-        equipmentApi.list({ limit: 100 }),
-        executionsApi.list({ limit: 50 }).catch(() => []),
+        equipmentApi.list(),
       ]);
       setSummary(sumRes);
       setImports(impRes);
       setEquipments(eqRes);
-      setExecutions(exRes);
 
       if (eqRes.length > 0 && !selectedEquipmentId) {
         setSelectedEquipmentId(eqRes[0].id);
@@ -471,7 +467,7 @@ export default function InstrumentAcquisition() {
                           <button
                             onClick={() => {
                               setMappingItem(item);
-                              setMapExecutionId(executions[0]?.id || "");
+                              setMapExecutionId("");
                             }}
                             className="px-2.5 py-1 text-xs font-semibold rounded bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition flex items-center gap-1"
                           >
@@ -562,26 +558,19 @@ export default function InstrumentAcquisition() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Execução de Ensaio Alvo (TestExecution) *
+                  UUID da Execução de Ensaio Alvo (TestExecution ID) *
                 </label>
-                {executions.length === 0 ? (
-                  <p className="text-xs text-amber-600">
-                    Nenhuma execução de ensaio ativa encontrada. Inicie uma execução na aba de Ensaios.
-                  </p>
-                ) : (
-                  <select
-                    value={mapExecutionId}
-                    onChange={(e) => setMapExecutionId(e.target.value)}
-                    required
-                    className="w-full text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {executions.map((ex) => (
-                      <option key={ex.id} value={ex.id}>
-                        Execução #{ex.execution_number} - Status: {ex.status}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <input
+                  type="text"
+                  value={mapExecutionId}
+                  onChange={(e) => setMapExecutionId(e.target.value.trim())}
+                  required
+                  placeholder="ex.: 8dd52f14-4df5-4c24-8ca1-95b853edd9f7"
+                  className="w-full font-mono text-sm rounded-lg border border-slate-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Copie o identificador da execução na bancada de ensaios ou informe o UUID de destino.
+                </p>
               </div>
             </div>
             <div className="p-4 bg-slate-50 border-t flex justify-end gap-2">

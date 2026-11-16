@@ -1109,6 +1109,7 @@ export interface InstrumentDataImport {
   file_name: string;
   file_format: InstrumentFileFormat;
   raw_file_hash_sha256: string;
+  raw_content?: string;
   parsed_data: Record<string, any>;
   status: InstrumentImportStatus;
   rejection_reason: string | null;

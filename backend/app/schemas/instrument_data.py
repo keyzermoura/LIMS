@@ -23,6 +23,7 @@ class InstrumentDataImportOut(BaseModel):
     file_name: str
     file_format: InstrumentFileFormat
     raw_file_hash_sha256: str
+    raw_content: str | None = None
     parsed_data: dict[str, Any]
     status: InstrumentImportStatus
     rejection_reason: str | None = None
