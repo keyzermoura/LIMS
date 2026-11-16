@@ -3,6 +3,7 @@
 from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.capa_action import CapaAction
+from app.models.capa_action_item import CapaActionItem
 from app.models.chain_of_custody import ChainOfCustody
 from app.models.checklist import ChecklistAnswer, ChecklistCriterion, ChecklistTemplate
 from app.models.decision import CoordinationReview, ReceiptDecision
@@ -26,6 +27,7 @@ __all__ = [
     "AuditLog",
     "Base",
     "CapaAction",
+    "CapaActionItem",
     "ChainOfCustody",
     "ChecklistAnswer",
     "ChecklistCriterion",

@@ -559,3 +559,50 @@ export const uncertaintyApi = {
   getBudget: (budgetId: string) =>
     request<UncertaintyBudget>(`/uncertainty/budgets/${budgetId}`),
 };
+
+export const capasApi = {
+  list: (params?: { status?: string; source_type?: string; sample_id?: string; page?: number; size?: number }) => {
+    const qs = buildQuery({
+      status: params?.status,
+      source_type: params?.source_type,
+      sample_id: params?.sample_id,
+      page: params?.page,
+      size: params?.size ?? 50,
+    });
+    return request<Page<Capa>>(`/capas${qs}`);
+  },
+  get: (id: string) => request<Capa>(`/capas/${id}`),
+  create: (payload: unknown, signatureToken: string) =>
+    request<CapaCreateResponse>("/capas", {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+  update: (id: string, payload: unknown, signatureToken: string) =>
+    request<Capa>(`/capas/${id}`, {
+      method: "PATCH",
+      body: payload,
+      signatureToken,
+    }),
+  addActionItem: (capaId: string, payload: unknown) =>
+    request<CapaActionItem>(`/capas/${capaId}/items`, {
+      method: "POST",
+      body: payload,
+    }),
+  updateActionItem: (capaId: string, itemId: string, payload: unknown) =>
+    request<CapaActionItem>(`/capas/${capaId}/items/${itemId}`, {
+      method: "PATCH",
+      body: payload,
+    }),
+  deleteActionItem: (capaId: string, itemId: string) =>
+    request<void>(`/capas/${capaId}/items/${itemId}`, {
+      method: "DELETE",
+    }),
+  evaluateEffectiveness: (capaId: string, payload: unknown, signatureToken: string) =>
+    request<Capa>(`/capas/${capaId}/effectiveness`, {
+      method: "POST",
+      body: payload,
+      signatureToken,
+    }),
+};
+

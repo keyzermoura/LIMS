@@ -103,6 +103,7 @@ class AuditEntity(str, Enum):
     ANALYST_QUALIFICATION = "AnalystQualification"
     TRAINING_RECORD = "TrainingRecord"
     UNCERTAINTY_BUDGET = "UncertaintyBudget"
+    CAPA_ACTION_ITEM = "CapaActionItem"
 
 
 class SolicitationStatus(str, Enum):
@@ -230,3 +231,41 @@ class ConformityStatus(str, Enum):
     CONFORME_CONDICIONAL = "CONFORME_CONDICIONAL"
     NAO_CONFORME_CONDICIONAL = "NAO_CONFORME_CONDICIONAL"
     NAO_CONFORME = "NAO_CONFORME"
+
+
+class CapaSourceType(str, Enum):
+    """Origem da não conformidade ou desvio operacional (ISO/IEC 17025 §8.7)."""
+
+    ENSAIO_REPROVADO = "ENSAIO_REPROVADO"
+    INCERTEZA_METROLOGICA = "INCERTEZA_METROLOGICA"
+    EQUIPAMENTO_DESVIO = "EQUIPAMENTO_DESVIO"
+    AUDITORIA_INTERNA = "AUDITORIA_INTERNA"
+    RECLAMACAO_CLIENTE = "RECLAMACAO_CLIENTE"
+    CONTROLE_QUALIDADE = "CONTROLE_QUALIDADE"
+    OUTRO = "OUTRO"
+
+
+class CapaActionType(str, Enum):
+    """Tipologia de ação no plano CAPA (ISO 17025 §8.7)."""
+
+    CONTENCAO = "CONTENCAO"
+    CORRETIVA = "CORRETIVA"
+    PREVENTIVA = "PREVENTIVA"
+
+
+class CapaItemStatus(str, Enum):
+    """Status de execução de item do plano de ação CAPA."""
+
+    PENDENTE = "PENDENTE"
+    EM_ANDAMENTO = "EM_ANDAMENTO"
+    CONCLUIDA = "CONCLUIDA"
+    CANCELADA = "CANCELADA"
+
+
+class CapaEffectivenessStatus(str, Enum):
+    """Status formal da avaliação de eficácia temporal (ISO 17025 §8.7.3)."""
+
+    PENDENTE = "PENDENTE"
+    EFICAZ = "EFICAZ"
+    INEFICAZ = "INEFICAZ"
+

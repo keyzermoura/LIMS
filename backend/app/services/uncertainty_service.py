@@ -652,6 +652,24 @@ async def create_uncertainty_budget(
         signature_id=sig_record.id if sig_record else None,
     )
 
+    if (
+        calc.conformity_status in (ConformityStatus.NAO_CONFORME, ConformityStatus.NAO_CONFORME_CONDICIONAL)
+        and payload.lab_test_id is not None
+    ):
+        from app.models.capa_action import CapaAction
+        from app.models.enums import CapaStatus
+        from app.services import capa_service
+
+        existing_capa = await db.scalar(
+            select(CapaAction).where(
+                CapaAction.lab_test_id == payload.lab_test_id,
+                CapaAction.status.in_([CapaStatus.ABERTA, CapaStatus.EM_ANDAMENTO]),
+            )
+        )
+        if existing_capa is None:
+            ctx = context or RequestContext(ip_address="127.0.0.1", user_agent="LIMS-Internal", request_id="internal")
+            await capa_service.open_capa_from_uncertainty(db, budget=budget, actor=actor, context=ctx)
+
     await db.commit()
     await db.refresh(
         budget,

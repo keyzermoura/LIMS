@@ -11,6 +11,10 @@ from sqlalchemy import Enum as SAEnum
 
 from app.models.enums import (
     AuditAction,
+    CapaActionType,
+    CapaEffectivenessStatus,
+    CapaItemStatus,
+    CapaSourceType,
     CapaStatus,
     ChecklistResult,
     ConferenceStatus,
@@ -83,4 +87,16 @@ decision_rule_type = SAEnum(
 )
 conformity_status_type = SAEnum(
     ConformityStatus, name="conformity_status", validate_strings=True
+)
+capa_source_type = SAEnum(
+    CapaSourceType, name="capa_source_type", validate_strings=True
+)
+capa_action_type = SAEnum(
+    CapaActionType, name="capa_action_type", validate_strings=True
+)
+capa_item_status = SAEnum(
+    CapaItemStatus, name="capa_item_status", validate_strings=True
+)
+capa_effectiveness_status = SAEnum(
+    CapaEffectivenessStatus, name="capa_effectiveness_status", validate_strings=True
 )

@@ -35,7 +35,7 @@ PRE_PHASE1 = "0003_audit_export"
 PHASE1 = "0004_fase1_solic_receb"
 PHASE2 = "0005_fase2_execucao_lab"
 PHASE3 = "0006_fase3_revisao_laudos"
-PHASE4 = "0007_fase4_competencias"
+PHASE4 = "0008_fase4_capa"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -82,11 +82,16 @@ PHASE4_TABLES = {
     "analyst_qualifications",
     "training_records",
     "uncertainty_budgets",
+    "capa_action_items",
 }
 PHASE4_ENUMS = {
     "qualification_status",
     "decision_rule_type",
     "conformity_status",
+    "capa_source_type",
+    "capa_action_type",
+    "capa_item_status",
+    "capa_effectiveness_status",
 }
 
 

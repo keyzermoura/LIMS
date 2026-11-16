@@ -10,6 +10,47 @@ export type SampleStatus =
 export type TestStatus = "PENDENTE" | "CONCLUIDO";
 export type TestOutcome = "APROVADO" | "REPROVADO" | "INCONCLUSIVO";
 export type CapaStatus = "ABERTA" | "EM_ANDAMENTO" | "CONCLUIDA" | "CANCELADA";
+export type CapaSourceType =
+  | "ENSAIO_REPROVADO"
+  | "INCERTEZA_METROLOGICA"
+  | "EQUIPAMENTO_DESVIO"
+  | "AUDITORIA_INTERNA"
+  | "RECLAMACAO_CLIENTE"
+  | "CONTROLE_QUALIDADE"
+  | "OUTRO";
+export type CapaActionType = "CONTENCAO" | "CORRETIVA" | "PREVENTIVA";
+export type CapaItemStatus = "PENDENTE" | "EM_ANDAMENTO" | "CONCLUIDA" | "CANCELADA";
+export type CapaEffectivenessStatus = "PENDENTE" | "EFICAZ" | "INEFICAZ";
+
+export interface IshikawaCauses {
+  metodo?: string[];
+  maquina?: string[];
+  material?: string[];
+  mao_de_obra?: string[];
+  meio_ambiente?: string[];
+  medicao?: string[];
+}
+
+export interface FiveWhysItem {
+  why_number: number;
+  question: string;
+  answer: string;
+}
+
+export interface CapaActionItem {
+  id: string;
+  capa_id: string;
+  title: string;
+  description: string;
+  action_type: CapaActionType;
+  assigned_to: UserBrief;
+  due_date: string;
+  status: CapaItemStatus;
+  completed_at: string | null;
+  completion_evidence: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export type SignatureMeaning =
   | "AUTORIA"
@@ -175,7 +216,11 @@ export interface Capa {
   code: string;
   device_sample_id: string | null;
   lab_test_id: string | null;
+  source_type: CapaSourceType;
   title: string;
+  containment_action: string | null;
+  ishikawa_causes: IshikawaCauses | null;
+  five_whys: FiveWhysItem[] | null;
   root_cause: string;
   action_plan: string;
   owner: UserBrief;
@@ -186,7 +231,13 @@ export interface Capa {
   auto_opened: boolean;
   created_by_id: string;
   effectiveness_check: string | null;
+  target_effectiveness_date: string | null;
+  effectiveness_status: CapaEffectivenessStatus;
+  effectiveness_evaluator: UserBrief | null;
+  effectiveness_evaluated_at: string | null;
+  recurrence_detected: boolean;
   effective: boolean | null;
+  action_items: CapaActionItem[];
   version: number;
   created_at: string;
   updated_at: string;
