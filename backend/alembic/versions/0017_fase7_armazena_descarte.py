@@ -172,6 +172,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f("ix_sample_retentions_sample_id"), "sample_retentions", ["sample_id"], unique=True)
     op.create_index(op.f("ix_sample_retentions_storage_location_id"), "sample_retentions", ["storage_location_id"], unique=False)
+    op.create_index(op.f("ix_sample_retentions_retention_type"), "sample_retentions", ["retention_type"], unique=False)
     op.create_index(op.f("ix_sample_retentions_seal_number"), "sample_retentions", ["seal_number"], unique=False)
     op.create_index(op.f("ix_sample_retentions_status"), "sample_retentions", ["status"], unique=False)
     op.create_index(op.f("ix_sample_retentions_retain_until"), "sample_retentions", ["retain_until"], unique=False)

@@ -59,7 +59,9 @@ class StorageLocation(
     temperature_min_celsius: Mapped[float] = mapped_column(Float, nullable=False)
     temperature_max_celsius: Mapped[float] = mapped_column(Float, nullable=False)
     humidity_max_percent: Mapped[float | None] = mapped_column(Float, nullable=True)
-    capacity_units: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
+    capacity_units: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=100, server_default="100"
+    )
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="true"
     )
