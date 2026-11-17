@@ -53,6 +53,7 @@ ROLE_PERMISSIONS: dict[UserRole, list[str]] = {
     UserRole.SERVICE: [
         "samples:read",
         "tests:read",
+        "reports:read",
         "instrument:write",
         "instrument:read",
         "integration:read",

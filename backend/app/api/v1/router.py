@@ -14,6 +14,7 @@ from app.api.v1.routes import (
     equipment,
     executions,
     instrument_data,
+    integration_exports,
     methods,
     notifications,
     oos,
@@ -64,6 +65,7 @@ api_router.include_router(storage.router)
 api_router.include_router(spc.router)
 api_router.include_router(service_clients.router)
 api_router.include_router(outbox.router)
+api_router.include_router(integration_exports.router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)
