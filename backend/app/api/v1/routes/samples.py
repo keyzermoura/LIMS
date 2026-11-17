@@ -104,6 +104,20 @@ async def list_samples(
 
 
 @router.get(
+    "/lookup/barcode/{barcode}",
+    response_model=SampleOut,
+    summary="Localiza amostra por código de barras, accession, lote ou número de série (H3.3)",
+)
+async def lookup_by_barcode(
+    barcode: str,
+    db: DbSession,
+    user: CurrentUser,
+) -> SampleOut:
+    sample = await sample_service.get_sample_by_barcode(db, barcode)
+    return SampleOut.model_validate(sample)
+
+
+@router.get(
     "/verify",
     response_model=SampleVerifyOut,
     summary="Validar QR Code de uma amostra",

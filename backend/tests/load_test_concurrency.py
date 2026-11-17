@@ -100,9 +100,7 @@ async def test_concurrent_auth(client: httpx.AsyncClient, n: int = 20) -> tuple[
             if res.status_code == 200:
                 results.record(lat, True)
                 nonlocal token
-                if not token and username == "admin":
-                    token = res.json()["access_token"]
-                elif not token:
+                if not token:
                     token = res.json()["access_token"]
             else:
                 results.record(lat, False, f"Status {res.status_code}")
@@ -224,7 +222,7 @@ async def main():
     print(json.dumps(all_summaries, indent=2, ensure_ascii=False))
 
     output_path = "E:/LIMS/docs/RELATORIO_TESTE_DE_CARGA_E_CONCORRENCIA.json"
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open(output_path, "w", encoding="utf-8") as f:  # noqa: ASYNC230
         json.dump(all_summaries, f, indent=2, ensure_ascii=False)
     print(f"\nResultados gravados em {output_path}")
 

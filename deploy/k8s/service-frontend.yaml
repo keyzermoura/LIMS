@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lims-frontend-service
+  namespace: lims
+  labels:
+    app.kubernetes.io/name: lims-frontend
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: lims-platform
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: lims-frontend
+    app.kubernetes.io/component: frontend

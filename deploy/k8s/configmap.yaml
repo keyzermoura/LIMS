@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lims-config
+  namespace: lims
+  labels:
+    app.kubernetes.io/name: lims
+    app.kubernetes.io/part-of: lims-platform
+    app.kubernetes.io/version: "1.1.0"
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  ENABLE_RATE_LIMITER: "true"
+  RATE_LIMIT_GLOBAL_PER_MINUTE: "120"
+  RATE_LIMIT_LOGIN_PER_MINUTE: "10"
+  MAX_UPLOAD_SIZE_MB: "25"
+  CORS_ORIGINS: "https://lims.gov.br,https://app.lims.gov.br"
+  ALLOWED_HOSTS: "lims.gov.br,app.lims.gov.br,api.lims.gov.br,lims-backend"
+  ESIGNATURE_TTL_SECONDS: "300"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"

@@ -32,6 +32,27 @@ class OfficialReportAmendIn(BaseModel):
     summary: str | None = Field(default=None, max_length=5000)
 
 
+class OfficialReportBatchItemIn(BaseModel):
+    device_sample_id: UUID
+    test_ids: list[UUID] = Field(min_length=1)
+    title: str = Field(default="Laudo Pericial Oficial", min_length=3, max_length=200)
+    conclusion: TestOutcome = TestOutcome.APROVADO
+    summary: str | None = Field(default=None, max_length=5000)
+    observations: str | None = Field(default=None, max_length=2000)
+
+
+class OfficialReportBatchIn(BaseModel):
+    items: list[OfficialReportBatchItemIn] = Field(min_length=1, max_length=50)
+    batch_reason: str = Field(default="Emissão em lote de laudos periciais homologados", max_length=500)
+
+
+class OfficialReportBatchOut(BaseModel):
+    total_requested: int
+    total_issued: int
+    reports: list[OfficialReportOut]
+    batch_manifest_hash: str
+
+
 class OfficialReportOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -129,6 +129,21 @@ async def get_sample(db: AsyncSession, sample_id: UUID) -> DeviceSample:
     return sample
 
 
+async def get_sample_by_barcode(db: AsyncSession, barcode: str) -> DeviceSample:
+    code = barcode.strip()
+    query = select(DeviceSample).where(
+        or_(
+            DeviceSample.accession_number == code,
+            DeviceSample.serial_number == code,
+            DeviceSample.lot_number == code,
+        )
+    )
+    sample = await db.scalar(query)
+    if sample is None:
+        raise NotFoundError(f"Nenhuma amostra encontrada para o código '{code}'.")
+    return sample
+
+
 async def list_samples(
     db: AsyncSession,
     *,

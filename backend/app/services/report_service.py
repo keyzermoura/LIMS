@@ -35,7 +35,12 @@ from app.models.official_report import OfficialReport
 from app.models.oos_investigation import OOSInvestigation
 from app.models.uncertainty import UncertaintyBudget
 from app.models.user import User
-from app.schemas.official_report import OfficialReportGenerateIn
+from app.schemas.official_report import (
+    OfficialReportBatchIn,
+    OfficialReportBatchOut,
+    OfficialReportGenerateIn,
+    OfficialReportOut,
+)
 from app.services import audit_service, outbox_service, qc_spc_service, signature_service
 from app.services.audit_service import snapshot
 from app.services.pdf_report_service import generate_official_report_pdf
@@ -47,6 +52,7 @@ async def generate_official_report(
     payload: OfficialReportGenerateIn,
     issuer: User,
     signature_token: str | None = None,
+    sig_record: ElectronicSignature | None = None,
     context: RequestContext | None = None,
 ) -> tuple[OfficialReport, int]:
     """Gera um laudo oficial consolidado para os ensaios aprovados de uma amostra com PDF real e hash SHA-256."""
@@ -209,8 +215,7 @@ async def generate_official_report(
     )
     sha256_hash = hashlib.sha256(pdf_bytes).hexdigest()
 
-    sig_record: ElectronicSignature | None = None
-    if signature_token:
+    if sig_record is None and signature_token:
         request_ctx = context or RequestContext(
             ip_address="127.0.0.1", user_agent="LIMS-Internal", request_id="internal"
         )
@@ -286,6 +291,85 @@ async def generate_official_report(
     await db.commit()
     await db.refresh(report, ["issued_by", "device_sample"])
     return report, audit_entry.sequence
+
+
+async def generate_batch_official_reports(
+    db: AsyncSession,
+    *,
+    payload: OfficialReportBatchIn,
+    issuer: User,
+    signature_token: str | None = None,
+    context: RequestContext | None = None,
+) -> tuple[OfficialReportBatchOut, int]:
+    """Emite laudos periciais em lote para múltiplas amostras homologadas (v1.1.0).
+
+    Gera cada laudo individualmente com sequence monotônica e calcula um
+    manifesto criptográfico agregado do lote.
+    """
+    sig_record: ElectronicSignature | None = None
+    if signature_token:
+        request_ctx = context or RequestContext(
+            ip_address="127.0.0.1", user_agent="LIMS-Internal", request_id="internal"
+        )
+        try:
+            claims = signature_service.decode_esign_token(signature_token)
+            target_entity_type = claims.get("ent", "BatchReport")
+            target_entity_id = claims.get("eid", "batch")
+            act_val = claims.get("act", SignatureAction.CLOSE.value)
+            target_action = SignatureAction(act_val)
+        except Exception:
+            target_entity_type = "BatchReport"
+            target_entity_id = "batch"
+            target_action = SignatureAction.CLOSE
+
+        sig_record = await signature_service.consume(
+            db,
+            token=signature_token,
+            user=issuer,
+            entity_type=target_entity_type,
+            entity_id=target_entity_id,
+            action=target_action,
+            context=request_ctx,
+        )
+
+    if sig_record is None:
+        raise ValidationDomainError(
+            "Assinatura eletrônica é obrigatória para emissão de laudos periciais em lote."
+        )
+
+    reports: list[OfficialReport] = []
+    last_seq = 0
+
+    for item in payload.items:
+        item_in = OfficialReportGenerateIn(
+            device_sample_id=item.device_sample_id,
+            test_ids=item.test_ids,
+            title=item.title,
+            conclusion=item.conclusion,
+            summary=item.summary,
+            observations=item.observations,
+        )
+        rep, seq = await generate_official_report(
+            db,
+            payload=item_in,
+            issuer=issuer,
+            signature_token=None,
+            sig_record=sig_record,
+            context=context,
+        )
+        reports.append(rep)
+        last_seq = seq
+
+    batch_manifest_str = canonical_json([r.sha256_hash for r in reports])
+    batch_hash = hashlib.sha256(batch_manifest_str.encode("utf-8")).hexdigest()
+
+    batch_out = OfficialReportBatchOut(
+        total_requested=len(payload.items),
+        total_issued=len(reports),
+        reports=[OfficialReportOut.model_validate(r) for r in reports],
+        batch_manifest_hash=batch_hash,
+    )
+    return batch_out, last_seq
 
 
 async def amend_official_report(
