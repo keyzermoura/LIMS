@@ -112,7 +112,6 @@ def split_sql_script(script: str) -> list[str]:
     return statements
 
 
-
 async def healthcheck() -> bool:
     try:
         async with engine.connect() as conn:

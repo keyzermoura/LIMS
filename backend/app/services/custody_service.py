@@ -36,9 +36,7 @@ async def transfer(
     context: RequestContext,
 ) -> tuple[ChainOfCustody, DeviceSample, int]:
     sample = await db.scalar(
-        select(DeviceSample)
-        .where(DeviceSample.id == payload.device_sample_id)
-        .with_for_update()
+        select(DeviceSample).where(DeviceSample.id == payload.device_sample_id).with_for_update()
     )
     if sample is None:
         raise NotFoundError("Amostra não encontrada.")
@@ -58,9 +56,7 @@ async def transfer(
         and sample.current_custodian_id != actor.id
         and actor.role not in (UserRole.ADMIN, UserRole.FISCAL)
     ):
-        raise ForbiddenError(
-            "Somente o custodiante atual pode transferir a guarda da amostra."
-        )
+        raise ForbiddenError("Somente o custodiante atual pode transferir a guarda da amostra.")
 
     target = await db.get(User, payload.to_custodian_id)
     if target is None or not target.is_active:
@@ -123,9 +119,7 @@ async def transfer(
         entity_id=sample.id,
         actor=actor,
         old_value={
-            "current_custodian_id": str(previous_custodian_id)
-            if previous_custodian_id
-            else None,
+            "current_custodian_id": str(previous_custodian_id) if previous_custodian_id else None,
             "current_location": previous_location,
         },
         new_value={
@@ -139,9 +133,7 @@ async def transfer(
     )
     await db.commit()
 
-    refreshed = await db.scalar(
-        select(DeviceSample).where(DeviceSample.id == sample.id)
-    )
+    refreshed = await db.scalar(select(DeviceSample).where(DeviceSample.id == sample.id))
     assert refreshed is not None
     return event, refreshed, log.id
 

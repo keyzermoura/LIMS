@@ -38,7 +38,9 @@ class DeviceSampleBriefOut(BaseModel):
 
 class StorageLocationCreate(BaseModel):
     code: str = Field(..., max_length=32, description="Código único do local (ex: FRZ-80-01)")
-    name: str = Field(..., max_length=120, description="Nome amigável (ex: Ultra Freezer 01 - Biologia)")
+    name: str = Field(
+        ..., max_length=120, description="Nome amigável (ex: Ultra Freezer 01 - Biologia)"
+    )
     location_type: StorageLocationType
     room: str = Field(..., max_length=64, description="Sala/Setor físico")
     temperature_target_celsius: float
@@ -85,8 +87,12 @@ class StorageLocationOut(BaseModel):
 class SampleStorageMovementCreate(BaseModel):
     sample_id: UUID
     to_location_id: UUID
-    reason: str = Field(..., min_length=3, max_length=255, description="Motivo da movimentação de custódia")
-    temperature_at_movement: float | None = Field(None, description="Temperatura conferida no ato da movimentação")
+    reason: str = Field(
+        ..., min_length=3, max_length=255, description="Motivo da movimentação de custódia"
+    )
+    temperature_at_movement: float | None = Field(
+        None, description="Temperatura conferida no ato da movimentação"
+    )
     notes: str | None = None
 
 
@@ -115,7 +121,9 @@ class SampleRetentionCreate(BaseModel):
     retain_until: date = Field(..., description="Data limite legal de retenção da contraprova")
     quantity_retained: float = Field(..., gt=0, description="Quantidade física retida")
     unit: str = Field("un", max_length=16)
-    seal_number: str = Field(..., min_length=3, max_length=64, description="Número do lacre inviolável")
+    seal_number: str = Field(
+        ..., min_length=3, max_length=64, description="Número do lacre inviolável"
+    )
     notes: str | None = None
 
 
@@ -153,13 +161,23 @@ class SampleRetentionOut(BaseModel):
 class SampleDisposalCreate(BaseModel):
     sample_id: UUID
     disposal_method: DisposalMethod
-    primary_esign_token: str = Field(..., description="Token de assinatura eletrônica do executor (21 CFR Part 11)")
+    primary_esign_token: str = Field(
+        ..., description="Token de assinatura eletrônica do executor (21 CFR Part 11)"
+    )
     witness_id: UUID = Field(..., description="ID da testemunha/fiscal da qualidade")
-    witness_esign_token: str = Field(..., description="Token de assinatura eletrônica da testemunha (21 CFR Part 11)")
-    environmental_license_number: str | None = Field(None, description="Licença ambiental da empresa de destinação")
-    waste_company_name: str | None = Field(None, description="Empresa especializada em incineração/destinação")
+    witness_esign_token: str = Field(
+        ..., description="Token de assinatura eletrônica da testemunha (21 CFR Part 11)"
+    )
+    environmental_license_number: str | None = Field(
+        None, description="Licença ambiental da empresa de destinação"
+    )
+    waste_company_name: str | None = Field(
+        None, description="Empresa especializada em incineração/destinação"
+    )
     notes: str | None = None
-    force_legal_override: bool = Field(False, description="Autorização excepcional para contraprova não expirada")
+    force_legal_override: bool = Field(
+        False, description="Autorização excepcional para contraprova não expirada"
+    )
 
 
 class SampleDisposalOut(BaseModel):

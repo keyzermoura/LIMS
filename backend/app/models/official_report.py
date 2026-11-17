@@ -38,9 +38,7 @@ class OfficialReport(
 
     __tablename__ = "official_reports"
 
-    report_number: Mapped[str] = mapped_column(
-        String(64), unique=True, nullable=False, index=True
-    )
+    report_number: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     solicitation_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("solicitations.id", ondelete="SET NULL"), index=True
     )
@@ -48,9 +46,7 @@ class OfficialReport(
         ForeignKey("device_samples.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
-    conclusion: Mapped[TestOutcome] = mapped_column(
-        test_outcome_type, nullable=False, index=True
-    )
+    conclusion: Mapped[TestOutcome] = mapped_column(test_outcome_type, nullable=False, index=True)
     summary: Mapped[str | None] = mapped_column(Text)
     sha256_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     pdf_data: Mapped[bytes | None] = mapped_column(LargeBinary)
@@ -81,16 +77,12 @@ class OfficialReport(
     signature_id: Mapped[UUID] = mapped_column(
         ForeignKey("electronic_signatures.id", ondelete="RESTRICT"), nullable=False
     )
-    auth_token: Mapped[str] = mapped_column(
-        String(64), unique=True, nullable=False, index=True
-    )
+    auth_token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
 
     # Relacionamentos
     solicitation: Mapped[Solicitation | None] = relationship("Solicitation", lazy="selectin")
     device_sample: Mapped[DeviceSample] = relationship("DeviceSample", lazy="selectin")
-    issued_by: Mapped[User] = relationship(
-        "User", foreign_keys=[issued_by_id], lazy="selectin"
-    )
+    issued_by: Mapped[User] = relationship("User", foreign_keys=[issued_by_id], lazy="selectin")
     signature: Mapped[ElectronicSignature] = relationship(
         "ElectronicSignature", foreign_keys=[signature_id], lazy="selectin"
     )

@@ -48,9 +48,7 @@ async def list_capas(
     items, total = await capa_service.list_capas(
         db, status=capa_status, source_type=source_type, sample_id=sample_id, page=page, size=size
     )
-    return Page[CapaOut].build(
-        [CapaOut.model_validate(item) for item in items], total, page, size
-    )
+    return Page[CapaOut].build([CapaOut.model_validate(item) for item in items], total, page, size)
 
 
 @router.post(

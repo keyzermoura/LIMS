@@ -31,9 +31,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class TestReview(
-    UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base
-):
+class TestReview(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base):
     """Parecer e revisão técnica independente da coordenação sobre ensaio analítico."""
 
     __tablename__ = "test_reviews"
@@ -68,9 +66,7 @@ class TestReview(
 
     # Relacionamentos
     lab_test: Mapped[LabTest] = relationship("LabTest", back_populates="reviews")
-    reviewed_by: Mapped[User] = relationship(
-        "User", foreign_keys=[reviewed_by_id], lazy="selectin"
-    )
+    reviewed_by: Mapped[User] = relationship("User", foreign_keys=[reviewed_by_id], lazy="selectin")
     signature: Mapped[ElectronicSignature | None] = relationship(
         "ElectronicSignature", foreign_keys=[signature_id], lazy="selectin"
     )

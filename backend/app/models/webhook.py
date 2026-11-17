@@ -24,9 +24,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class WebhookSubscription(
-    UUIDPrimaryKeyMixin, TimestampMixin, JsonMetadataMixin, Base
-):
+class WebhookSubscription(UUIDPrimaryKeyMixin, TimestampMixin, JsonMetadataMixin, Base):
     """Ponto de integração de saída (Webhook Endpoint) configurado para envio de eventos."""
 
     __tablename__ = "webhook_subscriptions"
@@ -77,9 +75,7 @@ class WebhookDelivery(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     attempt_count: Mapped[int] = mapped_column(
         Integer, default=0, server_default="0", nullable=False
     )
-    delivered_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     subscription: Mapped[WebhookSubscription] = relationship(
         "WebhookSubscription", back_populates="deliveries"

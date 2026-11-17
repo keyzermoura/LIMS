@@ -129,15 +129,11 @@ async def append(
     # Serializa a geração da cadeia dentro da transação corrente. O SQLite
     # (somente testes) serializa escritas por natureza e não tem advisory lock.
     if is_postgres(db):
-        await db.execute(
-            text("SELECT pg_advisory_xact_lock(:key)"), {"key": AUDIT_LOCK_KEY}
-        )
+        await db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": AUDIT_LOCK_KEY})
 
     last = (
         await db.execute(
-            select(AuditLog.sequence, AuditLog.hash)
-            .order_by(AuditLog.sequence.desc())
-            .limit(1)
+            select(AuditLog.sequence, AuditLog.hash).order_by(AuditLog.sequence.desc()).limit(1)
         )
     ).first()
     sequence = (last.sequence if last else 0) + 1
@@ -262,9 +258,7 @@ async def verify_chain(db: AsyncSession, *, from_sequence: int = 1) -> dict[str,
                     "detail": "Encadeamento com o registro anterior foi rompido.",
                 }
             )
-        recomputed = sha256_hex(
-            f"{row.sequence}:{row.prev_hash}:{canonical_json(row.payload)}"
-        )
+        recomputed = sha256_hex(f"{row.sequence}:{row.prev_hash}:{canonical_json(row.payload)}")
         if recomputed != row.hash:
             issues.append(
                 {

@@ -148,7 +148,9 @@ async def test_qc_run_creation_and_levey_jennings_chart_api(
     resolve_payload = {
         "corrective_notes": "Recalibração do detector UV realizada e linha purgada com fase móvel nova.",
     }
-    res_resolve = await client.post(f"{API}/spc/runs/{run2_id}/resolve", json=resolve_payload, headers=headers)
+    res_resolve = await client.post(
+        f"{API}/spc/runs/{run2_id}/resolve", json=resolve_payload, headers=headers
+    )
     assert res_resolve.status_code == 200
     assert res_resolve.json()["is_active_violation"] is False
 
@@ -214,7 +216,9 @@ async def test_report_generation_interlocked_by_active_westgard_violation(
             db,
             payload=cqi_payload,
             actor=user_tecnico,
-            context=RequestContext(ip_address="127.0.0.1", user_agent="pytest", request_id="req-spc-1"),
+            context=RequestContext(
+                ip_address="127.0.0.1", user_agent="pytest", request_id="req-spc-1"
+            ),
         )
         assert cqi_run.is_active_violation is True
 
@@ -230,7 +234,9 @@ async def test_report_generation_interlocked_by_active_westgard_violation(
                 payload=report_in,
                 issuer=user_tecnico,
                 signature_token=None,
-                context=RequestContext(ip_address="127.0.0.1", user_agent="pytest", request_id="req-spc-2"),
+                context=RequestContext(
+                    ip_address="127.0.0.1", user_agent="pytest", request_id="req-spc-2"
+                ),
             )
         assert "CEP/Westgard" in str(exc_info.value)
         assert "ISO/IEC 17025 §7.7.1" in str(exc_info.value)
@@ -243,10 +249,14 @@ async def test_report_generation_interlocked_by_active_westgard_violation(
                 corrective_notes="Investigação concluída. Pipetador descalibrado substituído e lote re-validado."
             ),
             actor=user_tecnico,
-            context=RequestContext(ip_address="127.0.0.1", user_agent="pytest", request_id="req-spc-3"),
+            context=RequestContext(
+                ip_address="127.0.0.1", user_agent="pytest", request_id="req-spc-3"
+            ),
         )
 
         # 4. Agora a checagem de intertravamento do método deve retornar livre (False)
-        is_blocked, block_msg = await qc_spc_service.check_method_has_active_violation(db, method.id)
+        is_blocked, block_msg = await qc_spc_service.check_method_has_active_violation(
+            db, method.id
+        )
         assert is_blocked is False
         assert block_msg is None

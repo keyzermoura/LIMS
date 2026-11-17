@@ -65,14 +65,10 @@ class SlidingWindowLimiter:
             if len(events) >= limit:
                 # Segundos até a requisição mais antiga sair da janela.
                 retry_after = max(1, math.ceil(events[0] + window_seconds - current))
-                return RateLimitDecision(
-                    allowed=False, retry_after=retry_after, remaining=0
-                )
+                return RateLimitDecision(allowed=False, retry_after=retry_after, remaining=0)
 
             events.append(current)
-            return RateLimitDecision(
-                allowed=True, retry_after=0, remaining=limit - len(events)
-            )
+            return RateLimitDecision(allowed=True, retry_after=0, remaining=limit - len(events))
 
     def reset(self) -> None:
         """Zera todos os contadores (usado entre testes)."""

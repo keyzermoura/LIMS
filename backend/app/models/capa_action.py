@@ -33,9 +33,7 @@ from app.models.types import (
 )
 
 
-class CapaAction(
-    UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base
-):
+class CapaAction(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base):
     __tablename__ = "capa_actions"
     __table_args__ = (
         CheckConstraint(
@@ -84,9 +82,7 @@ class CapaAction(
     created_by_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
-    closed_by_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT")
-    )
+    closed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     signature_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("electronic_signatures.id", ondelete="RESTRICT")
     )
@@ -102,9 +98,7 @@ class CapaAction(
     effectiveness_evaluator_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT")
     )
-    effectiveness_evaluated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    effectiveness_evaluated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     recurrence_detected: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )

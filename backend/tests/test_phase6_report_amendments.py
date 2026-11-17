@@ -109,7 +109,9 @@ async def test_generate_report_creates_valid_pdf_and_sha256(
     fisc_token = (await login(client, "fiscal", fisc["password"]))["access_token"]
     sample_id, test_id = await create_sample_and_test(db_factory, fisc["id"])
 
-    sig_token = await get_signature_token(client, fisc_token, fisc["password"], str(sample_id), "DeviceSample")
+    sig_token = await get_signature_token(
+        client, fisc_token, fisc["password"], str(sample_id), "DeviceSample"
+    )
 
     res = await client.post(
         f"{API}/reports/official",
@@ -156,7 +158,9 @@ async def test_amend_report_lifecycle_and_immutability(
     sample_id, test_id = await create_sample_and_test(db_factory, fisc["id"])
 
     # 1. Emite Laudo Original V1
-    sig_v1 = await get_signature_token(client, fisc_token, fisc["password"], str(sample_id), "DeviceSample")
+    sig_v1 = await get_signature_token(
+        client, fisc_token, fisc["password"], str(sample_id), "DeviceSample"
+    )
     res_v1 = await client.post(
         f"{API}/reports/official",
         headers={**auth(fisc_token), "X-Signature-Token": sig_v1},
@@ -173,7 +177,9 @@ async def test_amend_report_lifecycle_and_immutability(
     v1_num = v1_data["report_number"]
 
     # 2. Emite Emenda Retificadora V2
-    sig_v2 = await get_signature_token(client, fisc_token, fisc["password"], str(v1_id), "OfficialReport")
+    sig_v2 = await get_signature_token(
+        client, fisc_token, fisc["password"], str(v1_id), "OfficialReport"
+    )
     res_v2 = await client.post(
         f"{API}/reports/official/{v1_id}/amend",
         headers={**auth(fisc_token), "X-Signature-Token": sig_v2},
@@ -213,7 +219,9 @@ async def test_amend_report_validation_rules(
     fisc_token = (await login(client, "fiscal", fisc["password"]))["access_token"]
     sample_id, test_id = await create_sample_and_test(db_factory, fisc["id"])
 
-    sig_v1 = await get_signature_token(client, fisc_token, fisc["password"], str(sample_id), "DeviceSample")
+    sig_v1 = await get_signature_token(
+        client, fisc_token, fisc["password"], str(sample_id), "DeviceSample"
+    )
     res_v1 = await client.post(
         f"{API}/reports/official",
         headers={**auth(fisc_token), "X-Signature-Token": sig_v1},
@@ -222,7 +230,9 @@ async def test_amend_report_validation_rules(
     v1_id = res_v1.json()["id"]
 
     # Tentativa com justificativa < 10 caracteres falha no schema Pydantic (min_length=10)
-    sig_v2 = await get_signature_token(client, fisc_token, fisc["password"], str(v1_id), "OfficialReport")
+    sig_v2 = await get_signature_token(
+        client, fisc_token, fisc["password"], str(v1_id), "OfficialReport"
+    )
     res_short = await client.post(
         f"{API}/reports/official/{v1_id}/amend",
         headers={**auth(fisc_token), "X-Signature-Token": sig_v2},
@@ -239,7 +249,9 @@ async def test_amend_report_validation_rules(
     assert res_v2.status_code == 200
 
     # Tentativa de emendar novamente o V1 (que agora está superado) é rejeitada
-    sig_fail = await get_signature_token(client, fisc_token, fisc["password"], str(v1_id), "OfficialReport")
+    sig_fail = await get_signature_token(
+        client, fisc_token, fisc["password"], str(v1_id), "OfficialReport"
+    )
     res_superseded = await client.post(
         f"{API}/reports/official/{v1_id}/amend",
         headers={**auth(fisc_token), "X-Signature-Token": sig_fail},
@@ -260,7 +272,9 @@ async def test_public_verification_displays_version_and_superseded_alert(
     fisc_token = (await login(client, "fiscal", fisc["password"]))["access_token"]
     sample_id, test_id = await create_sample_and_test(db_factory, fisc["id"])
 
-    sig_v1 = await get_signature_token(client, fisc_token, fisc["password"], str(sample_id), "DeviceSample")
+    sig_v1 = await get_signature_token(
+        client, fisc_token, fisc["password"], str(sample_id), "DeviceSample"
+    )
     res_v1 = await client.post(
         f"{API}/reports/official",
         headers={**auth(fisc_token), "X-Signature-Token": sig_v1},
@@ -269,7 +283,9 @@ async def test_public_verification_displays_version_and_superseded_alert(
     v1_data = res_v1.json()
 
     # Emite V2
-    sig_v2 = await get_signature_token(client, fisc_token, fisc["password"], str(v1_data["id"]), "OfficialReport")
+    sig_v2 = await get_signature_token(
+        client, fisc_token, fisc["password"], str(v1_data["id"]), "OfficialReport"
+    )
     res_v2 = await client.post(
         f"{API}/reports/official/{v1_data['id']}/amend",
         headers={**auth(fisc_token), "X-Signature-Token": sig_v2},

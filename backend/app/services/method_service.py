@@ -25,9 +25,7 @@ async def get_method(db: AsyncSession, method_id: UUID) -> TestMethod:
 
 
 async def get_method_by_code(db: AsyncSession, code: str) -> TestMethod | None:
-    return await db.scalar(
-        select(TestMethod).where(TestMethod.code == code.strip())
-    )
+    return await db.scalar(select(TestMethod).where(TestMethod.code == code.strip()))
 
 
 async def list_methods(
@@ -173,7 +171,11 @@ async def ensure_standard_methods(
             default_lower_limit=Decimal("0.5"),
             default_upper_limit=Decimal("2.0"),
             default_acceptance_criteria="O invólucro não deve apresentar trincas após impactos de 0.5 J.",
-            parameters_schema={"energia_impacto_j": 0.5, "numero_golpes": 3, "massa_martelo_kg": 0.25},
+            parameters_schema={
+                "energia_impacto_j": 0.5,
+                "numero_golpes": 3,
+                "massa_martelo_kg": 0.25,
+            },
         ),
     ]
 

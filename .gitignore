@@ -26,6 +26,7 @@ dist-ssr/
 # Editores e sistema
 .vscode/
 .idea/
+.opencode/
 .DS_Store
 Thumbs.db
 *.log

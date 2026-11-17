@@ -167,9 +167,9 @@ def _evaluate_conformity(
     out_of_spec = (lower_limit is not None and measured_value < lower_limit) or (
         upper_limit is not None and measured_value > upper_limit
     )
-    within_guard_acceptance = (
-        lower_acc is None or measured_value >= lower_acc
-    ) and (upper_acc is None or measured_value <= upper_acc)
+    within_guard_acceptance = (lower_acc is None or measured_value >= lower_acc) and (
+        upper_acc is None or measured_value <= upper_acc
+    )
 
     if decision_rule == DecisionRuleType.SIMPLE_ACCEPTANCE:
         if out_of_spec:
@@ -250,9 +250,7 @@ def _evaluate_conformity(
 
     within_outer_guard = (
         lower_limit is None or measured_value >= (lower_limit - guard_band_width)
-    ) and (
-        upper_limit is None or measured_value <= (upper_limit + guard_band_width)
-    )
+    ) and (upper_limit is None or measured_value <= (upper_limit + guard_band_width))
     if within_outer_guard:
         return (
             lower_acc,
@@ -573,11 +571,23 @@ async def create_uncertainty_budget(
             ip_address="127.0.0.1", user_agent="LIMS-Internal", request_id="internal"
         )
         if lab_test is not None:
-            target_entity, target_id, target_action = "LabTest", str(lab_test.id), SignatureAction.UPDATE
+            target_entity, target_id, target_action = (
+                "LabTest",
+                str(lab_test.id),
+                SignatureAction.UPDATE,
+            )
         elif method_id is not None:
-            target_entity, target_id, target_action = "TestMethod", str(method_id), SignatureAction.UPDATE
+            target_entity, target_id, target_action = (
+                "TestMethod",
+                str(method_id),
+                SignatureAction.UPDATE,
+            )
         else:
-            target_entity, target_id, target_action = "UncertaintyBudget", str(actor.id), SignatureAction.CREATE
+            target_entity, target_id, target_action = (
+                "UncertaintyBudget",
+                str(actor.id),
+                SignatureAction.CREATE,
+            )
 
         sig_record = await signature_service.consume(
             db,
@@ -653,7 +663,8 @@ async def create_uncertainty_budget(
     )
 
     if (
-        calc.conformity_status in (ConformityStatus.NAO_CONFORME, ConformityStatus.NAO_CONFORME_CONDICIONAL)
+        calc.conformity_status
+        in (ConformityStatus.NAO_CONFORME, ConformityStatus.NAO_CONFORME_CONDICIONAL)
         and payload.lab_test_id is not None
     ):
         from app.models.capa_action import CapaAction
@@ -667,8 +678,12 @@ async def create_uncertainty_budget(
             )
         )
         if existing_capa is None:
-            ctx = context or RequestContext(ip_address="127.0.0.1", user_agent="LIMS-Internal", request_id="internal")
-            await capa_service.open_capa_from_uncertainty(db, budget=budget, actor=actor, context=ctx)
+            ctx = context or RequestContext(
+                ip_address="127.0.0.1", user_agent="LIMS-Internal", request_id="internal"
+            )
+            await capa_service.open_capa_from_uncertainty(
+                db, budget=budget, actor=actor, context=ctx
+            )
 
     await db.commit()
     await db.refresh(

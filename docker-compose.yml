@@ -23,6 +23,9 @@ x-backend-env: &backend-env
   AUDIT_EXPORT_MAX_RECORDS: ${AUDIT_EXPORT_MAX_RECORDS:-50000}
   AUDIT_EXPORT_MAX_BYTES: ${AUDIT_EXPORT_MAX_BYTES:-26214400}
   CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+  TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY:-dev-insecure-totp-key-change-me-32bytes}
+  DOCS_ENABLED: ${DOCS_ENABLED:-true}
+  OUTBOX_WORKER_ENABLED: ${OUTBOX_WORKER_ENABLED:-true}
   DB_POOL_SIZE: "5"
   DB_MAX_OVERFLOW: "10"
 
@@ -79,6 +82,7 @@ services:
         condition: service_healthy
     ports:
       - "${WEB_PORT:-8080}:80"
+      - "${WEB_SSL_PORT:-8443}:443"
     restart: unless-stopped
 
   # Seed de demonstração. Execução única:

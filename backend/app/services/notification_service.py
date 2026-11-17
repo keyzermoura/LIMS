@@ -37,9 +37,7 @@ from app.schemas.notification import (
 )
 
 
-async def create_notification(
-    db: AsyncSession, payload: NotificationCreateIn
-) -> Notification:
+async def create_notification(db: AsyncSession, payload: NotificationCreateIn) -> Notification:
     """Cria e persiste uma nova notificação."""
     notification = Notification(
         user_id=payload.user_id,
@@ -94,7 +92,8 @@ async def get_notification_summary(
     )
 
     unread_stmt = select(func.count(Notification.id)).where(
-        base_filter, Notification.is_read == False  # noqa: E712
+        base_filter,
+        Notification.is_read == False,  # noqa: E712
     )
     total_unread = (await db.scalar(unread_stmt)) or 0
 
@@ -127,9 +126,7 @@ async def get_notification_summary(
     )
 
 
-async def mark_as_read(
-    db: AsyncSession, notification_id: UUID, user_id: UUID
-) -> Notification:
+async def mark_as_read(db: AsyncSession, notification_id: UUID, user_id: UUID) -> Notification:
     """Marca uma notificação individual como lida."""
     notification = await db.get(Notification, notification_id)
     if not notification:
@@ -142,9 +139,7 @@ async def mark_as_read(
     return notification
 
 
-async def mark_all_as_read(
-    db: AsyncSession, user_id: UUID, role: UserRole
-) -> int:
+async def mark_all_as_read(db: AsyncSession, user_id: UUID, role: UserRole) -> int:
     """Marca todas as notificações visíveis do usuário como lidas."""
     now = datetime.now(UTC)
     stmt = (
@@ -193,9 +188,8 @@ async def check_and_generate_system_alerts(db: AsyncSession) -> AlertCheckResult
     for eq in equipments:
         calib_date = eq.calibration_due_date.date() if eq.calibration_due_date else None
         # Vencido
-        if (
-            eq.calibration_status == EquipmentCalibrationStatus.VENCIDO
-            or (calib_date and calib_date < today)
+        if eq.calibration_status == EquipmentCalibrationStatus.VENCIDO or (
+            calib_date and calib_date < today
         ):
             title = f"Calibração Vencida: {eq.code}"
             if not await _alert_already_emitted_recently(db, title):
@@ -212,10 +206,7 @@ async def check_and_generate_system_alerts(db: AsyncSession) -> AlertCheckResult
                 )
                 alerts_created.append(title)
         # Vencendo em até 15 dias
-        elif (
-            calib_date
-            and today <= calib_date <= today + timedelta(days=15)
-        ):
+        elif calib_date and today <= calib_date <= today + timedelta(days=15):
             days_left = (calib_date - today).days
             title = f"Calibração Próxima do Vencimento: {eq.code}"
             if not await _alert_already_emitted_recently(db, title):

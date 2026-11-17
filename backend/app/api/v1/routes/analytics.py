@@ -33,7 +33,9 @@ async def get_operational_metrics(
 async def get_quality_control_chart(
     db: DbSession,
     _: CurrentUser,
-    method_id: Annotated[UUID | None, Query(description="Filtrar por método analítico específico")] = None,
+    method_id: Annotated[
+        UUID | None, Query(description="Filtrar por método analítico específico")
+    ] = None,
 ) -> QualityControlAnalyticsOut:
     """Retorna dados de controle estatístico (Cartas de Shewhart e Regras de Westgard)."""
     return await analytics_service.get_quality_control_analytics(db, method_id=method_id)

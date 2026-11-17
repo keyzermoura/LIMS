@@ -16,13 +16,23 @@ from app.models.enums import NotificationCategory, NotificationSeverity, UserRol
 class NotificationCreateIn(BaseModel):
     """Payload para emissão de notificação manual ou programada."""
 
-    user_id: UUID | None = Field(None, description="Destinatário individual. Se nulo, direciona por perfil.")
-    target_role: UserRole | None = Field(None, description="Perfil destinatário (ex.: TECNICO, FISCAL, ADMIN).")
+    user_id: UUID | None = Field(
+        None, description="Destinatário individual. Se nulo, direciona por perfil."
+    )
+    target_role: UserRole | None = Field(
+        None, description="Perfil destinatário (ex.: TECNICO, FISCAL, ADMIN)."
+    )
     title: str = Field(..., max_length=160, description="Título conciso do alerta.")
     message: str = Field(..., description="Corpo detalhado da notificação.")
-    severity: NotificationSeverity = Field(NotificationSeverity.INFO, description="Severidade do alerta.")
-    category: NotificationCategory = Field(NotificationCategory.SYSTEM, description="Categoria do evento.")
-    link_url: str | None = Field(None, max_length=255, description="Link de navegação direta para o recurso afetado.")
+    severity: NotificationSeverity = Field(
+        NotificationSeverity.INFO, description="Severidade do alerta."
+    )
+    category: NotificationCategory = Field(
+        NotificationCategory.SYSTEM, description="Categoria do evento."
+    )
+    link_url: str | None = Field(
+        None, max_length=255, description="Link de navegação direta para o recurso afetado."
+    )
 
 
 class NotificationOut(BaseModel):
@@ -55,5 +65,9 @@ class NotificationSummary(BaseModel):
 class AlertCheckResult(BaseModel):
     """Resultado da rotina de varredura proativa de desvios do laboratório."""
 
-    alerts_generated: int = Field(0, description="Quantidade de novos alertas emitidos nesta varredura.")
-    details: list[str] = Field(default_factory=list, description="Resumo dos desvios identificados.")
+    alerts_generated: int = Field(
+        0, description="Quantidade de novos alertas emitidos nesta varredura."
+    )
+    details: list[str] = Field(
+        default_factory=list, description="Resumo dos desvios identificados."
+    )

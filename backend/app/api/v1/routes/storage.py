@@ -31,6 +31,7 @@ router = APIRouter(prefix="/storage", tags=["Cadeia Física, Contraprova e Desca
 # Dashboard / Resumo
 # ---------------------------------------------------------------------------
 
+
 @router.get(
     "/summary",
     response_model=StorageDashboardSummary,
@@ -46,6 +47,7 @@ async def get_storage_summary(
 # ---------------------------------------------------------------------------
 # Locais Físicos de Armazenamento (StorageLocation)
 # ---------------------------------------------------------------------------
+
 
 @router.post(
     "/locations",
@@ -142,12 +144,17 @@ async def update_storage_location(
 # Movimentações Físicas (SampleStorageMovement)
 # ---------------------------------------------------------------------------
 
+
 @router.post(
     "/movements",
     response_model=SampleStorageMovementOut,
     status_code=status.HTTP_201_CREATED,
     summary="Registrar movimentação física de amostra entre locais de custódia",
-    dependencies=[Depends(require_roles(UserRole.ADMIN, UserRole.TECNICO, UserRole.CUSTODIANTE, UserRole.FISCAL))],
+    dependencies=[
+        Depends(
+            require_roles(UserRole.ADMIN, UserRole.TECNICO, UserRole.CUSTODIANTE, UserRole.FISCAL)
+        )
+    ],
 )
 async def create_sample_movement(
     payload: SampleStorageMovementCreate,
@@ -182,12 +189,17 @@ async def list_sample_movements(
 # Contraprova Pericial (SampleRetention - ISO 17025 §7.4)
 # ---------------------------------------------------------------------------
 
+
 @router.post(
     "/retentions",
     response_model=SampleRetentionOut,
     status_code=status.HTTP_201_CREATED,
     summary="Instituir guarda de contraprova pericial sob lacre inviolável",
-    dependencies=[Depends(require_roles(UserRole.ADMIN, UserRole.TECNICO, UserRole.CUSTODIANTE, UserRole.FISCAL))],
+    dependencies=[
+        Depends(
+            require_roles(UserRole.ADMIN, UserRole.TECNICO, UserRole.CUSTODIANTE, UserRole.FISCAL)
+        )
+    ],
 )
 async def create_sample_retention(
     payload: SampleRetentionCreate,
@@ -212,7 +224,9 @@ async def create_sample_retention(
 async def list_sample_retentions(
     db: DbSession,
     user: CurrentUser,
-    status_filter: RetentionStatus | None = Query(None, alias="status", description="Filtrar por status"),
+    status_filter: RetentionStatus | None = Query(
+        None, alias="status", description="Filtrar por status"
+    ),
     location_id: UUID | None = Query(None, description="Filtrar por local físico"),
 ) -> list[SampleRetentionOut]:
     retentions = await storage_disposal_service.list_retentions(
@@ -239,7 +253,11 @@ async def get_sample_retention(
     "/retentions/{retention_id}",
     response_model=SampleRetentionOut,
     summary="Atualizar contraprova (extensão de prazo de guarda legal ou atualização de lacre)",
-    dependencies=[Depends(require_roles(UserRole.ADMIN, UserRole.TECNICO, UserRole.CUSTODIANTE, UserRole.FISCAL))],
+    dependencies=[
+        Depends(
+            require_roles(UserRole.ADMIN, UserRole.TECNICO, UserRole.CUSTODIANTE, UserRole.FISCAL)
+        )
+    ],
 )
 async def update_sample_retention(
     retention_id: UUID,
@@ -261,6 +279,7 @@ async def update_sample_retention(
 # ---------------------------------------------------------------------------
 # Descarte Irreversível com Dupla Assinatura (21 CFR Part 11)
 # ---------------------------------------------------------------------------
+
 
 @router.post(
     "/disposal",

@@ -107,7 +107,11 @@ async def test_mfa_enable_and_disable_lifecycle(
         user = await db.get(User, user_id)
         assert user is not None
         assert user.mfa_enabled is True
-        assert user.mfa_secret == secret
+        assert user.mfa_secret != secret  # Cifrado em repouso no banco (Gate G-B)
+        assert user.mfa_secret.startswith("enc:v1:")
+        from app.services.mfa_service import decrypt_totp_secret
+
+        assert decrypt_totp_secret(user.mfa_secret) == secret
         assert len(user.mfa_recovery_codes or []) == 8
 
     # 5. Desativar MFA com senha e código TOTP
@@ -171,7 +175,9 @@ async def test_esignature_enforces_mfa_when_enabled(
 
     # 4. Assinatura com totp_code correto (6 dígitos) tem sucesso
     good_mfa_payload = {**sign_payload, "totp_code": totp.now()}
-    good_mfa_resp = await client.post(f"{API}/auth/sign", headers=auth(token), json=good_mfa_payload)
+    good_mfa_resp = await client.post(
+        f"{API}/auth/sign", headers=auth(token), json=good_mfa_payload
+    )
     assert good_mfa_resp.status_code == 200
     manifest = good_mfa_resp.json()["manifest"]
     assert manifest["method"] == "PASSWORD+MFA_TOTP"
@@ -200,3 +206,75 @@ async def test_esignature_enforces_mfa_when_enabled(
         user = await db.get(User, user_id)
         assert user is not None
         assert len(user.mfa_recovery_codes or []) == 7
+
+
+@pytest.mark.asyncio
+async def test_login_mfa_challenge_and_verification_flow(
+    client: AsyncClient,
+    users: dict[str, dict[str, Any]],
+) -> None:
+    """Valida o fluxo completo de login com desafio MFA TOTP (Gate G-B)."""
+    # 1. Login inicial para ativar MFA
+    login_data = await login(client, "fiscal", "Fiscal@Lims2026")
+    token = login_data["access_token"]
+
+    secret = pyotp.random_base32()
+    totp = pyotp.TOTP(secret)
+    enable_resp = await client.post(
+        f"{API}/auth/mfa/enable",
+        headers=auth(token),
+        json={"secret": secret, "code": totp.now(), "password": "Fiscal@Lims2026"},
+    )
+    assert enable_resp.status_code == 200
+    recovery_codes = enable_resp.json()["recovery_codes"]
+
+    # 2. Novo login interativo deve emitir mfa_required=True com mfa_token
+    login_resp = await client.post(
+        f"{API}/auth/login",
+        data={"username": "fiscal", "password": "Fiscal@Lims2026"},
+    )
+    assert login_resp.status_code == 200
+    challenge = login_resp.json()
+    assert challenge["mfa_required"] is True
+    assert challenge["access_token"] == ""
+    assert "mfa_token" in challenge
+    mfa_token = challenge["mfa_token"]
+
+    # 3. Tentar validar com código TOTP incorreto
+    bad_verify = await client.post(
+        f"{API}/auth/login/mfa-verify",
+        json={"mfa_token": mfa_token, "code": "000000"},
+    )
+    assert bad_verify.status_code == 400
+    assert "inválido" in bad_verify.json()["detail"].lower()
+
+    # 4. Validar com código TOTP correto
+    good_verify = await client.post(
+        f"{API}/auth/login/mfa-verify",
+        json={"mfa_token": mfa_token, "code": totp.now()},
+    )
+    assert good_verify.status_code == 200
+    session_data = good_verify.json()
+    assert session_data["mfa_required"] is False
+    assert session_data["access_token"] != ""
+    assert session_data["refresh_token"] != ""
+    assert session_data["user"]["username"] == "fiscal"
+
+    # 5. Fazer nova requisição autenticada usando a sessão obtida
+    me_resp = await client.get(f"{API}/auth/me", headers=auth(session_data["access_token"]))
+    assert me_resp.status_code == 200
+    assert me_resp.json()["username"] == "fiscal"
+
+    # 6. Testar validação usando Recovery Code no login
+    login_resp2 = await client.post(
+        f"{API}/auth/login",
+        data={"username": "fiscal", "password": "Fiscal@Lims2026"},
+    )
+    mfa_token2 = login_resp2.json()["mfa_token"]
+
+    recovery_verify = await client.post(
+        f"{API}/auth/login/mfa-verify",
+        json={"mfa_token": mfa_token2, "code": recovery_codes[0]},
+    )
+    assert recovery_verify.status_code == 200
+    assert recovery_verify.json()["access_token"] != ""

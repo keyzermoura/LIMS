@@ -84,7 +84,9 @@ export interface TokenPair {
   refresh_token: string;
   token_type: string;
   expires_in: number;
-  user: Me;
+  user?: Me;
+  mfa_required?: boolean;
+  mfa_token?: string;
 }
 
 export interface Page<T> {
@@ -1691,6 +1693,69 @@ export interface LeveyJenningsChartData {
   total_runs: number;
   active_rejections: number;
   active_warnings: number;
+}
+
+// ---------------------------------------------------------------------------
+// Integrações M2M & Ecossistema (Horizonte 3 / Fase 8)
+// ---------------------------------------------------------------------------
+
+export interface ServiceClient {
+  id: string;
+  client_id: string;
+  name: string;
+  scopes: string[];
+  service_user_id: string;
+  is_active: boolean;
+  expires_at: string;
+  last_used_at: string | null;
+  created_at: string;
+  ip_allowlist?: string[] | null;
+}
+
+export interface ServiceClientCreatePayload {
+  name: string;
+  scopes: string[];
+  expires_in_days: number;
+  ip_allowlist?: string[];
+  service_username?: string;
+}
+
+export interface ServiceClientCreated {
+  id: string;
+  client_id: string;
+  client_secret: string;
+  name: string;
+  scopes: string[];
+  expires_at: string;
+  service_user_id: string;
+}
+
+export interface OutboxEvent {
+  id: string;
+  event_name: string;
+  aggregate_type: string;
+  aggregate_id: string;
+  payload: Record<string, unknown>;
+  delivery_id: string;
+  status: "PENDING" | "DISPATCHED" | "DEAD_LETTER";
+  retry_count: number;
+  max_retries: number;
+  last_error?: string | null;
+  created_at: string;
+  dispatched_at?: string | null;
+}
+
+export interface InstrumentProfile {
+  profile_id: string;
+  name: string;
+  version: number;
+  manufacturer: string;
+  format: "csv" | "txt" | "astm" | "json";
+  delimiter?: string;
+  decimal_separator?: string;
+  columns?: Record<string, string>;
+  units?: Record<string, string>;
+  description?: string;
 }
 
 

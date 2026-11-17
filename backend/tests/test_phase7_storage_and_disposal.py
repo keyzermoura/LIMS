@@ -58,7 +58,9 @@ async def test_storage_location_management_and_constraints(
         "temperature_max_celsius": -86.0,  # min > max!
         "capacity_units": 50,
     }
-    res_inv = await client.post(f"{API}/storage/locations", json=invalid_payload, headers=headers_tecnico)
+    res_inv = await client.post(
+        f"{API}/storage/locations", json=invalid_payload, headers=headers_tecnico
+    )
     assert res_inv.status_code == 422
 
     # 2. Cadastro válido de Ultra Freezer -80ºC
@@ -74,7 +76,9 @@ async def test_storage_location_management_and_constraints(
         "capacity_units": 100,
         "metadata": {"rack_count": 4, "boxes_per_rack": 16},
     }
-    res_frz = await client.post(f"{API}/storage/locations", json=valid_freezer, headers=headers_tecnico)
+    res_frz = await client.post(
+        f"{API}/storage/locations", json=valid_freezer, headers=headers_tecnico
+    )
     assert res_frz.status_code == 201, res_frz.text
     frz_data = res_frz.json()
     assert frz_data["code"] == valid_freezer["code"]
@@ -114,7 +118,9 @@ async def test_sample_movement_and_thermal_excursion_alert(
         "temperature_max_celsius": 8.0,
         "capacity_units": 20,
     }
-    res_loc = await client.post(f"{API}/storage/locations", json=loc_payload, headers=headers_tecnico)
+    res_loc = await client.post(
+        f"{API}/storage/locations", json=loc_payload, headers=headers_tecnico
+    )
     assert res_loc.status_code == 201
     loc_id = res_loc.json()["id"]
 
@@ -143,7 +149,9 @@ async def test_sample_movement_and_thermal_excursion_alert(
         "reason": "Entrada na câmara refrigerada após recepção e triagem",
         "temperature_at_movement": 4.5,
     }
-    res_mov1 = await client.post(f"{API}/storage/movements", json=mov1_payload, headers=headers_tecnico)
+    res_mov1 = await client.post(
+        f"{API}/storage/movements", json=mov1_payload, headers=headers_tecnico
+    )
     assert res_mov1.status_code == 201
     assert "EXCURSÃO TÉRMICA" not in (res_mov1.json()["notes"] or "")
 
@@ -155,7 +163,9 @@ async def test_sample_movement_and_thermal_excursion_alert(
         "temperature_at_movement": 12.5,
         "notes": "Amostra permaneceu na bancada por tempo prolongado.",
     }
-    res_mov2 = await client.post(f"{API}/storage/movements", json=mov2_payload, headers=headers_tecnico)
+    res_mov2 = await client.post(
+        f"{API}/storage/movements", json=mov2_payload, headers=headers_tecnico
+    )
     assert res_mov2.status_code == 201
     mov2_data = res_mov2.json()
     assert "ALERTA DE EXCURSÃO TÉRMICA" in mov2_data["notes"]
@@ -185,7 +195,9 @@ async def test_retention_and_disposal_dual_signature_workflow(
         "temperature_max_celsius": 8.0,
         "capacity_units": 500,
     }
-    res_loc = await client.post(f"{API}/storage/locations", json=loc_payload, headers=headers_tecnico)
+    res_loc = await client.post(
+        f"{API}/storage/locations", json=loc_payload, headers=headers_tecnico
+    )
     assert res_loc.status_code == 201
     loc_id = res_loc.json()["id"]
 
@@ -221,7 +233,9 @@ async def test_retention_and_disposal_dual_signature_workflow(
         "seal_number": seal_number,
         "notes": "Contraprova pericial retida conforme RDC 665/2022 Art. 45.",
     }
-    res_ret = await client.post(f"{API}/storage/retentions", json=retention_payload, headers=headers_tecnico)
+    res_ret = await client.post(
+        f"{API}/storage/retentions", json=retention_payload, headers=headers_tecnico
+    )
     assert res_ret.status_code == 201, res_ret.text
     ret_data = res_ret.json()
     assert ret_data["status"] == RetentionStatus.ACTIVE.value
@@ -236,7 +250,9 @@ async def test_retention_and_disposal_dual_signature_workflow(
         "entity_id": str(sample_id),
         "action": SignatureAction.CLOSE.value,
     }
-    res_sign_tec = await client.post(f"{API}/auth/sign", json=sign_tecnico_payload, headers=headers_tecnico)
+    res_sign_tec = await client.post(
+        f"{API}/auth/sign", json=sign_tecnico_payload, headers=headers_tecnico
+    )
     assert res_sign_tec.status_code == 200, res_sign_tec.text
     token_tecnico = res_sign_tec.json()["token"]
 
@@ -248,7 +264,9 @@ async def test_retention_and_disposal_dual_signature_workflow(
         "witness_id": users["tecnico"]["id"],
         "witness_esign_token": token_tecnico,
     }
-    res_dual_self = await client.post(f"{API}/storage/disposal", json=dual_self_payload, headers=headers_tecnico)
+    res_dual_self = await client.post(
+        f"{API}/storage/disposal", json=dual_self_payload, headers=headers_tecnico
+    )
     assert res_dual_self.status_code == 422
     assert "dois usuários distintos" in res_dual_self.json()["detail"]
 
@@ -261,7 +279,9 @@ async def test_retention_and_disposal_dual_signature_workflow(
         "entity_id": str(sample_id),
         "action": SignatureAction.CLOSE.value,
     }
-    res_sign_fisc = await client.post(f"{API}/auth/sign", json=sign_fiscal_payload, headers=headers_fiscal)
+    res_sign_fisc = await client.post(
+        f"{API}/auth/sign", json=sign_fiscal_payload, headers=headers_fiscal
+    )
     assert res_sign_fisc.status_code == 200, res_sign_fisc.text
     token_fiscal = res_sign_fisc.json()["token"]
 
@@ -274,13 +294,19 @@ async def test_retention_and_disposal_dual_signature_workflow(
         "witness_esign_token": token_fiscal,
         "force_legal_override": False,
     }
-    res_blocked = await client.post(f"{API}/storage/disposal", json=disposal_blocked_payload, headers=headers_tecnico)
+    res_blocked = await client.post(
+        f"{API}/storage/disposal", json=disposal_blocked_payload, headers=headers_tecnico
+    )
     assert res_blocked.status_code == 422
     assert "BLOQUEIO REGULATÓRIO" in res_blocked.json()["detail"]
 
     # 8. Re-emissão de tokens para autorização legal de descarte com override expresso
-    res_sign_tec2 = await client.post(f"{API}/auth/sign", json=sign_tecnico_payload, headers=headers_tecnico)
-    res_sign_fisc2 = await client.post(f"{API}/auth/sign", json=sign_fiscal_payload, headers=headers_fiscal)
+    res_sign_tec2 = await client.post(
+        f"{API}/auth/sign", json=sign_tecnico_payload, headers=headers_tecnico
+    )
+    res_sign_fisc2 = await client.post(
+        f"{API}/auth/sign", json=sign_fiscal_payload, headers=headers_fiscal
+    )
     token_tecnico2 = res_sign_tec2.json()["token"]
     token_fiscal2 = res_sign_fisc2.json()["token"]
 
@@ -295,7 +321,9 @@ async def test_retention_and_disposal_dual_signature_workflow(
         "notes": "Determinação judicial de incineração com ata notarial.",
         "force_legal_override": True,
     }
-    res_disposal = await client.post(f"{API}/storage/disposal", json=disposal_ok_payload, headers=headers_tecnico)
+    res_disposal = await client.post(
+        f"{API}/storage/disposal", json=disposal_ok_payload, headers=headers_tecnico
+    )
     assert res_disposal.status_code == 201, res_disposal.text
     disp_data = res_disposal.json()
     assert disp_data["disposal_manifest_number"].startswith("MAN-DESC-")

@@ -42,9 +42,8 @@ from app.services import (
     test_service,
 )
 
-CONTEXT = RequestContext(
-    ip_address="127.0.0.1", user_agent="seed-script/1.0", request_id="seed"
-)
+CONTEXT = RequestContext(ip_address="127.0.0.1", user_agent="seed-script/1.0", request_id="seed")
+
 
 class DemoUser(TypedDict):
     username: str

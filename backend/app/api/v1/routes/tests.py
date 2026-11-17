@@ -108,9 +108,7 @@ async def get_test(test_id: UUID, db: DbSession, user: CurrentUser) -> LabTestOu
     response_model=TestHistoryOut,
     summary="Versões assinadas do resultado (imutáveis)",
 )
-async def test_history(
-    test_id: UUID, db: DbSession, user: CurrentUser
-) -> TestHistoryOut:
+async def test_history(test_id: UUID, db: DbSession, user: CurrentUser) -> TestHistoryOut:
     versions = await test_service.list_result_versions(db, test_id)
     return TestHistoryOut(
         test_id=test_id,

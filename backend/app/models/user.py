@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import (
@@ -50,7 +50,7 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     mfa_enabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )
-    mfa_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    mfa_secret: Mapped[str | None] = mapped_column(Text, nullable=True)
     mfa_recovery_codes: Mapped[list[str] | None] = mapped_column(PortableJSON, nullable=True)
 
     @property
@@ -68,7 +68,6 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         if locked_until is None:
             return False
         if locked_until.tzinfo is None:
-
             locked_until = locked_until.replace(tzinfo=UTC)
         return locked_until > utcnow()
 

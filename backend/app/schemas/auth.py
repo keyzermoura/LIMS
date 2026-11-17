@@ -29,11 +29,22 @@ class MeOut(UserOut):
 
 
 class TokenPair(BaseModel):
-    access_token: str
-    refresh_token: str
+    access_token: str = ""
+    refresh_token: str = ""
     token_type: str = "bearer"
-    expires_in: int
-    user: MeOut
+    expires_in: int = 0
+    user: MeOut | None = None
+    mfa_required: bool = False
+    mfa_token: str | None = None
+
+
+class MfaLoginVerifyRequest(BaseModel):
+    mfa_token: str = Field(
+        min_length=10, description="Token temporário emitido no desafio de login"
+    )
+    code: str = Field(
+        min_length=6, max_length=16, description="Código TOTP de 6 dígitos ou recovery code"
+    )
 
 
 class RefreshRequest(BaseModel):

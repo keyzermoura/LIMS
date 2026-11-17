@@ -22,6 +22,7 @@ import InstrumentAcquisition from "@/pages/InstrumentAcquisition";
 import { ReagentsPage } from "@/pages/Reagents";
 import { OOSInvestigationsPage } from "@/pages/OOSInvestigations";
 import { StorageAndDisposalPage } from "@/pages/StorageAndDisposal";
+import { IntegrationsPage } from "@/pages/Integrations";
 
 function FullScreenLoader() {
   return (
@@ -91,6 +92,7 @@ export default function App() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/instruments" element={<InstrumentAcquisition />} />
+        <Route path="/integrations" element={<IntegrationsPage />} />
         <Route path="/audit" element={<AuditRoute />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

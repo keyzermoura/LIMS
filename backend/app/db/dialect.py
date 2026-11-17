@@ -11,17 +11,19 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Sequences nativas do sistema.
-SEQUENCES = frozenset({
-    "sample_accession_seq",
-    "capa_code_seq",
-    "solicitation_number_seq",
-    "receipt_number_seq",
-    "custody_object_code_seq",
-    "official_report_seq",
-    "oos_investigation_seq",
-    "sample_disposal_seq",
-    "qc_run_seq",
-})
+SEQUENCES = frozenset(
+    {
+        "sample_accession_seq",
+        "capa_code_seq",
+        "solicitation_number_seq",
+        "receipt_number_seq",
+        "custody_object_code_seq",
+        "official_report_seq",
+        "oos_investigation_seq",
+        "sample_disposal_seq",
+        "qc_run_seq",
+    }
+)
 
 _SQLITE_COUNTERS_TABLE = "_sequence_counters"
 

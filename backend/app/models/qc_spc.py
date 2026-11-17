@@ -35,9 +35,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class QCRun(
-    UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base
-):
+class QCRun(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base):
     """Corrida analítica de amostra de controle de qualidade interno (CQI / CRM)."""
 
     __tablename__ = "qc_runs"
@@ -83,7 +81,9 @@ class QCRun(
 
     # Relacionamentos
     method: Mapped[TestMethod] = relationship("TestMethod", lazy="selectin")
-    equipment: Mapped[LaboratoryEquipment | None] = relationship("LaboratoryEquipment", lazy="selectin")
+    equipment: Mapped[LaboratoryEquipment | None] = relationship(
+        "LaboratoryEquipment", lazy="selectin"
+    )
     reagent_batch: Mapped[ReagentBatch | None] = relationship("ReagentBatch", lazy="selectin")
     operator: Mapped[User] = relationship("User", foreign_keys=[operator_id], lazy="selectin")
 

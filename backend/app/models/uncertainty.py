@@ -93,9 +93,7 @@ class UncertaintyBudget(
     conformity_status: Mapped[ConformityStatus] = mapped_column(
         conformity_status_type, nullable=False, index=True
     )
-    recommended_outcome: Mapped[TestOutcome] = mapped_column(
-        test_outcome_type, nullable=False
-    )
+    recommended_outcome: Mapped[TestOutcome] = mapped_column(test_outcome_type, nullable=False)
     conformity_statement: Mapped[str] = mapped_column(Text, nullable=False)
 
     calculated_by_id: Mapped[UUID] = mapped_column(

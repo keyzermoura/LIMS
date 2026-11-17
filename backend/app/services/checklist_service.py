@@ -223,9 +223,7 @@ async def submit_checklist_answers(
     return refreshed_answers, derived_status, audit_entry.sequence
 
 
-async def get_answers_for_item(
-    db: AsyncSession, receipt_item_id: UUID
-) -> list[ChecklistAnswer]:
+async def get_answers_for_item(db: AsyncSession, receipt_item_id: UUID) -> list[ChecklistAnswer]:
     """Retorna respostas de checklist vinculadas ao item com critérios carregados."""
     stmt = (
         select(ChecklistAnswer)

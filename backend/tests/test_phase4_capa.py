@@ -172,11 +172,31 @@ async def test_capa_create_with_ishikawa_and_five_whys(
             "medicao": ["Termopar com histerese."],
         },
         "five_whys": [
-            {"why_number": 1, "question": "Por que a temperatura variou?", "answer": "Houve escape de ar quente."},
-            {"why_number": 2, "question": "Por que o ar quente escapou?", "answer": "A porta não estava totalmente vedada."},
-            {"why_number": 3, "question": "Por que não estava vedada?", "answer": "A borracha de vedação ressecou."},
-            {"why_number": 4, "question": "Por que a borracha ressecou?", "answer": "Operou acima de 120°C por mais tempo do que o ciclo padrão."},
-            {"why_number": 5, "question": "Por que operou acima da temperatura?", "answer": "Falta de trava de segurança no controle de rampa térmica."},
+            {
+                "why_number": 1,
+                "question": "Por que a temperatura variou?",
+                "answer": "Houve escape de ar quente.",
+            },
+            {
+                "why_number": 2,
+                "question": "Por que o ar quente escapou?",
+                "answer": "A porta não estava totalmente vedada.",
+            },
+            {
+                "why_number": 3,
+                "question": "Por que não estava vedada?",
+                "answer": "A borracha de vedação ressecou.",
+            },
+            {
+                "why_number": 4,
+                "question": "Por que a borracha ressecou?",
+                "answer": "Operou acima de 120°C por mais tempo do que o ciclo padrão.",
+            },
+            {
+                "why_number": 5,
+                "question": "Por que operou acima da temperatura?",
+                "answer": "Falta de trava de segurança no controle de rampa térmica.",
+            },
         ],
         "action_items": [
             {

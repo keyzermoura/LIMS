@@ -50,6 +50,15 @@ ROLE_PERMISSIONS: dict[UserRole, list[str]] = {
         "audit:verify",
         "users:read",
     ],
+    UserRole.SERVICE: [
+        "samples:read",
+        "tests:read",
+        "reports:read",
+        "instrument:write",
+        "instrument:read",
+        "integration:read",
+        "integration:write",
+    ],
 }
 
 WRITE_ROLES = (UserRole.ADMIN, UserRole.FISCAL, UserRole.TECNICO)

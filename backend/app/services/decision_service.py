@@ -89,7 +89,9 @@ async def get_decision(db: AsyncSession, decision_id: UUID) -> ReceiptDecision:
     stmt = (
         select(ReceiptDecision)
         .options(
-            selectinload(ReceiptDecision.coordination_review).selectinload(CoordinationReview.reviewed_by),
+            selectinload(ReceiptDecision.coordination_review).selectinload(
+                CoordinationReview.reviewed_by
+            ),
             selectinload(ReceiptDecision.decided_by),
         )
         .where(ReceiptDecision.id == decision_id)
@@ -100,14 +102,14 @@ async def get_decision(db: AsyncSession, decision_id: UUID) -> ReceiptDecision:
     return decision
 
 
-async def get_decisions_for_item(
-    db: AsyncSession, receipt_item_id: UUID
-) -> list[ReceiptDecision]:
+async def get_decisions_for_item(db: AsyncSession, receipt_item_id: UUID) -> list[ReceiptDecision]:
     """Retorna histórico de decisões do item de recebimento."""
     stmt = (
         select(ReceiptDecision)
         .options(
-            selectinload(ReceiptDecision.coordination_review).selectinload(CoordinationReview.reviewed_by),
+            selectinload(ReceiptDecision.coordination_review).selectinload(
+                CoordinationReview.reviewed_by
+            ),
             selectinload(ReceiptDecision.decided_by),
         )
         .where(ReceiptDecision.receipt_item_id == receipt_item_id)

@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     )
 
     PROJECT_NAME: str = "LIMS — Fiscalização Pós-Mercado de Dispositivos Médicos"
-    VERSION: str = "0.1.0"
+    VERSION: str = "1.0.0"
     ENVIRONMENT: Literal["dev", "test", "prod"] = "dev"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
@@ -77,6 +77,26 @@ class Settings(BaseSettings):
     AUTO_OPEN_CAPA_ON_FAILURE: bool = True
     AUTO_CREATE_SCHEMA: bool = True
 
+    # --- Segurança, MFA e Documentação OpenAPI (Gate G-B) -------------
+    TOTP_ENCRYPTION_KEY: SecretStr | None = None
+    MFA_REQUIRED_ROLES: str = "ADMIN,FISCAL"
+    DOCS_ENABLED: bool = True
+
+    # --- Outbox Background Worker (Gate G-D) --------------------------
+    OUTBOX_WORKER_ENABLED: bool = True
+    OUTBOX_POLL_INTERVAL_SECONDS: float = 3.0
+    OUTBOX_BATCH_SIZE: int = 20
+
+    @property
+    def docs_enabled(self) -> bool:
+        if self.ENVIRONMENT == "prod":
+            return False
+        return self.DOCS_ENABLED
+
+    @property
+    def mfa_required_roles(self) -> list[str]:
+        return [r.strip() for r in self.MFA_REQUIRED_ROLES.split(",") if r.strip()]
+
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
@@ -97,8 +117,7 @@ class Settings(BaseSettings):
         ]
         if found:
             raise ValueError(
-                "Segredos padrão de desenvolvimento detectados em produção: "
-                + ", ".join(found)
+                "Segredos padrão de desenvolvimento detectados em produção: " + ", ".join(found)
             )
         if self.DEBUG:
             raise ValueError("DEBUG deve ser False em produção.")

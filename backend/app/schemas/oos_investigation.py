@@ -45,14 +45,26 @@ class OOSInvestigationCreate(BaseModel):
 
 
 class OOSPhase1Update(BaseModel):
-    calculation_verified: bool = Field(..., description="Cálculos matemáticos e diluições auditados")
-    instrument_verified: bool = Field(..., description="Calibração e baseline do instrumento conferidos")
-    reagent_verified: bool = Field(..., description="Validade, pureza e certificados de lote de reagentes/CRMs checados")
-    analyst_interviewed: bool = Field(..., description="Entrevista técnica com o analista executante")
-    sample_integrity_verified: bool = Field(..., description="Aspecto físico e homogeneidade da amostra verificados")
+    calculation_verified: bool = Field(
+        ..., description="Cálculos matemáticos e diluições auditados"
+    )
+    instrument_verified: bool = Field(
+        ..., description="Calibração e baseline do instrumento conferidos"
+    )
+    reagent_verified: bool = Field(
+        ..., description="Validade, pureza e certificados de lote de reagentes/CRMs checados"
+    )
+    analyst_interviewed: bool = Field(
+        ..., description="Entrevista técnica com o analista executante"
+    )
+    sample_integrity_verified: bool = Field(
+        ..., description="Aspecto físico e homogeneidade da amostra verificados"
+    )
     checklist_notes: str | None = None
     phase_1_conclusion: str = Field(..., min_length=10, description="Parecer da Fase I")
-    phase_2_required: bool = Field(False, description="Necessidade de avanço para investigação Fase II")
+    phase_2_required: bool = Field(
+        False, description="Necessidade de avanço para investigação Fase II"
+    )
 
 
 class RetestResultItem(BaseModel):
@@ -69,17 +81,23 @@ class OOSPhase2Update(BaseModel):
     phase_2_plan: str = Field(..., min_length=10, description="Plano de re-ensaio e amostragem")
     retest_results: list[RetestResultItem] = Field(default_factory=list)
     root_cause_category: OOSRootCauseCategory
-    root_cause_description: str = Field(..., min_length=10, description="Descrição detalhada da causa raiz")
+    root_cause_description: str = Field(
+        ..., min_length=10, description="Descrição detalhada da causa raiz"
+    )
     confirmed_status: OOSInvestigationStatus = Field(
         ...,
         description="Classificação final: CONFIRMED_LAB_ERROR ou CONFIRMED_PRODUCT_FAILURE",
     )
     capa_action_id: UUID | None = None
-    auto_create_capa: bool = Field(False, description="Gera automaticamente uma ação corretiva no CAPA")
+    auto_create_capa: bool = Field(
+        False, description="Gera automaticamente uma ação corretiva no CAPA"
+    )
 
 
 class OOSCloseRequest(BaseModel):
-    final_disposition: str = Field(..., min_length=10, description="Disposição final e justificativa de encerramento")
+    final_disposition: str = Field(
+        ..., min_length=10, description="Disposição final e justificativa de encerramento"
+    )
 
 
 class OOSInvestigationOut(BaseModel):

@@ -146,9 +146,7 @@ def generate_official_report_pdf(
     )
     story.append(Spacer(1, 4 * mm))
     story.append(
-        HRFlowable(
-            width="100%", thickness=1.5, color=colors.HexColor("#0284c7"), spaceAfter=10
-        )
+        HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#0284c7"), spaceAfter=10)
     )
 
     # 2. Título do Documento e Faixa de Versão (ISO 17025 §7.8.8)
@@ -217,13 +215,19 @@ def generate_official_report_pdf(
     story.append(Paragraph("1. DADOS DA AMOSTRA E FISCALIZAÇÃO", section_title_style))
     sample_info_data = [
         [
-            Paragraph(f"<b>Nº Registro:</b> {sample_data.get('accession_number', '—')}", body_style),
+            Paragraph(
+                f"<b>Nº Registro:</b> {sample_data.get('accession_number', '—')}", body_style
+            ),
             Paragraph(f"<b>Lote Fiscal:</b> {sample_data.get('lot_number', '—')}", body_style),
             Paragraph(f"<b>Série:</b> {sample_data.get('serial_number', '—')}", body_style),
         ],
         [
-            Paragraph(f"<b>Fabricante / Alvo:</b> {sample_data.get('manufacturer', '—')}", body_style),
-            Paragraph(f"<b>Tipo / Apresentação:</b> {sample_data.get('device_type', '—')}", body_style),
+            Paragraph(
+                f"<b>Fabricante / Alvo:</b> {sample_data.get('manufacturer', '—')}", body_style
+            ),
+            Paragraph(
+                f"<b>Tipo / Apresentação:</b> {sample_data.get('device_type', '—')}", body_style
+            ),
             Paragraph(f"<b>Data de Coleta:</b> {sample_data.get('collected_at', '—')}", body_style),
         ],
     ]
@@ -288,7 +292,11 @@ def generate_official_report_pdf(
         story.append(Spacer(1, 2 * mm))
 
     is_conforme = "APROVADO" in conclusion.upper() or "CONFORME" in conclusion.upper()
-    concl_text = "AMOSTRA EM CONFORMIDADE COM AS ESPECIFICAÇÕES ANALÍTICAS" if is_conforme else "AMOSTRA EM NÃO CONFORMIDADE COM AS ESPECIFICAÇÕES REGULAMENTARES"
+    concl_text = (
+        "AMOSTRA EM CONFORMIDADE COM AS ESPECIFICAÇÕES ANALÍTICAS"
+        if is_conforme
+        else "AMOSTRA EM NÃO CONFORMIDADE COM AS ESPECIFICAÇÕES REGULAMENTARES"
+    )
     concl_bg = colors.HexColor("#16a34a") if is_conforme else colors.HexColor("#dc2626")
 
     concl_table = Table([[Paragraph(concl_text, conclusion_style)]], colWidths=[18 * cm])
@@ -316,8 +324,14 @@ def generate_official_report_pdf(
         Spacer(1, 1 * mm),
         Paragraph(f"<b>Responsável Técnico:</b> {issuer_name} ({issuer_role})", body_style),
         Paragraph(f"<b>Data/Hora de Homologação:</b> {issued_at_iso} UTC", body_style),
-        Paragraph(f"<b>Token Criptográfico:</b> <font name='Courier'>{auth_token[:32]}...</font>", body_style),
-        Paragraph("Documento emitido com carimbo de tempo inviolável e assinatura baseada em ICP-Brasil / HMAC-SHA256.", footer_text_style),
+        Paragraph(
+            f"<b>Token Criptográfico:</b> <font name='Courier'>{auth_token[:32]}...</font>",
+            body_style,
+        ),
+        Paragraph(
+            "Documento emitido com carimbo de tempo inviolável e assinatura baseada em ICP-Brasil / HMAC-SHA256.",
+            footer_text_style,
+        ),
     ]
 
     sig_table_data = [

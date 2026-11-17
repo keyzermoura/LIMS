@@ -50,13 +50,9 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class LabTest(
-    UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base
-):
+class LabTest(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base):
     __tablename__ = "lab_tests"
-    __table_args__ = (
-        Index("ix_tests_sample_status", "device_sample_id", "status"),
-    )
+    __table_args__ = (Index("ix_tests_sample_status", "device_sample_id", "status"),)
 
     device_sample_id: Mapped[UUID] = mapped_column(
         ForeignKey("device_samples.id", ondelete="RESTRICT"),
@@ -81,9 +77,7 @@ class LabTest(
 
     result_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
     result_text: Mapped[str | None] = mapped_column(String(500))
-    outcome: Mapped[TestOutcome | None] = mapped_column(
-        test_outcome_type, index=True
-    )
+    outcome: Mapped[TestOutcome | None] = mapped_column(test_outcome_type, index=True)
     notes: Mapped[str | None] = mapped_column(Text)
 
     status: Mapped[TestStatus] = mapped_column(
@@ -98,17 +92,11 @@ class LabTest(
         default=CoordinationReviewStatus.PENDENTE,
         index=True,
     )
-    assigned_to_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT")
-    )
-    tested_by_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT")
-    )
+    assigned_to_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    tested_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     tested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     signed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    signed_by_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT")
-    )
+    signed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     signature_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("electronic_signatures.id", ondelete="RESTRICT")
     )
@@ -152,6 +140,7 @@ class LabTest(
         order_by="TestAttachment.created_at",
         lazy="selectin",
     )
+
     @property
     def is_signed(self) -> bool:
         return self.signed_at is not None
@@ -178,9 +167,7 @@ class LabTestResult(UUIDPrimaryKeyMixin, Base):
     result_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
     result_text: Mapped[str | None] = mapped_column(String(500))
     unit: Mapped[str] = mapped_column(String(32), nullable=False)
-    outcome: Mapped[TestOutcome] = mapped_column(
-        test_outcome_type, nullable=False
-    )
+    outcome: Mapped[TestOutcome] = mapped_column(test_outcome_type, nullable=False)
     notes: Mapped[str | None] = mapped_column(Text)
     is_amendment: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"

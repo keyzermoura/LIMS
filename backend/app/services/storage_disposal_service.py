@@ -52,6 +52,7 @@ from app.services import audit_service, signature_service
 # Gestão de Locais Físicos de Armazenamento (StorageLocation)
 # ---------------------------------------------------------------------------
 
+
 async def create_location(
     db: AsyncSession,
     *,
@@ -71,12 +72,16 @@ async def create_location(
     # Valida limites de temperatura
     if payload.temperature_min_celsius > payload.temperature_max_celsius:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Temperatura mínima não pode ser maior que a temperatura máxima.",
         )
-    if not (payload.temperature_min_celsius <= payload.temperature_target_celsius <= payload.temperature_max_celsius):
+    if not (
+        payload.temperature_min_celsius
+        <= payload.temperature_target_celsius
+        <= payload.temperature_max_celsius
+    ):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Temperatura alvo (target) deve estar entre a mínima e máxima permitidas.",
         )
 
@@ -185,7 +190,7 @@ async def update_location(
     # Revalida consistência térmica
     if location.temperature_min_celsius > location.temperature_max_celsius:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Temperatura mínima não pode exceder a máxima.",
         )
 
@@ -225,6 +230,7 @@ async def get_location_occupancy(db: AsyncSession, location_id: UUID) -> int:
 # Movimentação Física de Custódia (SampleStorageMovement)
 # ---------------------------------------------------------------------------
 
+
 async def move_sample(
     db: AsyncSession,
     *,
@@ -241,14 +247,14 @@ async def move_sample(
         )
     if sample.status == SampleStatus.DESCARTADO:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Amostra já descartada não pode ser movimentada.",
         )
 
     to_location = await get_location(db, payload.to_location_id)
     if not to_location.is_active:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"Local de destino '{to_location.code}' está inativo.",
         )
 
@@ -256,7 +262,7 @@ async def move_sample(
     current_occupancy = await get_location_occupancy(db, to_location.id)
     if current_occupancy >= to_location.capacity_units:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"Capacidade máxima do local '{to_location.code}' atingida ({to_location.capacity_units} itens).",
         )
 
@@ -339,6 +345,7 @@ async def list_sample_movements(
 # Guarda de Contraprova Pericial (SampleRetention - ISO 17025 §7.4)
 # ---------------------------------------------------------------------------
 
+
 async def retain_sample(
     db: AsyncSession,
     *,
@@ -355,7 +362,7 @@ async def retain_sample(
         )
     if sample.status == SampleStatus.DESCARTADO:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Amostra descartada não pode ser colocada em contraprova.",
         )
 
@@ -371,14 +378,14 @@ async def retain_sample(
 
     if payload.retain_until <= date.today():
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Data limite legal de retenção deve ser posterior à data atual.",
         )
 
     location = await get_location(db, payload.storage_location_id)
     if not location.is_active:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"Local de armazenamento '{location.code}' está inativo.",
         )
 
@@ -515,6 +522,7 @@ async def update_retention(
 # Termo de Descarte com Dupla Assinatura Eletrônica (21 CFR Part 11)
 # ---------------------------------------------------------------------------
 
+
 async def dispose_sample(
     db: AsyncSession,
     *,
@@ -538,7 +546,7 @@ async def dispose_sample(
     # 1. Regra de Segregação: Executor e Testemunha devem ser usuários distintos
     if actor.id == payload.witness_id:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Dupla assinatura requer dois usuários distintos (o executor não pode testemunhar seu próprio ato).",
         )
 
@@ -560,7 +568,7 @@ async def dispose_sample(
         and not payload.force_legal_override
     ):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=(
                 f"BLOQUEIO REGULATÓRIO: Contraprova pericial ativa sob custódia legal até {retention.retain_until.isoformat()} "
                 f"(Lacre {retention.seal_number}). Descarte prematuro não autorizado sem liberação expressa."
@@ -579,7 +587,7 @@ async def dispose_sample(
     )
     if primary_sig.meaning != SignatureMeaning.EXECUCAO_DESCARTE:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"Assinatura primária deve ter significado 'EXECUCAO_DESCARTE' (recebido: {primary_sig.meaning.value}).",
         )
 
@@ -594,7 +602,7 @@ async def dispose_sample(
     )
     if witness_sig.meaning != SignatureMeaning.TESTEMUNHA_DESCARTE:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"Assinatura da testemunha deve ter significado 'TESTEMUNHA_DESCARTE' (recebido: {witness_sig.meaning.value}).",
         )
 
@@ -678,11 +686,14 @@ async def list_disposals(
 # Dashboard Consolidado de Custódia e Descarte
 # ---------------------------------------------------------------------------
 
+
 async def get_storage_summary(db: AsyncSession) -> StorageDashboardSummary:
     """Agrega contadores operacionais e de conformidade para o dashboard."""
     total_loc = await db.scalar(select(func.count(StorageLocation.id))) or 0
     active_loc = (
-        await db.scalar(select(func.count(StorageLocation.id)).where(StorageLocation.is_active == True))  # noqa: E712
+        await db.scalar(
+            select(func.count(StorageLocation.id)).where(StorageLocation.is_active.is_(True))
+        )
         or 0
     )
     total_ret = await db.scalar(select(func.count(SampleRetention.id))) or 0

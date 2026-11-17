@@ -4,6 +4,7 @@ import {
   FileCheck2,
   Fingerprint,
   FlaskConical,
+  KeyRound,
   Loader2,
   LockKeyhole,
   ScrollText,
@@ -45,13 +46,15 @@ const COMPLIANCE_POINTS = [
 ];
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, verifyMfa } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? "/";
 
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [mfaToken, setMfaToken] = React.useState<string | null>(null);
+  const [mfaCode, setMfaCode] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -60,8 +63,17 @@ export function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await login(username, password);
-      navigate(from, { replace: true });
+      if (mfaToken) {
+        await verifyMfa(mfaToken, mfaCode);
+        navigate(from, { replace: true });
+      } else {
+        const pair = await login(username, password);
+        if (pair.mfa_required && pair.mfa_token) {
+          setMfaToken(pair.mfa_token);
+        } else {
+          navigate(from, { replace: true });
+        }
+      }
     } catch (err) {
       setError(
         err instanceof ApiError
@@ -154,46 +166,68 @@ export function LoginPage() {
 
           <div className="mb-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">
-              Acesso restrito
+              {mfaToken ? "Segundo Fator Obrigatório" : "Acesso restrito"}
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight">
-              Entrar no sistema
+              {mfaToken ? "Autenticação MFA (TOTP)" : "Entrar no sistema"}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Credenciais individuais. Todas as tentativas de acesso são auditadas.
+              {mfaToken
+                ? "Digite o código de 6 dígitos gerado pelo seu aplicativo autenticador ou um código de recuperação."
+                : "Credenciais individuais. Todas as tentativas de acesso são auditadas."}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="username">Usuário</Label>
-              <Input
-                id="username"
-                autoComplete="username"
-                autoFocus
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="seu.usuario"
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Senha</Label>
-              <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  className="pl-9"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="••••••••••••"
-                  required
-                />
+            {mfaToken ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="mfaCode">Código de Autenticação (TOTP / Recovery)</Label>
+                <div className="relative">
+                  <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="mfaCode"
+                    autoFocus
+                    className="pl-9 tracking-wider font-mono text-center text-lg"
+                    value={mfaCode}
+                    onChange={(event) => setMfaCode(event.target.value)}
+                    placeholder="000000"
+                    required
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label htmlFor="username">Usuário</Label>
+                  <Input
+                    id="username"
+                    autoComplete="username"
+                    autoFocus
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder="seu.usuario"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="password">Senha</Label>
+                  <div className="relative">
+                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      autoComplete="current-password"
+                      className="pl-9"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="••••••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
             {error ? (
               <div
@@ -210,9 +244,25 @@ export function LoginPage() {
               ) : (
                 <Fingerprint className="h-4 w-4" />
               )}
-              Autenticar com segurança
+              {mfaToken ? "Confirmar Segundo Fator" : "Autenticar com segurança"}
               {!submitting ? <ArrowRight className="ml-auto h-4 w-4" /> : null}
             </Button>
+
+            {mfaToken ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground"
+                onClick={() => {
+                  setMfaToken(null);
+                  setMfaCode("");
+                  setError(null);
+                }}
+              >
+                ← Cancelar e voltar ao login
+              </Button>
+            ) : null}
           </form>
 
           <div className="mt-8 rounded-lg border border-border bg-muted/40 p-4">

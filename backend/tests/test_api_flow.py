@@ -40,9 +40,7 @@ def signed(token: str, signature_token: str) -> dict[str, str]:
     return {**auth(token), "X-Signature-Token": signature_token}
 
 
-async def login(
-    client: AsyncClient, username: str, password: str
-) -> dict[str, Any]:
+async def login(client: AsyncClient, username: str, password: str) -> dict[str, Any]:
     response = await client.post(
         f"{API}/auth/login",
         data={"username": username, "password": password},
@@ -77,9 +75,7 @@ async def issue_signature(
     return response.json()
 
 
-def sample_body(
-    sample_id: str, *, serial: str = "SN-100", lot: str = "L-100"
-) -> dict[str, Any]:
+def sample_body(sample_id: str, *, serial: str = "SN-100", lot: str = "L-100") -> dict[str, Any]:
     return {
         "id": sample_id,
         "serial_number": serial,
@@ -178,15 +174,11 @@ async def test_login_profile_and_audit_rbac(client: AsyncClient, users) -> None:
     assert allowed.json()["total"] >= 1  # eventos de LOGIN já registrados
 
 
-async def test_sample_creation_requires_signature(
-    client: AsyncClient, users
-) -> None:
+async def test_sample_creation_requires_signature(client: AsyncClient, users) -> None:
     fiscal = await login(client, "fiscal", users["fiscal"]["password"])
     body = sample_body(str(uuid4()))
 
-    denied = await client.post(
-        f"{API}/samples", headers=auth(fiscal["access_token"]), json=body
-    )
+    denied = await client.post(f"{API}/samples", headers=auth(fiscal["access_token"]), json=body)
     assert denied.status_code == 401
     assert denied.json()["code"] == "ESIGNATURE_REJECTED"
 
@@ -269,9 +261,7 @@ async def test_signature_is_bound_to_the_entity(client: AsyncClient, users) -> N
     assert right.status_code == 201
 
 
-async def test_custody_transfer_only_by_current_custodian(
-    client: AsyncClient, users
-) -> None:
+async def test_custody_transfer_only_by_current_custodian(client: AsyncClient, users) -> None:
     fiscal = await login(client, "fiscal", users["fiscal"]["password"])
     created = await create_sample(
         client,
@@ -366,9 +356,7 @@ async def test_reproved_result_opens_capa(client: AsyncClient, users) -> None:
     assert payload["alert"]["code"] == "RESULTADO_REPROVADO"
     assert payload["capa_id"] is not None
 
-    sample = await client.get(
-        f"{API}/samples/{sample_id}", headers=auth(fiscal["access_token"])
-    )
+    sample = await client.get(f"{API}/samples/{sample_id}", headers=auth(fiscal["access_token"]))
     assert sample.json()["status"] == "REPROVADO"
 
     capas = await client.get(
@@ -416,9 +404,7 @@ async def test_reproved_result_opens_capa(client: AsyncClient, users) -> None:
     assert amendment.status_code == 409
 
 
-async def test_manual_approval_requires_all_tests_approved(
-    client: AsyncClient, users
-) -> None:
+async def test_manual_approval_requires_all_tests_approved(client: AsyncClient, users) -> None:
     fiscal = await login(client, "fiscal", users["fiscal"]["password"])
     created = await create_sample(
         client,
@@ -473,9 +459,7 @@ async def test_refresh_rotation_detects_reuse(client: AsyncClient, users) -> Non
     assert rotated.status_code == 200, rotated.text
     second = rotated.json()
 
-    reuse = await client.post(
-        f"{API}/auth/refresh", json={"refresh_token": first["refresh_token"]}
-    )
+    reuse = await client.post(f"{API}/auth/refresh", json={"refresh_token": first["refresh_token"]})
     assert reuse.status_code == 403
 
     # Reutilização revoga TODAS as sessões, inclusive a recém-rotacionada.
@@ -484,9 +468,7 @@ async def test_refresh_rotation_detects_reuse(client: AsyncClient, users) -> Non
     )
     assert blocked.status_code == 403
 
-    stale_access = await client.get(
-        f"{API}/auth/me", headers=auth(second["access_token"])
-    )
+    stale_access = await client.get(f"{API}/auth/me", headers=auth(second["access_token"]))
     assert stale_access.status_code == 401
 
 
@@ -505,17 +487,13 @@ async def test_audit_chain_verification_detects_tampering(
     )
 
     auditor = await login(client, "auditor", users["auditor"]["password"])
-    before = await client.post(
-        f"{API}/audit/verify", headers=auth(auditor["access_token"])
-    )
+    before = await client.post(f"{API}/audit/verify", headers=auth(auditor["access_token"]))
     assert before.status_code == 200
     assert before.json()["ok"] is True
 
     async def tamper() -> None:
         async with db_factory() as db:
-            row = await db.scalar(
-                select(AuditLog).order_by(AuditLog.sequence.asc()).limit(1)
-            )
+            row = await db.scalar(select(AuditLog).order_by(AuditLog.sequence.asc()).limit(1))
             assert row is not None
             row.payload = {**row.payload, "reason": "CONTEÚDO ADULTERADO"}
             await db.commit()
@@ -526,17 +504,13 @@ async def test_audit_chain_verification_detects_tampering(
         with pytest.raises(DBAPIError, match="append-only"):
             await tamper()
 
-        after = await client.post(
-            f"{API}/audit/verify", headers=auth(auditor["access_token"])
-        )
+        after = await client.post(f"{API}/audit/verify", headers=auth(auditor["access_token"]))
         assert after.json()["ok"] is True
         return
 
     # No SQLite (sem triggers) a adulteração é detectada pela cadeia de hashes.
     await tamper()
-    after = await client.post(
-        f"{API}/audit/verify", headers=auth(auditor["access_token"])
-    )
+    after = await client.post(f"{API}/audit/verify", headers=auth(auditor["access_token"]))
     assert after.status_code == 200
     report = after.json()
     assert report["ok"] is False
@@ -576,9 +550,7 @@ async def test_expired_signature_is_rejected(
     assert "expirad" in response.json()["detail"].lower()
 
 
-async def test_only_assigned_tester_can_sign_the_report(
-    client: AsyncClient, users
-) -> None:
+async def test_only_assigned_tester_can_sign_the_report(client: AsyncClient, users) -> None:
     fiscal = await login(client, "fiscal", users["fiscal"]["password"])
     created = await create_sample(
         client,
@@ -723,9 +695,7 @@ async def test_sign_wrong_password_locks_account(client: AsyncClient, users) -> 
     assert "bloqueada" in denied.json()["detail"].lower()
 
 
-async def test_successful_signature_resets_failed_attempts(
-    client: AsyncClient, users
-) -> None:
+async def test_successful_signature_resets_failed_attempts(client: AsyncClient, users) -> None:
     tecnico = await login(client, "tecnico", users["tecnico"]["password"])
     wrong = _wrong_sign_payload()
 
@@ -796,11 +766,13 @@ async def test_sign_rate_limit_returns_429(
     assert limited.json()["code"] == "RATE_LIMITED"
     assert int(limited.headers["Retry-After"]) >= 1
 
+
 def _rewrite_zip(content: bytes, replacements: dict[str, bytes]) -> bytes:
     buffer = io.BytesIO()
-    with zipfile.ZipFile(io.BytesIO(content)) as source, zipfile.ZipFile(
-        buffer, "w", compression=zipfile.ZIP_DEFLATED
-    ) as target:
+    with (
+        zipfile.ZipFile(io.BytesIO(content)) as source,
+        zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as target,
+    ):
         for info in source.infolist():
             target.writestr(info, replacements.get(info.filename, source.read(info.filename)))
     return buffer.getvalue()
@@ -845,9 +817,7 @@ async def test_audit_export_bundle_is_verifiable(client: AsyncClient, users) -> 
         manifest = json.loads(archive.read("manifest.json"))
         data_bytes = archive.read("events.jsonl")
         records = [
-            json.loads(line)
-            for line in data_bytes.decode("utf-8").splitlines()
-            if line.strip()
+            json.loads(line) for line in data_bytes.decode("utf-8").splitlines() if line.strip()
         ]
 
     assert manifest["format"] == "lims-audit-export-v1"
@@ -857,17 +827,14 @@ async def test_audit_export_bundle_is_verifiable(client: AsyncClient, users) -> 
     key = settings.AUDIT_HMAC_KEY.get_secret_value()
     assert manifest["data_hmac"] == hmac_sha256(key, manifest["data_sha256"])
     core = {
-        field: value
-        for field, value in manifest.items()
-        if field not in {"manifest_hash", "hmac"}
+        field: value for field, value in manifest.items() if field not in {"manifest_hash", "hmac"}
     }
     assert manifest["manifest_hash"] == sha256_hex(canonical_json(core))
     assert manifest["hmac"] == hmac_sha256(key, manifest["manifest_hash"])
 
     for record in records:
         expected_hash = sha256_hex(
-            f"{record['sequence']}:{record['prev_hash']}:"
-            f"{canonical_json(record['payload'])}"
+            f"{record['sequence']}:{record['prev_hash']}:{canonical_json(record['payload'])}"
         )
         assert record["hash"] == expected_hash
         assert record["hmac"] == hmac_sha256(key, record["hash"])
@@ -976,9 +943,7 @@ async def test_audit_export_honors_filters_and_rbac(client: AsyncClient, users) 
     assert allowed.status_code == 200
 
 
-async def test_audit_export_verification_detects_tampering(
-    client: AsyncClient, users
-) -> None:
+async def test_audit_export_verification_detects_tampering(client: AsyncClient, users) -> None:
     fiscal = await login(client, "fiscal", users["fiscal"]["password"])
     await create_sample(
         client,
@@ -1009,10 +974,7 @@ async def test_audit_export_verification_detects_tampering(
     assert data_report.status_code == 200
     assert data_report.json()["ok"] is False
     assert data_report.json()["data_hash_ok"] is False
-    assert any(
-        issue["type"] == "DATA_HASH_MISMATCH"
-        for issue in data_report.json()["issues"]
-    )
+    assert any(issue["type"] == "DATA_HASH_MISMATCH" for issue in data_report.json()["issues"])
 
     # 2. Alterar o manifesto sem recalcular o hash.
     with zipfile.ZipFile(io.BytesIO(exported.content)) as archive:
@@ -1021,9 +983,7 @@ async def test_audit_export_verification_detects_tampering(
     tampered_manifest = (
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     ).encode("utf-8")
-    manifest_bundle = _rewrite_zip(
-        exported.content, {"manifest.json": tampered_manifest}
-    )
+    manifest_bundle = _rewrite_zip(exported.content, {"manifest.json": tampered_manifest})
     manifest_report = await client.post(
         f"{API}/audit/export/verify",
         headers=auth(auditor["access_token"]),
@@ -1041,13 +1001,10 @@ async def test_audit_export_verification_detects_tampering(
     assert len(records) > 1
     target["payload"] = {**target["payload"], "reason": "CONTEÚDO ADULTERADO"}
     target["hash"] = sha256_hex(
-        f"{target['sequence']}:{target['prev_hash']}:"
-        f"{canonical_json(target['payload'])}"
+        f"{target['sequence']}:{target['prev_hash']}:{canonical_json(target['payload'])}"
     )
     target["hmac"] = hmac_sha256(key, target["hash"])
-    new_data = (
-        "".join(canonical_json(record) + "\n" for record in records)
-    ).encode("utf-8")
+    new_data = ("".join(canonical_json(record) + "\n" for record in records)).encode("utf-8")
     manifest["data_sha256"] = sha256_hex(new_data)
     manifest["data_hmac"] = hmac_sha256(key, manifest["data_sha256"])
     manifest["files"] = [
@@ -1061,9 +1018,7 @@ async def test_audit_export_verification_detects_tampering(
         for entry in manifest["files"]
     ]
     core = {
-        field: value
-        for field, value in manifest.items()
-        if field not in {"manifest_hash", "hmac"}
+        field: value for field, value in manifest.items() if field not in {"manifest_hash", "hmac"}
     }
     manifest["manifest_hash"] = sha256_hex(canonical_json(core))
     manifest["hmac"] = hmac_sha256(key, manifest["manifest_hash"])

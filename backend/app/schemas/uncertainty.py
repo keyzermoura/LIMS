@@ -50,9 +50,7 @@ class UncertaintySimulateIn(BaseModel):
     upper_limit: Decimal | None = None
     components: list[UncertaintyComponentIn] = Field(default_factory=list)
     coverage_factor: Decimal | None = Field(default=None, gt=Decimal("0"))
-    confidence_level: Decimal = Field(
-        default=Decimal("95.45"), gt=Decimal("0"), lt=Decimal("100")
-    )
+    confidence_level: Decimal = Field(default=Decimal("95.45"), gt=Decimal("0"), lt=Decimal("100"))
     guard_band_multiplier: Decimal = Field(default=Decimal("1.000"), ge=Decimal("0"))
     decision_rule: DecisionRuleType = DecisionRuleType.GUARD_BAND_CONSERVATIVE
 

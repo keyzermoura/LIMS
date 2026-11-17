@@ -35,9 +35,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class Reagent(
-    UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base
-):
+class Reagent(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base):
     """Catálogo mestre de reagentes químicos, padrões analíticos e consumíveis."""
 
     __tablename__ = "reagents"
@@ -46,9 +44,7 @@ class Reagent(
     name: Mapped[str] = mapped_column(String(160), nullable=False, index=True)
     chemical_formula: Mapped[str | None] = mapped_column(String(64), nullable=True)
     cas_number: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
-    reagent_type: Mapped[ReagentType] = mapped_column(
-        reagent_type_enum, nullable=False, index=True
-    )
+    reagent_type: Mapped[ReagentType] = mapped_column(reagent_type_enum, nullable=False, index=True)
     grade: Mapped[ReagentGrade] = mapped_column(
         reagent_grade_enum, nullable=False, default=ReagentGrade.PA
     )

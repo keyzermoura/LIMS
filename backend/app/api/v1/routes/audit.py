@@ -64,11 +64,7 @@ async def list_audit_logs(
     )
 
     total = await db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    stmt = (
-        stmt.order_by(AuditLog.sequence.desc())
-        .offset((page - 1) * size)
-        .limit(size)
-    )
+    stmt = stmt.order_by(AuditLog.sequence.desc()).offset((page - 1) * size).limit(size)
     rows = (await db.execute(stmt)).scalars().all()
     return Page[AuditLogOut].build(
         [AuditLogOut.model_validate(row) for row in rows], int(total), page, size

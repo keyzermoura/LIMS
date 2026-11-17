@@ -256,4 +256,7 @@ async def test_decision_and_coordination_four_eyes(
     )
     assert decisions_list.status_code == 200
     assert len(decisions_list.json()) >= 1
-    assert decisions_list.json()[0]["coordination_review"]["status"] == CoordinationReviewStatus.APROVADO.value
+    assert (
+        decisions_list.json()[0]["coordination_review"]["status"]
+        == CoordinationReviewStatus.APROVADO.value
+    )

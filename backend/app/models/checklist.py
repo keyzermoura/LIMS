@@ -33,7 +33,10 @@ class ChecklistTemplate(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Relacionamentos
     criteria: Mapped[list[ChecklistCriterion]] = relationship(
-        "ChecklistCriterion", back_populates="template", cascade="all, delete-orphan", lazy="selectin"
+        "ChecklistCriterion",
+        back_populates="template",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -57,7 +60,9 @@ class ChecklistCriterion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     # Relacionamentos
-    template: Mapped[ChecklistTemplate] = relationship("ChecklistTemplate", back_populates="criteria")
+    template: Mapped[ChecklistTemplate] = relationship(
+        "ChecklistTemplate", back_populates="criteria"
+    )
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<ChecklistCriterion {self.code} [{self.criterion_class.value}]>"
@@ -83,6 +88,8 @@ class ChecklistAnswer(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # Relacionamentos
-    receipt_item: Mapped[ReceiptItem] = relationship("ReceiptItem", back_populates="checklist_answers")
+    receipt_item: Mapped[ReceiptItem] = relationship(
+        "ReceiptItem", back_populates="checklist_answers"
+    )
     criterion: Mapped[ChecklistCriterion] = relationship("ChecklistCriterion", lazy="selectin")
     evaluated_by: Mapped[User] = relationship("User", lazy="selectin")

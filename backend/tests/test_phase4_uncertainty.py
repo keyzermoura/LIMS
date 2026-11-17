@@ -140,7 +140,9 @@ async def test_uncertainty_simulation_gum_and_ilac_g8_rules(
             }
         ],
     }
-    res_simple = await client.post(f"{API}/uncertainty/simulate", headers=headers, json=simple_payload)
+    res_simple = await client.post(
+        f"{API}/uncertainty/simulate", headers=headers, json=simple_payload
+    )
     assert res_simple.status_code == 200
     data_simple = res_simple.json()
     assert float(data_simple["guard_band_width"]) == 0.0
@@ -231,9 +233,7 @@ async def test_uncertainty_budget_persistence_and_report_manifest(
             "user_id": analyst_id,
             "method_id": method_id,
             "status": "QUALIFICADO",
-            "trainings": [
-                {"title": "Treinamento Metrológico NBR IEC 60601-1", "hours": 16.0}
-            ],
+            "trainings": [{"title": "Treinamento Metrológico NBR IEC 60601-1", "hours": 16.0}],
         },
     )
     assert q_res.status_code == 201, q_res.text
@@ -356,7 +356,9 @@ async def test_uncertainty_budget_persistence_and_report_manifest(
     assert budget_data["signature_id"] is not None
 
     # Consulta orçamento criado
-    get_b_res = await client.get(f"{API}/uncertainty/budgets/{budget_id}", headers=auth(tecnico_auth["access_token"]))
+    get_b_res = await client.get(
+        f"{API}/uncertainty/budgets/{budget_id}", headers=auth(tecnico_auth["access_token"])
+    )
     assert get_b_res.status_code == 200
     assert get_b_res.json()["id"] == budget_id
 

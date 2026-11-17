@@ -1,0 +1,10 @@
+"Integration Results"
+"Signal Description","VWD1 A, Wavelength=254 nm"
+"Operator","Analista QC 01"
+"Data File","C:\Chem32\1\DATA\LOT2026_01.D"
+"Acquired","16/11/2026 14:22:10"
+
+Peak,RT,Area,Height,% Area,Name
+1,2.152,14250.4,1850.2,1.42,"Solvent Front"
+2,4.831,985420.8,84200.5,98.15,"Atorvastatina Calcica"
+3,7.210,4320.1,510.3,0.43,"Impureza A"

@@ -21,6 +21,7 @@ import {
   Sigma,
   Timer,
   UserRound,
+  Workflow,
   X,
 } from "lucide-react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -61,6 +62,12 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/analytics", label: "Painel BI & Metrologia", icon: BarChart3 },
   { to: "/notifications", label: "Central de Notificações", icon: Bell },
   { to: "/instruments", label: "Aquisição de Instrumentos", icon: Cpu },
+  {
+    to: "/integrations",
+    label: "Integrações & M2M",
+    icon: Workflow,
+    roles: ["ADMIN", "FISCAL", "TECNICO"],
+  },
   {
     to: "/audit",
     label: "Trilha de auditoria",

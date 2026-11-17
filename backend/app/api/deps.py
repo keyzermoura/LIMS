@@ -40,7 +40,7 @@ async def get_current_user(
             audit=False,
         )
     try:
-        claims = decode_token(token, expected_type="access")
+        claims = decode_token(token, expected_type=("access", "service"))
     except TokenError as exc:
         raise SignatureRejectedError(
             f"Sessão inválida: {exc}",
@@ -48,12 +48,57 @@ async def get_current_user(
             audit=False,
         ) from exc
 
+    if claims.get("typ") == "service":
+        from datetime import UTC
+
+        from sqlalchemy import select
+
+        from app.models.base import utcnow
+        from app.models.service_client import ServiceClient
+
+        client_id = claims.get("client_id")
+        user_id_str = claims.get("uid")
+        if not client_id or not user_id_str:
+            raise SignatureRejectedError(
+                "Token de serviço malformado.", status_code=401, audit=False
+            )
+
+        try:
+            user_id = UUID(user_id_str)
+        except ValueError as exc:
+            raise SignatureRejectedError(
+                "Token de serviço malformado.", status_code=401, audit=False
+            ) from exc
+
+        client = await db.scalar(select(ServiceClient).where(ServiceClient.client_id == client_id))
+        if client is None or not client.is_active:
+            raise SignatureRejectedError(
+                "Cliente de serviço inexistente ou inativo.", status_code=401, audit=False
+            )
+
+        client_expires_at = client.expires_at
+        if client_expires_at.tzinfo is None:
+            client_expires_at = client_expires_at.replace(tzinfo=UTC)
+        if client_expires_at <= utcnow():
+            raise SignatureRejectedError(
+                "Credencial de serviço expirada.", status_code=401, audit=False
+            )
+
+        user = await db.get(User, user_id)
+        if user is None or not user.is_active or user.role != UserRole.SERVICE:
+            raise SignatureRejectedError(
+                "Conta de serviço associada inexistente ou inativa.", status_code=401, audit=False
+            )
+
+        # Associa metadados do cliente para controle de escopo e idempotência
+        user._service_client = client  # type: ignore[attr-defined]
+        user._service_scopes = claims.get("scp", [])  # type: ignore[attr-defined]
+        return user
+
     try:
         user_id = UUID(claims["sub"])
     except (KeyError, ValueError) as exc:
-        raise SignatureRejectedError(
-            "Token malformado.", status_code=401, audit=False
-        ) from exc
+        raise SignatureRejectedError("Token malformado.", status_code=401, audit=False) from exc
 
     user = await db.get(User, user_id)
     if user is None or not user.is_active:
@@ -89,7 +134,10 @@ def require_roles(*roles: UserRole):
 
 async def signature_token_header(
     x_signature_token: Annotated[
-        str | None, Header(alias="X-Signature-Token", description="Token de assinatura eletrônica (uso único).")
+        str | None,
+        Header(
+            alias="X-Signature-Token", description="Token de assinatura eletrônica (uso único)."
+        ),
     ] = None,
 ) -> str:
     if not x_signature_token:

@@ -55,9 +55,7 @@ async def create_test(
         raise ConflictError("Já existe um ensaio com o identificador informado.")
 
     sample = await db.scalar(
-        select(DeviceSample)
-        .where(DeviceSample.id == payload.device_sample_id)
-        .with_for_update()
+        select(DeviceSample).where(DeviceSample.id == payload.device_sample_id).with_for_update()
     )
     if sample is None:
         raise NotFoundError("Amostra não encontrada.")
@@ -84,9 +82,7 @@ async def create_test(
         if candidate is None or not candidate.is_active:
             raise NotFoundError("Testador designado não encontrado ou inativo.")
         if candidate.role not in (UserRole.TECNICO, UserRole.ADMIN):
-            raise ValidationDomainError(
-                "O testador designado deve ter perfil TECNICO ou ADMIN."
-            )
+            raise ValidationDomainError("O testador designado deve ter perfil TECNICO ou ADMIN.")
         assignee = candidate
     elif actor.role in (UserRole.TECNICO, UserRole.ADMIN):
         assignee = actor
@@ -158,16 +154,12 @@ async def record_result(
     signature: ElectronicSignature,
     context: RequestContext,
 ) -> tuple[LabTest, LabTestResult, CapaAction | None, TestAlert | None, int]:
-    test = await db.scalar(
-        select(LabTest).where(LabTest.id == test_id).with_for_update()
-    )
+    test = await db.scalar(select(LabTest).where(LabTest.id == test_id).with_for_update())
     if test is None:
         raise NotFoundError("Ensaio não encontrado.")
 
     sample = await db.scalar(
-        select(DeviceSample)
-        .where(DeviceSample.id == test.device_sample_id)
-        .with_for_update()
+        select(DeviceSample).where(DeviceSample.id == test.device_sample_id).with_for_update()
     )
     if sample is None:
         raise NotFoundError("Amostra do ensaio não encontrada.")
@@ -185,11 +177,7 @@ async def record_result(
         UserRole.TECNICO,
         UserRole.ADMIN,
     )
-    if (
-        designated_can_sign
-        and test.tested_by_id != actor.id
-        and actor.role != UserRole.ADMIN
-    ):
+    if designated_can_sign and test.tested_by_id != actor.id and actor.role != UserRole.ADMIN:
         raise ForbiddenError(
             "Apenas o testador responsável (ou administrador) pode assinar este laudo."
         )
@@ -322,25 +310,15 @@ def evaluate_outcome(
     if explicit is not None:
         if result_value is None and not evidence:
             raise ValidationDomainError(
-                "Informe o resultado observado (valor ou texto) para "
-                "sustentar o desfecho."
+                "Informe o resultado observado (valor ou texto) para sustentar o desfecho."
             )
-        if (
-            numeric == TestOutcome.REPROVADO
-            and explicit == TestOutcome.APROVADO
-        ):
+        if numeric == TestOutcome.REPROVADO and explicit == TestOutcome.APROVADO:
             raise ValidationDomainError(
                 "Resultado fora dos limites de aceitação não pode ser aprovado.",
                 details={
-                    "result_value": format(result_value, "f")
-                    if result_value is not None
-                    else None,
-                    "lower_limit": format(lower_limit, "f")
-                    if lower_limit is not None
-                    else None,
-                    "upper_limit": format(upper_limit, "f")
-                    if upper_limit is not None
-                    else None,
+                    "result_value": format(result_value, "f") if result_value is not None else None,
+                    "lower_limit": format(lower_limit, "f") if lower_limit is not None else None,
+                    "upper_limit": format(upper_limit, "f") if upper_limit is not None else None,
                 },
             )
         return explicit
@@ -391,8 +369,7 @@ async def _handle_reproval(
             code="RESULTADO_REPROVADO",
             severity="CRITICAL",
             message=(
-                f"Resultado reprovado. Já existe CAPA em aberto ({existing.code}) "
-                "para este ensaio."
+                f"Resultado reprovado. Já existe CAPA em aberto ({existing.code}) para este ensaio."
             ),
             capa_id=existing.id,
             capa_code=existing.code,
@@ -498,18 +475,12 @@ async def list_tests(
         stmt = stmt.where(LabTest.status == status)
 
     total = await db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    stmt = (
-        stmt.order_by(LabTest.created_at.desc())
-        .offset((page - 1) * size)
-        .limit(size)
-    )
+    stmt = stmt.order_by(LabTest.created_at.desc()).offset((page - 1) * size).limit(size)
     result = await db.execute(stmt)
     return list(result.scalars().all()), int(total)
 
 
-async def list_result_versions(
-    db: AsyncSession, test_id: UUID
-) -> list[LabTestResult]:
+async def list_result_versions(db: AsyncSession, test_id: UUID) -> list[LabTestResult]:
     await get_test(db, test_id)
     rows = await db.execute(
         select(LabTestResult)

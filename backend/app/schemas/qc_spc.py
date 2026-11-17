@@ -30,7 +30,9 @@ class TestMethodBriefOut(BaseModel):
 class QCRunCreate(BaseModel):
     method_id: UUID
     equipment_id: UUID | None = None
-    reagent_batch_id: UUID | None = Field(None, description="Padrão Analítico (CRM) utilizado no controle")
+    reagent_batch_id: UUID | None = Field(
+        None, description="Padrão Analítico (CRM) utilizado no controle"
+    )
     measured_value: float = Field(..., description="Valor medido na amostra de CQI")
     target_mean: float = Field(..., description="Média de referência esperada (nominal)")
     target_sd: float = Field(..., gt=0, description="Desvio padrão histórico ou aceitável")
@@ -38,7 +40,9 @@ class QCRunCreate(BaseModel):
 
 
 class QCRunResolve(BaseModel):
-    corrective_notes: str = Field(..., min_length=10, description="Justificativa técnica ou parecer da investigação OOS")
+    corrective_notes: str = Field(
+        ..., min_length=10, description="Justificativa técnica ou parecer da investigação OOS"
+    )
 
 
 class QCRunOut(BaseModel):

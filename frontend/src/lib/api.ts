@@ -190,6 +190,11 @@ export const api = {
       method: "POST",
       form: new URLSearchParams({ username, password }),
     }),
+  verifyMfaLogin: <T>(mfa_token: string, code: string) =>
+    request<T>("/auth/login/mfa-verify", {
+      method: "POST",
+      body: { mfa_token, code },
+    }),
   upload: <T>(path: string, file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -378,6 +383,11 @@ import type {
   OOSClosePayload,
   StorageLocation,
   StorageLocationCreatePayload,
+  ServiceClient,
+  ServiceClientCreatePayload,
+  ServiceClientCreated,
+  OutboxEvent,
+  InstrumentProfile,
   SampleStorageMovement,
   SampleStorageMovementCreatePayload,
   SampleRetention,
@@ -951,6 +961,42 @@ export const spcApi = {
       body: payload,
     }),
 };
+
+export const integrationApi = {
+  // Contas de Serviço (M2M)
+  listServiceClients: () => request<ServiceClient[]>("/service-clients"),
+  createServiceClient: (payload: ServiceClientCreatePayload) =>
+    request<ServiceClientCreated>("/service-clients", {
+      method: "POST",
+      body: payload,
+    }),
+  rotateSecret: (clientId: string) =>
+    request<{ client_id: string; client_secret: string; expires_at: string }>(
+      `/service-clients/${clientId}/rotate-secret`,
+      { method: "POST" },
+    ),
+  deactivateServiceClient: (clientId: string) =>
+    request<ServiceClient>(`/service-clients/${clientId}`, {
+      method: "DELETE",
+    }),
+
+  // Outbox & Webhooks
+  getPendingOutbox: (limit = 50) =>
+    request<OutboxEvent[]>(`/outbox/pending?limit=${limit}`),
+  getDeadLetterOutbox: (limit = 50) =>
+    request<OutboxEvent[]>(`/outbox/dead-letter?limit=${limit}`),
+  dispatchOutbox: (limit = 50) =>
+    request<{ dispatched: number; failed: number }>(`/outbox/dispatch?limit=${limit}`, {
+      method: "POST",
+    }),
+  retryDeadLetter: (id: string) =>
+    request<OutboxEvent>(`/outbox/${id}/retry`, { method: "POST" }),
+
+  // Perfis de Instrumentos
+  getProfiles: () =>
+    request<{ profiles: InstrumentProfile[] }>("/instrument-data/profiles"),
+};
+
 
 
 

@@ -13,7 +13,9 @@ from app.models.enums import EquipmentCalibrationStatus
 class EquipmentBase(BaseModel):
     code: str = Field(min_length=2, max_length=64, description="Código de identificação/tombamento")
     name: str = Field(min_length=2, max_length=200, description="Nome do equipamento")
-    equipment_type: str | None = Field(default=None, max_length=100, description="Tipo de instrumento")
+    equipment_type: str | None = Field(
+        default=None, max_length=100, description="Tipo de instrumento"
+    )
     manufacturer: str | None = Field(default=None, max_length=160)
     model: str | None = Field(default=None, max_length=120)
     serial_number: str | None = Field(default=None, max_length=120)

@@ -38,9 +38,7 @@ async def login(client: AsyncClient, username: str, password: str) -> dict[str, 
     return response.json()
 
 
-async def _append_event(
-    factory: async_sessionmaker[AsyncSession], username: str
-) -> None:
+async def _append_event(factory: async_sessionmaker[AsyncSession], username: str) -> None:
     async with factory() as db:
         await audit_service.append(
             db,
@@ -143,14 +141,10 @@ async def test_native_sequences_are_monotonic(
 async def test_advisory_lock_serializes_the_hash_chain(
     db_factory: async_sessionmaker[AsyncSession],
 ) -> None:
-    await asyncio.gather(
-        *(_append_event(db_factory, f"WORKER-{index}") for index in range(8))
-    )
+    await asyncio.gather(*(_append_event(db_factory, f"WORKER-{index}") for index in range(8)))
 
     async with db_factory() as db:
-        sequences = (
-            await db.scalars(select(AuditLog.sequence).order_by(AuditLog.sequence))
-        ).all()
+        sequences = (await db.scalars(select(AuditLog.sequence).order_by(AuditLog.sequence))).all()
         assert list(sequences) == list(range(1, 9))
         report = await audit_service.verify_chain(db)
         assert report["ok"] is True
@@ -186,9 +180,7 @@ async def test_trigger_parity_phase5(
     async with db_factory() as db:
         triggers = set(
             (
-                await db.scalars(
-                    text("SELECT tgname FROM pg_trigger WHERE tgname LIKE 'trg_%'")
-                )
+                await db.scalars(text("SELECT tgname FROM pg_trigger WHERE tgname LIKE 'trg_%'"))
             ).all()
         )
         assert expected_triggers.issubset(triggers)

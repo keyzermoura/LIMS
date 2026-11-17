@@ -124,9 +124,7 @@ class OOSInvestigation(
     # Relacionamentos
     lab_test: Mapped[LabTest] = relationship("LabTest", lazy="selectin")
     execution: Mapped[TestExecution | None] = relationship("TestExecution", lazy="selectin")
-    detected_by: Mapped[User] = relationship(
-        "User", foreign_keys=[detected_by_id], lazy="selectin"
-    )
+    detected_by: Mapped[User] = relationship("User", foreign_keys=[detected_by_id], lazy="selectin")
     phase_1_responsible: Mapped[User | None] = relationship(
         "User", foreign_keys=[phase_1_responsible_id], lazy="selectin"
     )

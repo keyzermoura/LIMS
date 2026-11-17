@@ -90,9 +90,7 @@ async def get_operational_analytics(db: AsyncSession) -> OperationalAnalyticsOut
 
     # Médias seguras (sem dados sintéticos / ALCOA+)
     global_avg = (
-        round(sum(tat_global_deltas) / len(tat_global_deltas), 2)
-        if tat_global_deltas
-        else None
+        round(sum(tat_global_deltas) / len(tat_global_deltas), 2) if tat_global_deltas else None
     )
     rec_test_avg = (
         round(sum(receipt_to_testing_deltas) / len(receipt_to_testing_deltas), 2)
@@ -155,13 +153,9 @@ async def get_operational_analytics(db: AsyncSession) -> OperationalAnalyticsOut
     conforming = sum(1 for t in all_tests if t.outcome == TestOutcome.APROVADO)
     non_conforming = sum(1 for t in all_tests if t.outcome == TestOutcome.REPROVADO)
     inconclusive = sum(1 for t in all_tests if t.outcome == TestOutcome.INCONCLUSIVO)
-    pending = sum(
-        1 for t in all_tests if t.status == TestStatus.PENDENTE or t.outcome is None
-    )
+    pending = sum(1 for t in all_tests if t.status == TestStatus.PENDENTE or t.outcome is None)
     total_evaluated = conforming + non_conforming + inconclusive
-    conf_rate = (
-        round((conforming / total_evaluated) * 100.0, 1) if total_evaluated > 0 else None
-    )
+    conf_rate = round((conforming / total_evaluated) * 100.0, 1) if total_evaluated > 0 else None
     conf_quality = "sufficient" if total_evaluated >= 5 else "insufficient"
 
     conformity_metrics = TestConformityMetrics(
@@ -284,7 +278,7 @@ def _evaluate_westgard(
             violations.append(
                 WestgardViolation(
                     rule_code="1_3s",
-                    description=f"Corrida #{i+1} ({values[i]:.3f}) excedeu o limite de ação de 3 desvios padrão (±3s).",
+                    description=f"Corrida #{i + 1} ({values[i]:.3f}) excedeu o limite de ação de 3 desvios padrão (±3s).",
                     run_numbers=[i + 1],
                     severity="ALARM",
                 )
@@ -301,7 +295,7 @@ def _evaluate_westgard(
             violations.append(
                 WestgardViolation(
                     rule_code="2_2s",
-                    description=f"Corridas #{i} e #{i+1} ultrapassaram 2 desvios padrão no mesmo lado da média.",
+                    description=f"Corridas #{i} e #{i + 1} ultrapassaram 2 desvios padrão no mesmo lado da média.",
                     run_numbers=[i, i + 1],
                     severity="ALARM",
                 )
@@ -318,7 +312,7 @@ def _evaluate_westgard(
             violations.append(
                 WestgardViolation(
                     rule_code="R_4s",
-                    description=f"Dispersão de 4 desvios padrão detectada entre corridas #{i} e #{i+1}.",
+                    description=f"Dispersão de 4 desvios padrão detectada entre corridas #{i} e #{i + 1}.",
                     run_numbers=[i, i + 1],
                     severity="ALARM",
                 )
@@ -335,7 +329,7 @@ def _evaluate_westgard(
             violations.append(
                 WestgardViolation(
                     rule_code="4_1s",
-                    description=f"Quatro corridas consecutivas (#{i-2} a #{i+1}) excederam 1 desvio padrão no mesmo lado.",
+                    description=f"Quatro corridas consecutivas (#{i - 2} a #{i + 1}) excederam 1 desvio padrão no mesmo lado.",
                     run_numbers=[i - 2, i - 1, i, i + 1],
                     severity="WARNING",
                 )
@@ -352,7 +346,7 @@ def _evaluate_westgard(
             violations.append(
                 WestgardViolation(
                     rule_code="10_x",
-                    description=f"Tendência sistemática: 10 corridas consecutivas (#{i-8} a #{i+1}) do mesmo lado da média.",
+                    description=f"Tendência sistemática: 10 corridas consecutivas (#{i - 8} a #{i + 1}) do mesmo lado da média.",
                     run_numbers=list(range(i - 8, i + 2)),
                     severity="WARNING",
                 )

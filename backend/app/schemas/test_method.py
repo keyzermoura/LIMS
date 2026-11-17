@@ -11,9 +11,13 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class TestMethodBase(BaseModel):
-    code: str = Field(min_length=2, max_length=64, description="Código único do método, ex: MET-ELETRO-01")
+    code: str = Field(
+        min_length=2, max_length=64, description="Código único do método, ex: MET-ELETRO-01"
+    )
     name: str = Field(min_length=2, max_length=200, description="Nome oficial do método")
-    standard: str = Field(min_length=2, max_length=120, description="Norma técnica (ex: ABNT NBR IEC 60601-1)")
+    standard: str = Field(
+        min_length=2, max_length=120, description="Norma técnica (ex: ABNT NBR IEC 60601-1)"
+    )
     version: int = Field(default=1, ge=1)
     category: str | None = Field(default=None, max_length=100, description="Categoria técnica")
     description: str | None = Field(default=None, max_length=2000)

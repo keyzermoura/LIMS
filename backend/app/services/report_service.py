@@ -36,7 +36,7 @@ from app.models.oos_investigation import OOSInvestigation
 from app.models.uncertainty import UncertaintyBudget
 from app.models.user import User
 from app.schemas.official_report import OfficialReportGenerateIn
-from app.services import audit_service, qc_spc_service, signature_service
+from app.services import audit_service, outbox_service, qc_spc_service, signature_service
 from app.services.audit_service import snapshot
 from app.services.pdf_report_service import generate_official_report_pdf
 
@@ -151,14 +151,18 @@ async def generate_official_report(
             u_str = f"± {budget.expanded_uncertainty} {t.unit or ''} (k={budget.coverage_factor})".strip()
 
         tests_manifest.append(entry)
-        tests_data_pdf.append({
-            "parameter_name": t.name,
-            "specification": f"{t.lower_limit or '—'} a {t.upper_limit or '—'} {t.unit or ''}".strip(),
-            "result_value": str(t.result_value) if t.result_value is not None else (t.result_text or "—"),
-            "unit": t.unit or "",
-            "uncertainty_u": u_str,
-            "outcome": t.outcome.value if t.outcome else "APROVADO",
-        })
+        tests_data_pdf.append(
+            {
+                "parameter_name": t.name,
+                "specification": f"{t.lower_limit or '—'} a {t.upper_limit or '—'} {t.unit or ''}".strip(),
+                "result_value": str(t.result_value)
+                if t.result_value is not None
+                else (t.result_text or "—"),
+                "unit": t.unit or "",
+                "uncertainty_u": u_str,
+                "outcome": t.outcome.value if t.outcome else "APROVADO",
+            }
+        )
 
     manifest: dict[str, Any] = {
         "report_number": report_number,
@@ -221,7 +225,9 @@ async def generate_official_report(
         )
 
     if sig_record is None:
-        raise ValidationDomainError("Assinatura eletrônica é obrigatória para emissão de laudo oficial.")
+        raise ValidationDomainError(
+            "Assinatura eletrônica é obrigatória para emissão de laudo oficial."
+        )
 
     report = OfficialReport(
         id=uuid4(),
@@ -256,6 +262,25 @@ async def generate_official_report(
         reason=f"Laudo pericial oficial {report_number} emitido com conclusão: {payload.conclusion.value}",
         context=context,
         signature_id=sig_record.id,
+    )
+
+    await outbox_service.enqueue_event(
+        db,
+        event_type="report.issued",
+        aggregate_type="OfficialReport",
+        aggregate_id=str(report.id),
+        payload={
+            "report_id": str(report.id),
+            "report_number": report.report_number,
+            "device_sample_id": str(report.device_sample_id),
+            "conclusion": (
+                report.conclusion.value
+                if hasattr(report.conclusion, "value")
+                else str(report.conclusion)
+            ),
+            "sha256_hash": report.sha256_hash,
+            "issued_at": report.issued_at.isoformat(),
+        },
     )
 
     await db.commit()
@@ -333,7 +358,9 @@ async def amend_official_report(
         )
 
     if sig_record is None:
-        raise ValidationDomainError("Assinatura eletrônica é obrigatória para emissão de emenda ao laudo.")
+        raise ValidationDomainError(
+            "Assinatura eletrônica é obrigatória para emissão de emenda ao laudo."
+        )
 
     sample = prev_report.device_sample
     sample_data = {
@@ -354,20 +381,26 @@ async def amend_official_report(
         u_str = "—"
         if "uncertainty" in tm:
             u_str = f"± {tm['uncertainty'].get('expanded_uncertainty', '')} {tm.get('unit', '')}".strip()
-        tests_data_pdf.append({
-            "parameter_name": tm.get("name", "Ensaio"),
-            "specification": f"{tm.get('lower_limit') or '—'} a {tm.get('upper_limit') or '—'} {tm.get('unit') or ''}".strip(),
-            "result_value": str(tm.get("result_value")) if tm.get("result_value") is not None else (tm.get("result_text") or "—"),
-            "unit": tm.get("unit") or "",
-            "uncertainty_u": u_str,
-            "outcome": tm.get("outcome") or "APROVADO",
-        })
+        tests_data_pdf.append(
+            {
+                "parameter_name": tm.get("name", "Ensaio"),
+                "specification": f"{tm.get('lower_limit') or '—'} a {tm.get('upper_limit') or '—'} {tm.get('unit') or ''}".strip(),
+                "result_value": str(tm.get("result_value"))
+                if tm.get("result_value") is not None
+                else (tm.get("result_text") or "—"),
+                "unit": tm.get("unit") or "",
+                "uncertainty_u": u_str,
+                "outcome": tm.get("outcome") or "APROVADO",
+            }
+        )
 
     # Gera novo PDF oficial com carimbo de emenda
     pdf_bytes = generate_official_report_pdf(
         report_number=new_report_number,
         title=new_title,
-        conclusion=new_conclusion.value if hasattr(new_conclusion, "value") else str(new_conclusion),
+        conclusion=new_conclusion.value
+        if hasattr(new_conclusion, "value")
+        else str(new_conclusion),
         summary=new_summary,
         version=new_version,
         is_latest=True,
@@ -386,16 +419,20 @@ async def amend_official_report(
     prev_report.is_latest = False
 
     new_manifest = dict(old_manifest)
-    new_manifest.update({
-        "report_number": new_report_number,
-        "version": new_version,
-        "amendment_reason": clean_reason,
-        "supersedes_report_number": prev_report.report_number,
-        "conclusion": new_conclusion.value if hasattr(new_conclusion, "value") else str(new_conclusion),
-        "summary": new_summary,
-        "issued_by": issuer.full_name,
-        "issued_at": now.isoformat(),
-    })
+    new_manifest.update(
+        {
+            "report_number": new_report_number,
+            "version": new_version,
+            "amendment_reason": clean_reason,
+            "supersedes_report_number": prev_report.report_number,
+            "conclusion": new_conclusion.value
+            if hasattr(new_conclusion, "value")
+            else str(new_conclusion),
+            "summary": new_summary,
+            "issued_by": issuer.full_name,
+            "issued_at": now.isoformat(),
+        }
+    )
 
     amended_report = OfficialReport(
         id=uuid4(),
@@ -503,12 +540,12 @@ async def verify_report_public(
     # Revalida hash SHA-256 a partir do PDF real ou manifesto arquivado
     if report.pdf_data:
         calculated_hash = hashlib.sha256(report.pdf_data).hexdigest()
-        is_valid = (calculated_hash == report.sha256_hash)
+        is_valid = calculated_hash == report.sha256_hash
     else:
         manifest = report.attributes.get("manifest") if report.attributes else {}
         serialized_str = canonical_json(jsonable(manifest))
         calculated_hash = hashlib.sha256(serialized_str.encode("utf-8")).hexdigest()
-        is_valid = (calculated_hash == report.sha256_hash)
+        is_valid = calculated_hash == report.sha256_hash
 
     # Identifica o laudo raiz e histórico de todas as versões emitidas
     root_id = report.root_report_id or report.id
@@ -543,7 +580,9 @@ async def verify_report_public(
         "is_latest": report.is_latest,
         "amendment_reason": report.amendment_reason,
         "supersedes_number": supersedes_num,
-        "latest_report_number": latest_report.report_number if not report.is_latest else report.report_number,
+        "latest_report_number": latest_report.report_number
+        if not report.is_latest
+        else report.report_number,
         "sample_acc_number": report.device_sample.accession_number,
         "sample_commercial_name": report.device_sample.commercial_name,
         "sample_serial_number": report.device_sample.serial_number,

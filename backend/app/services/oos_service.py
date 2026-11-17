@@ -40,7 +40,7 @@ from app.schemas.oos_investigation import (
     OOSPhase1Update,
     OOSPhase2Update,
 )
-from app.services import audit_service
+from app.services import audit_service, outbox_service
 
 
 async def create_investigation(
@@ -84,14 +84,10 @@ async def create_investigation(
         else (execution.result_text if execution else lab_test.result_text)
     )
     spec_min = (
-        payload.specification_min
-        if payload.specification_min is not None
-        else lab_test.lower_limit
+        payload.specification_min if payload.specification_min is not None else lab_test.lower_limit
     )
     spec_max = (
-        payload.specification_max
-        if payload.specification_max is not None
-        else lab_test.upper_limit
+        payload.specification_max if payload.specification_max is not None else lab_test.upper_limit
     )
     spec_text = payload.specification_text
 
@@ -127,6 +123,22 @@ async def create_investigation(
         ),
         context=context,
     )
+
+    await outbox_service.enqueue_event(
+        db,
+        event_type="oos.opened",
+        aggregate_type="OOSInvestigation",
+        aggregate_id=str(investigation.id),
+        payload={
+            "investigation_id": str(investigation.id),
+            "investigation_number": investigation.investigation_number,
+            "lab_test_id": str(investigation.lab_test_id),
+            "deviation_type": investigation.deviation_type.value,
+            "status": investigation.status.value,
+            "detected_at": investigation.detected_at.isoformat(),
+        },
+    )
+
     await db.commit()
     return await get_investigation(db, investigation.id)
 
@@ -225,7 +237,7 @@ async def record_phase_2(
         OOSInvestigationStatus.CONFIRMED_PRODUCT_FAILURE,
     ):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="O status final da Fase II deve ser CONFIRMED_LAB_ERROR ou CONFIRMED_PRODUCT_FAILURE.",
         )
 
@@ -240,7 +252,8 @@ async def record_phase_2(
     # Gerenciamento de CAPA (ISO 17025 §8.7 / §7.10)
     capa_id = payload.capa_action_id
     if payload.auto_create_capa or (
-        capa_id is None and payload.confirmed_status == OOSInvestigationStatus.CONFIRMED_PRODUCT_FAILURE
+        capa_id is None
+        and payload.confirmed_status == OOSInvestigationStatus.CONFIRMED_PRODUCT_FAILURE
     ):
         lab_test = investigation.lab_test
         capa_seq = await next_sequence(db, "capa_code_seq")

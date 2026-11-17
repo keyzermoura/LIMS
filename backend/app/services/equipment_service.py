@@ -37,9 +37,7 @@ async def get_equipment(db: AsyncSession, equipment_id: UUID) -> LaboratoryEquip
     return eq
 
 
-async def get_equipment_by_code(
-    db: AsyncSession, code: str
-) -> LaboratoryEquipment | None:
+async def get_equipment_by_code(db: AsyncSession, code: str) -> LaboratoryEquipment | None:
     return await db.scalar(
         select(LaboratoryEquipment).where(LaboratoryEquipment.code == code.strip())
     )
@@ -55,9 +53,7 @@ async def list_equipment(
     if active_only:
         query = query.where(LaboratoryEquipment.is_active.is_(True))
     if calibration_status is not None:
-        query = query.where(
-            LaboratoryEquipment.calibration_status == calibration_status
-        )
+        query = query.where(LaboratoryEquipment.calibration_status == calibration_status)
     query = query.order_by(LaboratoryEquipment.code.asc())
     result = await db.scalars(query)
     return list(result.all())
@@ -91,8 +87,12 @@ async def create_equipment(
         calibration_status=status,
         last_calibration_at=payload.last_calibration_at,
         calibration_due_date=payload.calibration_due_date,
-        certificate_number=payload.certificate_number.strip() if payload.certificate_number else None,
-        calibration_agency=payload.calibration_agency.strip() if payload.calibration_agency else None,
+        certificate_number=payload.certificate_number.strip()
+        if payload.certificate_number
+        else None,
+        calibration_agency=payload.calibration_agency.strip()
+        if payload.calibration_agency
+        else None,
         notes=payload.notes,
         is_active=payload.is_active,
     )
@@ -126,7 +126,9 @@ async def update_equipment(
     if payload.name is not None:
         equipment.name = payload.name.strip()
     if payload.equipment_type is not None:
-        equipment.equipment_type = payload.equipment_type.strip() if payload.equipment_type else None
+        equipment.equipment_type = (
+            payload.equipment_type.strip() if payload.equipment_type else None
+        )
     if payload.manufacturer is not None:
         equipment.manufacturer = payload.manufacturer.strip() if payload.manufacturer else None
     if payload.model is not None:
@@ -142,9 +144,13 @@ async def update_equipment(
     if payload.calibration_due_date is not None:
         equipment.calibration_due_date = payload.calibration_due_date
     if payload.certificate_number is not None:
-        equipment.certificate_number = payload.certificate_number.strip() if payload.certificate_number else None
+        equipment.certificate_number = (
+            payload.certificate_number.strip() if payload.certificate_number else None
+        )
     if payload.calibration_agency is not None:
-        equipment.calibration_agency = payload.calibration_agency.strip() if payload.calibration_agency else None
+        equipment.calibration_agency = (
+            payload.calibration_agency.strip() if payload.calibration_agency else None
+        )
     if payload.notes is not None:
         equipment.notes = payload.notes
     if payload.is_active is not None:
@@ -227,9 +233,7 @@ async def update_calibration(
 def validate_equipment_for_use(equipment: LaboratoryEquipment) -> None:
     """Valida metrologicamente se um equipamento pode ser alocado para uma execução de ensaio."""
     if not equipment.is_active:
-        raise ValidationDomainError(
-            f"Equipamento '{equipment.code}' está inativo no sistema."
-        )
+        raise ValidationDomainError(f"Equipamento '{equipment.code}' está inativo no sistema.")
 
     if equipment.calibration_status == EquipmentCalibrationStatus.EM_MANUTENCAO:
         raise ValidationDomainError(

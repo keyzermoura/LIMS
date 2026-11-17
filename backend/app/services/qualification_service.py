@@ -252,7 +252,9 @@ async def revoke_or_suspend_qualification(
 
     old_state = snapshot(qual)
     qual.status = payload.status
-    qual.notes = f"{qual.notes or ''}\n[Revogação em {utcnow().isoformat()}]: {payload.reason}".strip()
+    qual.notes = (
+        f"{qual.notes or ''}\n[Revogação em {utcnow().isoformat()}]: {payload.reason}".strip()
+    )
     qual.version += 1
 
     audit_entry = await audit_service.append(

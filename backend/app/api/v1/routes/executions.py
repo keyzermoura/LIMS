@@ -19,7 +19,9 @@ from app.schemas.test_execution import (
 )
 from app.services import execution_service
 
-test_executions_router = APIRouter(prefix="/tests/{test_id}/executions", tags=["Execução de Ensaios"])
+test_executions_router = APIRouter(
+    prefix="/tests/{test_id}/executions", tags=["Execução de Ensaios"]
+)
 executions_router = APIRouter(prefix="/executions", tags=["Execução de Ensaios"])
 
 OPERATOR_ROLES = (UserRole.ADMIN, UserRole.TECNICO)

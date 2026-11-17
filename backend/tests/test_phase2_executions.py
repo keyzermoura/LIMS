@@ -231,7 +231,10 @@ async def test_equipment_lifecycle_and_metrological_blocking(
         json={"equipment_id": expired_eq["id"]},
     )
     assert denied.status_code == 422
-    assert "calibração VENCIDA" in denied.json()["detail"] or "Bloqueio Metrológico" in denied.json()["detail"]
+    assert (
+        "calibração VENCIDA" in denied.json()["detail"]
+        or "Bloqueio Metrológico" in denied.json()["detail"]
+    )
 
     # 2.5 Atualiza calibração do equipamento vencido
     calib_update = {
