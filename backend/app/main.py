@@ -12,11 +12,13 @@ import asyncio
 import logging
 import time
 from contextlib import asynccontextmanager, suppress
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.router import api_router
 from app.core.config import settings
@@ -169,11 +171,6 @@ async def security_context(request: Request, call_next):
     return response
 
 
-@app.get("/", include_in_schema=False)
-async def root() -> RedirectResponse:
-    return RedirectResponse(url="/docs")
-
-
 @app.get("/health", tags=["Operação"], summary="Liveness e readiness")
 async def health() -> dict[str, object]:
     db_ok = await healthcheck()
@@ -202,6 +199,20 @@ async def metadata() -> dict[str, object]:
 
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if (frontend_dist / "index.html").is_file():
+    app.mount("/assets", StaticFiles(directory=frontend_dist / "assets"), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path in ("health", "docs", "redoc", "openapi.json"):
+            return RedirectResponse(url="/docs")
+        return FileResponse(frontend_dist / "index.html")
+else:
+    @app.get("/", include_in_schema=False)
+    async def root() -> RedirectResponse:
+        return RedirectResponse(url="/docs")
 
 
 __all__ = ["app"]
