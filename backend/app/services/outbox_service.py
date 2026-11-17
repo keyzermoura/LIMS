@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import NotFoundError
+from app.core.serialization import jsonable
 from app.models.base import utcnow
 from app.models.outbox import IntegrationOutbox
 from app.models.webhook import WebhookDelivery, WebhookSubscription
@@ -68,11 +69,12 @@ async def enqueue_event(
     payload: dict[str, Any],
 ) -> IntegrationOutbox:
     """Enfileira atomicamente um evento de negócio na tabela integration_outbox."""
+    clean_payload = jsonable(payload)
     event = IntegrationOutbox(
         event_type=event_type,
         aggregate_type=aggregate_type,
         aggregate_id=aggregate_id,
-        payload=payload,
+        payload=clean_payload,
         attempts=0,
         next_attempt_at=utcnow(),
     )
