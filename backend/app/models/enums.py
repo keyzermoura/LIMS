@@ -72,6 +72,8 @@ class SignatureMeaning(str, Enum):
     RESPONSABILIDADE_TECNICA = "RESPONSABILIDADE_TECNICA"
     TRANSFERENCIA_DE_CUSTODIA = "TRANSFERENCIA_DE_CUSTODIA"
     VERIFICACAO = "VERIFICACAO"
+    EXECUCAO_DESCARTE = "EXECUCAO_DESCARTE"
+    TESTEMUNHA_DESCARTE = "TESTEMUNHA_DESCARTE"
 
 
 class SignatureAction(str, Enum):
@@ -110,6 +112,10 @@ class AuditEntity(str, Enum):
     REAGENT = "Reagent"
     REAGENT_BATCH = "ReagentBatch"
     OOS_INVESTIGATION = "OOSInvestigation"
+    STORAGE_LOCATION = "StorageLocation"
+    STORAGE_MOVEMENT = "StorageMovement"
+    SAMPLE_RETENTION = "SampleRetention"
+    SAMPLE_DISPOSAL = "SampleDisposal"
 
 
 class SolicitationStatus(str, Enum):
@@ -389,6 +395,50 @@ class OOSRootCauseCategory(str, Enum):
     SAMPLE_ANOMALY = "SAMPLE_ANOMALY"
     METHOD_LIMITATION = "METHOD_LIMITATION"
     OTHER = "OTHER"
+
+
+# ---------------------------------------------------------------------------
+# Cadeia de Armazenamento, Contraprova e Descarte (Horizonte 2 / Sprint 7.3)
+# ---------------------------------------------------------------------------
+
+
+class StorageLocationType(str, Enum):
+    """Tipologia de ambientes de conservação física com controle térmico."""
+
+    ULTRA_FREEZER = "ULTRA_FREEZER"
+    COLD_CHAMBER = "COLD_CHAMBER"
+    REFRIGERATOR = "REFRIGERATOR"
+    CONTROLLED_ROOM = "CONTROLLED_ROOM"
+    DESICCATOR = "DESICCATOR"
+    HAZARDOUS_CABINET = "HAZARDOUS_CABINET"
+
+
+class RetentionType(str, Enum):
+    """Classificação regulatória da guarda de contraprova pericial."""
+
+    CONTRAPROVA_PERICIAL = "CONTRAPROVA_PERICIAL"
+    TESTEMUNHA_QUALIDADE = "TESTEMUNHA_QUALIDADE"
+    RETENCAO_REGULATORIA = "RETENCAO_REGULATORIA"
+
+
+class RetentionStatus(str, Enum):
+    """Estado do ciclo de vida da guarda de contraprova."""
+
+    ACTIVE = "ACTIVE"
+    EXTENDED = "EXTENDED"
+    EXPIRED = "EXPIRED"
+    DISPOSED = "DISPOSED"
+
+
+class DisposalMethod(str, Enum):
+    """Metodologia sanitária e ambiental de descarte irreversível."""
+
+    INCINERACAO = "INCINERACAO"
+    AUTOCLAVAGEM = "AUTOCLAVAGEM"
+    DESCARTE_QUIMICO_ESPECIALIZADO = "DESCARTE_QUIMICO_ESPECIALIZADO"
+    DEVOLUCAO_ORGAO_REGULADOR = "DEVOLUCAO_ORGAO_REGULADOR"
+    RECICLAGEM_CONTROLADA = "RECICLAGEM_CONTROLADA"
+
 
 
 

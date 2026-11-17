@@ -19,6 +19,12 @@ from app.models.qualification import AnalystQualification, TrainingRecord
 from app.models.reagent import Reagent, ReagentBatch, TestExecutionReagentUsage
 from app.models.receipt import CustodyEvent, CustodyObject, Receipt, ReceiptItem
 from app.models.solicitation import Solicitation, SolicitationItem
+from app.models.storage_and_disposal import (
+    SampleDisposalRecord,
+    SampleRetention,
+    SampleStorageMovement,
+    StorageLocation,
+)
 from app.models.test_attachment import TestAttachment
 from app.models.test_execution import TestExecution
 from app.models.test_method import TestMethod
@@ -55,8 +61,12 @@ __all__ = [
     "ReceiptDecision",
     "ReceiptItem",
     "RefreshToken",
+    "SampleDisposalRecord",
+    "SampleRetention",
+    "SampleStorageMovement",
     "Solicitation",
     "SolicitationItem",
+    "StorageLocation",
     "TestAttachment",
     "TestExecution",
     "TestExecutionReagentUsage",

@@ -52,6 +52,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/tests", label: "Ensaios e laudos", icon: FlaskConical },
   { to: "/equipment", label: "Controle de Equipamentos", icon: Gauge },
   { to: "/reagents", label: "Reagentes & Padrões CRM", icon: Beaker },
+  { to: "/storage", label: "Cadeia Física & Descarte", icon: Boxes },
   { to: "/methods", label: "Catálogo de Métodos", icon: BookOpen },
   { to: "/qualifications", label: "Qualificação de Analistas", icon: GraduationCap },
   { to: "/uncertainty", label: "Incerteza & ILAC-G8", icon: Sigma },

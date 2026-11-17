@@ -376,6 +376,15 @@ import type {
   OOSPhase1UpdatePayload,
   OOSPhase2UpdatePayload,
   OOSClosePayload,
+  StorageLocation,
+  StorageLocationCreatePayload,
+  SampleStorageMovement,
+  SampleStorageMovementCreatePayload,
+  SampleRetention,
+  SampleRetentionCreatePayload,
+  SampleDisposalRecord,
+  SampleDisposalCreatePayload,
+  StorageDashboardSummary,
 } from "./types";
 
 export const methodsApi = {
@@ -849,6 +858,73 @@ export const oosApi = {
       body: payload,
     }),
 };
+
+export const storageApi = {
+  getSummary: () => request<StorageDashboardSummary>("/storage/summary"),
+
+  // Locais Físicos
+  listLocations: (params?: { is_active?: boolean; location_type?: string }) => {
+    const qs = buildQuery({
+      is_active: params?.is_active,
+      location_type: params?.location_type,
+    });
+    return request<StorageLocation[]>(`/storage/locations${qs}`);
+  },
+  getLocation: (id: string) => request<StorageLocation>(`/storage/locations/${id}`),
+  createLocation: (payload: StorageLocationCreatePayload) =>
+    request<StorageLocation>("/storage/locations", {
+      method: "POST",
+      body: payload,
+    }),
+  updateLocation: (id: string, payload: Partial<StorageLocationCreatePayload> & { is_active?: boolean }) =>
+    request<StorageLocation>(`/storage/locations/${id}`, {
+      method: "PATCH",
+      body: payload,
+    }),
+
+  // Movimentações
+  listMovements: (params?: { sample_id?: string }) => {
+    const qs = buildQuery({ sample_id: params?.sample_id });
+    return request<SampleStorageMovement[]>(`/storage/movements${qs}`);
+  },
+  createMovement: (payload: SampleStorageMovementCreatePayload) =>
+    request<SampleStorageMovement>("/storage/movements", {
+      method: "POST",
+      body: payload,
+    }),
+
+  // Contraprovas Periciais
+  listRetentions: (params?: { status?: string; location_id?: string }) => {
+    const qs = buildQuery({
+      status: params?.status,
+      location_id: params?.location_id,
+    });
+    return request<SampleRetention[]>(`/storage/retentions${qs}`);
+  },
+  getRetention: (id: string) => request<SampleRetention>(`/storage/retentions/${id}`),
+  createRetention: (payload: SampleRetentionCreatePayload) =>
+    request<SampleRetention>("/storage/retentions", {
+      method: "POST",
+      body: payload,
+    }),
+  updateRetention: (id: string, payload: { retain_until?: string; seal_number?: string; status?: string; notes?: string }) =>
+    request<SampleRetention>(`/storage/retentions/${id}`, {
+      method: "PATCH",
+      body: payload,
+    }),
+
+  // Descarte com Dupla Assinatura (21 CFR Part 11)
+  listDisposals: (params?: { sample_id?: string }) => {
+    const qs = buildQuery({ sample_id: params?.sample_id });
+    return request<SampleDisposalRecord[]>(`/storage/disposals${qs}`);
+  },
+  executeDisposal: (payload: SampleDisposalCreatePayload) =>
+    request<SampleDisposalRecord>("/storage/disposal", {
+      method: "POST",
+      body: payload,
+    }),
+};
+
 
 
 

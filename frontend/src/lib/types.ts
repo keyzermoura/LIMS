@@ -1439,3 +1439,189 @@ export interface OOSClosePayload {
   final_disposition: string;
 }
 
+// ============================================================================
+// Fase 7 (Horizonte 2 — Sprint 7.3): Cadeia Física, Contraprova e Descarte (H2.3 & H2.4)
+// ============================================================================
+
+export type StorageLocationType =
+  | "ULTRA_FREEZER"
+  | "COLD_CHAMBER"
+  | "REFRIGERATOR"
+  | "CONTROLLED_ROOM"
+  | "DESICCATOR"
+  | "HAZARDOUS_CABINET";
+
+export type RetentionType =
+  | "CONTRAPROVA_PERICIAL"
+  | "TESTEMUNHA_QUALIDADE"
+  | "RETENCAO_REGULATORIA";
+
+export type RetentionStatus =
+  | "ACTIVE"
+  | "EXTENDED"
+  | "EXPIRED"
+  | "DISPOSED";
+
+export type DisposalMethod =
+  | "INCINERACAO"
+  | "AUTOCLAVAGEM"
+  | "DESCARTE_QUIMICO_ESPECIALIZADO"
+  | "DEVOLUCAO_ORGAO_REGULADOR"
+  | "RECICLAGEM_CONTROLADA";
+
+export interface StorageLocation {
+  id: string;
+  code: string;
+  name: string;
+  location_type: StorageLocationType;
+  room: string;
+  temperature_target_celsius: number;
+  temperature_min_celsius: number;
+  temperature_max_celsius: number;
+  humidity_max_percent?: number | null;
+  capacity_units: number;
+  current_occupancy: number;
+  is_active: boolean;
+  metadata?: Record<string, any>;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StorageLocationCreatePayload {
+  code: string;
+  name: string;
+  location_type: StorageLocationType;
+  room: string;
+  temperature_target_celsius: number;
+  temperature_min_celsius: number;
+  temperature_max_celsius: number;
+  humidity_max_percent?: number | null;
+  capacity_units: number;
+  metadata?: Record<string, any>;
+}
+
+export interface SampleStorageMovement {
+  id: string;
+  sample_id: string;
+  from_location_id?: string | null;
+  to_location_id: string;
+  moved_by_id: string;
+  moved_at: string;
+  reason: string;
+  temperature_at_movement?: number | null;
+  notes?: string | null;
+  from_location?: StorageLocation | null;
+  to_location?: StorageLocation | null;
+  moved_by?: { id: string; full_name: string; email: string } | null;
+  sample?: {
+    id: string;
+    accession_number: string;
+    commercial_name: string;
+    manufacturer: string;
+    lot_number?: string | null;
+    serial_number?: string | null;
+    status: string;
+  } | null;
+}
+
+export interface SampleStorageMovementCreatePayload {
+  sample_id: string;
+  to_location_id: string;
+  reason: string;
+  temperature_at_movement?: number | null;
+  notes?: string | null;
+}
+
+export interface SampleRetention {
+  id: string;
+  sample_id: string;
+  storage_location_id: string;
+  retention_type: RetentionType;
+  retained_at: string;
+  retain_until: string;
+  quantity_retained: number;
+  unit: string;
+  seal_number: string;
+  status: RetentionStatus;
+  is_expired: boolean;
+  responsible_id: string;
+  notes?: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  storage_location?: StorageLocation | null;
+  responsible?: { id: string; full_name: string; email: string } | null;
+  sample?: {
+    id: string;
+    accession_number: string;
+    commercial_name: string;
+    manufacturer: string;
+    lot_number?: string | null;
+    serial_number?: string | null;
+    status: string;
+  } | null;
+}
+
+export interface SampleRetentionCreatePayload {
+  sample_id: string;
+  storage_location_id: string;
+  retention_type?: RetentionType;
+  retain_until: string;
+  quantity_retained: number;
+  unit?: string;
+  seal_number: string;
+  notes?: string | null;
+}
+
+export interface SampleDisposalRecord {
+  id: string;
+  sample_id: string;
+  retention_id?: string | null;
+  disposal_manifest_number: string;
+  disposal_method: DisposalMethod;
+  disposed_at: string;
+  disposed_by_id: string;
+  witness_id: string;
+  primary_signature_id: string;
+  witness_signature_id: string;
+  environmental_license_number?: string | null;
+  waste_company_name?: string | null;
+  notes?: string | null;
+  version: number;
+  created_at: string;
+  sample?: {
+    id: string;
+    accession_number: string;
+    commercial_name: string;
+    manufacturer: string;
+    lot_number?: string | null;
+    serial_number?: string | null;
+    status: string;
+  } | null;
+  disposed_by?: { id: string; full_name: string; email: string } | null;
+  witness?: { id: string; full_name: string; email: string } | null;
+}
+
+export interface SampleDisposalCreatePayload {
+  sample_id: string;
+  disposal_method: DisposalMethod;
+  primary_esign_token: string;
+  witness_id: string;
+  witness_esign_token: string;
+  environmental_license_number?: string | null;
+  waste_company_name?: string | null;
+  notes?: string | null;
+  force_legal_override?: boolean;
+}
+
+export interface StorageDashboardSummary {
+  total_locations: number;
+  active_locations: number;
+  total_retentions: number;
+  active_retentions: number;
+  expired_retentions: number;
+  total_disposals: number;
+}
+
+
