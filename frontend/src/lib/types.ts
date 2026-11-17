@@ -1216,3 +1216,101 @@ export interface MfaDisableRequest {
   password: string;
   code: string;
 }
+
+// ---------------------------------------------------------------------------
+// Reagentes, Padrões Analíticos e Insumos (Horizonte 2 / Sprint 7.1 - ISO 17025 §6.4)
+// ---------------------------------------------------------------------------
+
+export type ReagentType =
+  | "REAGENT"
+  | "PRIMARY_STANDARD_CRM"
+  | "SECONDARY_STANDARD"
+  | "SOLVENT"
+  | "INDICATOR";
+
+export type ReagentBatchStatus =
+  | "AVAILABLE"
+  | "IN_USE"
+  | "EXPIRED"
+  | "DEPLETED"
+  | "QUARANTINE";
+
+export type ReagentGrade = "PA" | "HPLC" | "USP" | "ANALYTICAL";
+
+export interface Reagent {
+  id: string;
+  code: string;
+  name: string;
+  chemical_formula?: string | null;
+  cas_number?: string | null;
+  reagent_type: ReagentType;
+  grade: ReagentGrade;
+  storage_temperature_min?: number | null;
+  storage_temperature_max?: number | null;
+  hazard_classification?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReagentBatch {
+  id: string;
+  reagent_id: string;
+  lot_number: string;
+  manufacturer: string;
+  catalog_number?: string | null;
+  received_at: string;
+  opened_at?: string | null;
+  expiration_date: string;
+  initial_quantity: number;
+  current_quantity: number;
+  unit: string;
+  certificate_number?: string | null;
+  uncertainty_value?: number | null;
+  k_factor?: number | null;
+  status: ReagentBatchStatus;
+  is_expired: boolean;
+  is_usable: boolean;
+  notes?: string | null;
+}
+
+export interface ReagentCreatePayload {
+  code: string;
+  name: string;
+  chemical_formula?: string;
+  cas_number?: string;
+  reagent_type: ReagentType;
+  grade?: ReagentGrade;
+  storage_temperature_min?: number;
+  storage_temperature_max?: number;
+  hazard_classification?: string;
+}
+
+export interface ReagentBatchCreatePayload {
+  lot_number: string;
+  manufacturer: string;
+  catalog_number?: string;
+  expiration_date: string;
+  initial_quantity: number;
+  unit?: string;
+  certificate_number?: string;
+  uncertainty_value?: number;
+  k_factor?: number;
+  notes?: string;
+}
+
+export interface ExecutionReagentUsagePayload {
+  batch_id: string;
+  quantity_used: number;
+  unit: string;
+}
+
+export interface ExecutionReagentUsage {
+  id: string;
+  execution_id: string;
+  batch_id: string;
+  quantity_used: number;
+  unit: string;
+  consumed_at: string;
+  recorded_by_id: string;
+}

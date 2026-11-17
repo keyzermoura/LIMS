@@ -19,6 +19,7 @@ import { UncertaintyPage } from "@/pages/Uncertainty";
 import { AnalyticsPage } from "@/pages/Analytics";
 import { NotificationsPage } from "@/pages/Notifications";
 import InstrumentAcquisition from "@/pages/InstrumentAcquisition";
+import { ReagentsPage } from "@/pages/Reagents";
 
 function FullScreenLoader() {
   return (
@@ -78,6 +79,7 @@ export default function App() {
         <Route path="/coordination-reviews" element={<CoordinationRoute />} />
         <Route path="/tests" element={<TestsPage />} />
         <Route path="/equipment" element={<EquipmentPage />} />
+        <Route path="/reagents" element={<ReagentsPage />} />
         <Route path="/methods" element={<TestCatalogPage />} />
         <Route path="/qualifications" element={<QualificationsPage />} />
         <Route path="/uncertainty" element={<UncertaintyPage />} />

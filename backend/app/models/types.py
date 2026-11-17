@@ -32,6 +32,9 @@ from app.models.enums import (
     NotificationSeverity,
     PresentationStatus,
     QualificationStatus,
+    ReagentBatchStatus,
+    ReagentGrade,
+    ReagentType,
     ReceiptDecisionEnum,
     ReceiptStatus,
     SampleStatus,
@@ -41,6 +44,7 @@ from app.models.enums import (
     TestOutcome,
     TestStatus,
     UserRole,
+    VolumeMassUnit,
 )
 
 user_role_type = SAEnum(UserRole, name="user_role", validate_strings=True)
@@ -115,4 +119,16 @@ instrument_file_format_type = SAEnum(
 )
 instrument_import_status_type = SAEnum(
     InstrumentImportStatus, name="instrument_import_status", validate_strings=True
+)
+reagent_type_enum = SAEnum(
+    ReagentType, name="reagent_type", validate_strings=True
+)
+reagent_batch_status_enum = SAEnum(
+    ReagentBatchStatus, name="reagent_batch_status", validate_strings=True
+)
+reagent_grade_enum = SAEnum(
+    ReagentGrade, name="reagent_grade", validate_strings=True
+)
+volume_mass_unit_enum = SAEnum(
+    VolumeMassUnit, name="volume_mass_unit", validate_strings=True
 )

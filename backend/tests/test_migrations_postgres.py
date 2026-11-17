@@ -42,6 +42,7 @@ PHASE5_3 = "0011_fase5_guards_integridade"
 PHASE5_HEAD = "0012_fase5_webhooks"
 PHASE6_1 = "0013_fase6_laudos_emendas"
 PHASE6_HEAD = "0014_fase6_mfa_totp"
+PHASE7_HEAD = "0015_fase7_reagentes_padroes"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -110,6 +111,16 @@ PHASE5_ENUMS = {
     "notification_category",
     "instrument_file_format",
     "instrument_import_status",
+}
+PHASE7_TABLES = {
+    "reagents",
+    "reagent_batches",
+    "test_execution_reagent_usages",
+}
+PHASE7_ENUMS = {
+    "reagent_type",
+    "reagent_grade",
+    "reagent_batch_status",
 }
 
 
@@ -225,13 +236,14 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
         | PHASE3_TABLES
         | PHASE4_TABLES
         | PHASE5_TABLES
+        | PHASE7_TABLES
     )
 
     # Cada enum nativo deve existir exatamente uma vez (regressão: receipt_decision
     # é compartilhado por duas tabelas e já foi criado em duplicidade).
     counts = await _enum_counts(migration_url)
     for enum_name in (
-        PHASE1_ENUMS | PHASE2_ENUMS | PHASE4_ENUMS | PHASE5_ENUMS
+        PHASE1_ENUMS | PHASE2_ENUMS | PHASE4_ENUMS | PHASE5_ENUMS | PHASE7_ENUMS
     ):
         assert counts.get(enum_name) == 1, f"enum {enum_name}: {counts.get(enum_name)}"
 
@@ -242,7 +254,7 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
     )
     assert triggers
 
-    assert PHASE6_HEAD in _ok(migration_url, "current")
+    assert PHASE7_HEAD in _ok(migration_url, "current")
     # Paridade metadata x migrações: acusa índices, defaults ou tipos divergentes.
     _ok(migration_url, "check")
 
@@ -324,4 +336,5 @@ async def test_downgrade_refuses_when_it_would_lose_data(migration_url: str) -> 
         or PHASE5_HEAD in current
         or PHASE6_1 in current
         or PHASE6_HEAD in current
+        or PHASE7_HEAD in current
     )

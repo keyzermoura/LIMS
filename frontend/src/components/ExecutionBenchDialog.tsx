@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowRight,
+  Beaker,
   CheckCircle2,
   Clock,
   Droplets,
@@ -41,10 +42,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
-import { equipmentApi, executionsApi, ApiError } from "@/lib/api";
+import { equipmentApi, executionsApi, reagentsApi, ApiError } from "@/lib/api";
 import type {
+  ExecutionReagentUsage,
   LaboratoryEquipment,
   LabTest,
+  ReagentBatch,
   TestExecution,
   TestOutcome,
 } from "@/lib/types";
@@ -154,6 +157,92 @@ export function ExecutionBenchDialog({
 
   const isEquipmentExpired = selectedEquipment?.calibration_status === "VENCIDO";
   const isEquipmentInMaintenance = selectedEquipment?.calibration_status === "EM_MANUTENCAO";
+
+  // Reagentes e Padrões Analíticos (CRMs) consumidos
+  const [selectedBatchId, setSelectedBatchId] = React.useState<string>("");
+  const [quantityToConsume, setQuantityToConsume] = React.useState<string>("");
+  const [consumeNotes, setConsumeNotes] = React.useState<string>("");
+  const [isConsuming, setIsConsuming] = React.useState<boolean>(false);
+
+  const executionReagentsQuery = useQuery({
+    queryKey: ["execution-reagents", activeExecution?.id],
+    queryFn: () => reagentsApi.listExecutionUsages(activeExecution!.id),
+    enabled: open && !!activeExecution?.id,
+  });
+
+  const availableBatchesQuery = useQuery({
+    queryKey: ["reagent-batches-available"],
+    queryFn: () => reagentsApi.listBatches({ available_only: true }),
+    enabled: open && !!activeExecution?.id,
+  });
+
+  const selectedBatch = React.useMemo(() => {
+    return availableBatchesQuery.data?.find((b: ReagentBatch) => b.id === selectedBatchId) ?? null;
+  }, [availableBatchesQuery.data, selectedBatchId]);
+
+  const isBatchExpired = selectedBatch ? (selectedBatch.is_expired || new Date(selectedBatch.expiration_date) < new Date()) : false;
+  const parsedQty = parseFloat(quantityToConsume.replace(",", "."));
+  const isInsufficientBalance = selectedBatch && !Number.isNaN(parsedQty) ? (parsedQty > selectedBatch.current_quantity) : false;
+
+  async function handleConsumeReagent() {
+    if (!activeExecution || !selectedBatchId || !quantityToConsume) {
+      push({
+        title: "Dados incompletos",
+        description: "Selecione o lote do insumo/padrão e informe a quantidade utilizada.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    if (isBatchExpired) {
+      push({
+        title: "Intertravamento Regulamentar (ISO 17025 §6.4)",
+        description: "Lote de reagente/padrão vencido! Consumo proibido em ensaios regulamentados.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isInsufficientBalance) {
+      push({
+        title: "Saldo Insuficiente",
+        description: `O lote possui apenas ${selectedBatch?.current_quantity} ${selectedBatch?.unit} disponíveis.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsConsuming(true);
+    try {
+      await reagentsApi.consumeInExecution(activeExecution.id, {
+        batch_id: selectedBatchId,
+        quantity_used: parsedQty,
+        unit: selectedBatch!.unit,
+        notes: consumeNotes.trim() || undefined,
+      });
+
+      push({
+        title: "Insumo registrado na execução",
+        description: `${parsedQty} ${selectedBatch!.unit} do lote ${selectedBatch!.lot_number} vinculado com sucesso.`,
+        variant: "success",
+      });
+
+      setSelectedBatchId("");
+      setQuantityToConsume("");
+      setConsumeNotes("");
+      queryClient.invalidateQueries({ queryKey: ["execution-reagents", activeExecution.id] });
+      queryClient.invalidateQueries({ queryKey: ["reagent-batches-available"] });
+      queryClient.invalidateQueries({ queryKey: ["reagents"] });
+    } catch (err) {
+      push({
+        title: "Bloqueio no consumo do insumo",
+        description: err instanceof ApiError ? err.message : "Erro na operação.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsConsuming(false);
+    }
+  }
 
   // Calcular média automática das leituras numéricas
   const calculatedAverage = React.useMemo(() => {
@@ -493,6 +582,155 @@ export function ExecutionBenchDialog({
                           className="mt-1 h-9 font-mono text-sm"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Reagentes e Padrões Analíticos Consumidos (ISO 17025 §6.4 e §6.5) */}
+                  <div className="border-t border-border pt-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Beaker className="h-3.5 w-3.5 text-primary" />
+                        Insumos, Reagentes e Padrões (ISO/IEC 17025 §6.4)
+                      </h4>
+                      <span className="text-[11px] text-muted-foreground">
+                        {executionReagentsQuery.data?.length ?? 0} insumo(s) vinculado(s)
+                      </span>
+                    </div>
+
+                    {/* Lista de Reagentes Já Consumidos Nesta Execução */}
+                    {executionReagentsQuery.data && executionReagentsQuery.data.length > 0 ? (
+                      <div className="rounded-md border border-border/70 overflow-hidden text-xs">
+                        <table className="w-full text-left">
+                          <thead className="bg-muted/40 font-medium text-muted-foreground border-b border-border">
+                            <tr>
+                              <th className="p-2">Insumo / CRM</th>
+                              <th className="p-2">Lote</th>
+                              <th className="p-2">Validade</th>
+                              <th className="p-2 text-right">Qtd Consumida</th>
+                              <th className="p-2">Registro</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/40">
+                            {executionReagentsQuery.data.map((u: ExecutionReagentUsage) => (
+                              <tr key={u.id} className="hover:bg-muted/20">
+                                <td className="p-2 font-medium">
+                                  {u.batch?.reagent?.name ?? "Insumo"}
+                                  <span className="ml-1 text-[10px] text-muted-foreground">
+                                    ({u.batch?.reagent?.code})
+                                  </span>
+                                </td>
+                                <td className="p-2 font-mono">{u.batch?.lot_number ?? "—"}</td>
+                                <td className="p-2">
+                                  {u.batch?.expiration_date ? (
+                                    <span
+                                      className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                        u.batch.is_expired
+                                          ? "bg-rose-100 text-rose-800"
+                                          : "bg-emerald-100 text-emerald-800"
+                                      }`}
+                                    >
+                                      {u.batch.expiration_date}
+                                    </span>
+                                  ) : (
+                                    "—"
+                                  )}
+                                </td>
+                                <td className="p-2 text-right font-mono font-semibold">
+                                  {u.quantity_used} {u.unit}
+                                </td>
+                                <td className="p-2 text-muted-foreground text-[11px]">
+                                  {formatDateTime(u.consumed_at)} ({u.recorded_by?.full_name ?? "Analista"})
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="rounded-md border border-dashed border-border p-3 text-center text-xs text-muted-foreground bg-muted/5">
+                        Nenhum insumo ou padrão analítico vinculado a esta tentativa ainda.
+                      </div>
+                    )}
+
+                    {/* Formulário de Consumo na Bancada */}
+                    <div className="rounded-md bg-muted/20 p-3 border border-border/50 space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+                        <div className="sm:col-span-6">
+                          <Label className="text-[11px]">Selecionar Lote Físico de Insumo / CRM</Label>
+                          <Select value={selectedBatchId} onValueChange={setSelectedBatchId}>
+                            <SelectTrigger className="h-8 text-xs mt-1">
+                              <SelectValue placeholder="Selecione reagente/padrão disponível" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableBatchesQuery.data?.map((batch: ReagentBatch) => (
+                                <SelectItem key={batch.id} value={batch.id}>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold">{batch.reagent?.name ?? "Insumo"}</span>
+                                    <span className="font-mono text-muted-foreground text-[10px]">
+                                      Lote: {batch.lot_number}
+                                    </span>
+                                    <span className="text-[10px] bg-primary/10 text-primary px-1 rounded">
+                                      Saldo: {batch.current_quantity} {batch.unit}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground">
+                                      Val: {batch.expiration_date}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <Label className="text-[11px]">
+                            Qtd Utilizada {selectedBatch ? `(${selectedBatch.unit})` : ""}
+                          </Label>
+                          <Input
+                            type="number"
+                            step="any"
+                            min="0"
+                            value={quantityToConsume}
+                            onChange={(e) => setQuantityToConsume(e.target.value)}
+                            placeholder="Ex.: 5.0"
+                            className="h-8 text-xs font-mono mt-1"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            className="h-8 w-full text-xs"
+                            disabled={!selectedBatchId || !quantityToConsume || isConsuming || isBatchExpired || isInsufficientBalance}
+                            onClick={handleConsumeReagent}
+                          >
+                            {isConsuming ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <>
+                                <Plus className="mr-1 h-3 w-3" /> Registrar Consumo
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Alertas de Intertravamento Regulamentar */}
+                      {isBatchExpired ? (
+                        <div className="flex items-center gap-1.5 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded p-1.5 font-medium">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                          <span>Bloqueio ISO 17025 §6.4: Lote vencido! O ensaio não pode utilizar este reagente.</span>
+                        </div>
+                      ) : null}
+
+                      {isInsufficientBalance ? (
+                        <div className="flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded p-1.5 font-medium">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                          <span>Saldo insuficiente no frasco. Disponível: {selectedBatch?.current_quantity} {selectedBatch?.unit}.</span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 

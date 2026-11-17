@@ -365,6 +365,12 @@ import type {
   MfaEnableRequest,
   MfaEnableResponse,
   MfaDisableRequest,
+  Reagent,
+  ReagentBatch,
+  ReagentCreatePayload,
+  ReagentBatchCreatePayload,
+  ExecutionReagentUsagePayload,
+  ExecutionReagentUsage,
 } from "./types";
 
 export const methodsApi = {
@@ -760,6 +766,43 @@ export const mfaApi = {
       method: "POST",
       body: payload,
     }),
+};
+
+export const reagentsApi = {
+  list: (params?: { reagent_type?: string; is_active?: boolean; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.reagent_type) query.set("reagent_type", params.reagent_type);
+    if (params?.is_active !== undefined) query.set("is_active", String(params.is_active));
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return request<Reagent[]>(`/reagents${qs ? `?${qs}` : ""}`);
+  },
+  get: (id: string) => request<Reagent>(`/reagents/${id}`),
+  create: (payload: ReagentCreatePayload) =>
+    request<Reagent>("/reagents", {
+      method: "POST",
+      body: payload,
+    }),
+  listBatches: (params?: { reagent_id?: string; available_only?: boolean; expiring_days?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.reagent_id) query.set("reagent_id", params.reagent_id);
+    if (params?.available_only !== undefined) query.set("available_only", String(params.available_only));
+    if (params?.expiring_days !== undefined) query.set("expiring_days", String(params.expiring_days));
+    const qs = query.toString();
+    return request<ReagentBatch[]>(`/reagents/batches${qs ? `?${qs}` : ""}`);
+  },
+  createBatch: (reagentId: string, payload: ReagentBatchCreatePayload) =>
+    request<ReagentBatch>(`/reagents/${reagentId}/batches`, {
+      method: "POST",
+      body: payload,
+    }),
+  consumeInExecution: (executionId: string, payload: ExecutionReagentUsagePayload) =>
+    request<ExecutionReagentUsage>(`/reagents/executions/${executionId}/consume`, {
+      method: "POST",
+      body: payload,
+    }),
+  listExecutionUsages: (executionId: string) =>
+    request<ExecutionReagentUsage[]>(`/reagents/executions/${executionId}/reagents`),
 };
 
 

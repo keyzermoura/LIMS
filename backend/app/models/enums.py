@@ -107,6 +107,8 @@ class AuditEntity(str, Enum):
     CAPA_ACTION_ITEM = "CapaActionItem"
     NOTIFICATION = "Notification"
     INSTRUMENT_DATA_IMPORT = "InstrumentDataImport"
+    REAGENT = "Reagent"
+    REAGENT_BATCH = "ReagentBatch"
 
 
 class SolicitationStatus(str, Enum):
@@ -307,5 +309,48 @@ class InstrumentImportStatus(str, Enum):
     IMPORTED = "IMPORTED"
     MAPPED = "MAPPED"
     REJECTED = "REJECTED"
+
+
+# ---------------------------------------------------------------------------
+# Reagentes, Padrões Analíticos e Insumos (Horizonte 2 / Sprint 7.1)
+# ---------------------------------------------------------------------------
+
+
+class ReagentType(str, Enum):
+    """Tipologia de reagentes, padrões e consumíveis analíticos (ISO/IEC 17025 §6.4)."""
+
+    REAGENT = "REAGENT"
+    PRIMARY_STANDARD_CRM = "PRIMARY_STANDARD_CRM"
+    SECONDARY_STANDARD = "SECONDARY_STANDARD"
+    SOLVENT = "SOLVENT"
+    INDICATOR = "INDICATOR"
+
+
+class ReagentBatchStatus(str, Enum):
+    """Ciclo de vida e disponibilidade de lote de reagente/padrão analítico."""
+
+    AVAILABLE = "AVAILABLE"
+    IN_USE = "IN_USE"
+    EXPIRED = "EXPIRED"
+    DEPLETED = "DEPLETED"
+    QUARANTINE = "QUARANTINE"
+
+
+class ReagentGrade(str, Enum):
+    """Grau de pureza e qualidade técnica do reagente."""
+
+    PA = "PA"
+    HPLC = "HPLC"
+    USP = "USP"
+    ANALYTICAL = "ANALYTICAL"
+
+
+class VolumeMassUnit(str, Enum):
+    """Unidades físicas padronizadas para estoque e consumo de reagentes."""
+
+    G = "g"
+    MG = "mg"
+    ML = "mL"
+    L = "L"
 
 

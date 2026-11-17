@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   BarChart3,
+  Beaker,
   Bell,
   BookOpen,
   Boxes,
@@ -49,6 +50,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Amostras Operacionais", icon: LayoutDashboard, end: true },
   { to: "/tests", label: "Ensaios e laudos", icon: FlaskConical },
   { to: "/equipment", label: "Controle de Equipamentos", icon: Gauge },
+  { to: "/reagents", label: "Reagentes & Padrões CRM", icon: Beaker },
   { to: "/methods", label: "Catálogo de Métodos", icon: BookOpen },
   { to: "/qualifications", label: "Qualificação de Analistas", icon: GraduationCap },
   { to: "/uncertainty", label: "Incerteza & ILAC-G8", icon: Sigma },

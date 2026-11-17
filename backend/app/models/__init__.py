@@ -15,6 +15,7 @@ from app.models.lab_test import LabTest, LabTestResult
 from app.models.notification import Notification
 from app.models.official_report import OfficialReport
 from app.models.qualification import AnalystQualification, TrainingRecord
+from app.models.reagent import Reagent, ReagentBatch, TestExecutionReagentUsage
 from app.models.receipt import CustodyEvent, CustodyObject, Receipt, ReceiptItem
 from app.models.solicitation import Solicitation, SolicitationItem
 from app.models.test_attachment import TestAttachment
@@ -46,6 +47,8 @@ __all__ = [
     "LaboratoryEquipment",
     "Notification",
     "OfficialReport",
+    "Reagent",
+    "ReagentBatch",
     "Receipt",
     "ReceiptDecision",
     "ReceiptItem",
@@ -54,6 +57,7 @@ __all__ = [
     "SolicitationItem",
     "TestAttachment",
     "TestExecution",
+    "TestExecutionReagentUsage",
     "TestMethod",
     "TestReview",
     "TrainingRecord",
