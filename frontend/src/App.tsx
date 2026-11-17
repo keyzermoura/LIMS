@@ -19,6 +19,9 @@ import { UncertaintyPage } from "@/pages/Uncertainty";
 import { AnalyticsPage } from "@/pages/Analytics";
 import { NotificationsPage } from "@/pages/Notifications";
 import InstrumentAcquisition from "@/pages/InstrumentAcquisition";
+import { ReagentsPage } from "@/pages/Reagents";
+import { OOSInvestigationsPage } from "@/pages/OOSInvestigations";
+import { StorageAndDisposalPage } from "@/pages/StorageAndDisposal";
 
 function FullScreenLoader() {
   return (
@@ -78,9 +81,12 @@ export default function App() {
         <Route path="/coordination-reviews" element={<CoordinationRoute />} />
         <Route path="/tests" element={<TestsPage />} />
         <Route path="/equipment" element={<EquipmentPage />} />
+        <Route path="/reagents" element={<ReagentsPage />} />
         <Route path="/methods" element={<TestCatalogPage />} />
         <Route path="/qualifications" element={<QualificationsPage />} />
         <Route path="/uncertainty" element={<UncertaintyPage />} />
+        <Route path="/oos" element={<OOSInvestigationsPage />} />
+        <Route path="/storage" element={<StorageAndDisposalPage />} />
         <Route path="/capas" element={<CapasPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />

@@ -16,13 +16,17 @@ from app.api.v1.routes import (
     instrument_data,
     methods,
     notifications,
+    oos,
     public_reports,
     qualifications,
+    reagents,
     receipts,
     reports,
     reviews,
     samples,
     solicitations,
+    spc,
+    storage,
     tests,
     uncertainty,
     users,
@@ -52,6 +56,10 @@ api_router.include_router(notifications.router)
 api_router.include_router(instrument_data.router)
 api_router.include_router(webhooks.webhooks_router)
 api_router.include_router(public_reports.public_reports_router)
+api_router.include_router(reagents.router)
+api_router.include_router(oos.router)
+api_router.include_router(storage.router)
+api_router.include_router(spc.router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)

@@ -365,6 +365,30 @@ import type {
   MfaEnableRequest,
   MfaEnableResponse,
   MfaDisableRequest,
+  Reagent,
+  ReagentBatch,
+  ReagentCreatePayload,
+  ReagentBatchCreatePayload,
+  ExecutionReagentUsagePayload,
+  ExecutionReagentUsage,
+  OOSInvestigation,
+  OOSInvestigationCreatePayload,
+  OOSPhase1UpdatePayload,
+  OOSPhase2UpdatePayload,
+  OOSClosePayload,
+  StorageLocation,
+  StorageLocationCreatePayload,
+  SampleStorageMovement,
+  SampleStorageMovementCreatePayload,
+  SampleRetention,
+  SampleRetentionCreatePayload,
+  SampleDisposalRecord,
+  SampleDisposalCreatePayload,
+  StorageDashboardSummary,
+  QCRun,
+  QCRunCreatePayload,
+  QCRunResolvePayload,
+  LeveyJenningsChartData,
 } from "./types";
 
 export const methodsApi = {
@@ -761,6 +785,175 @@ export const mfaApi = {
       body: payload,
     }),
 };
+
+export const reagentsApi = {
+  list: (params?: { reagent_type?: string; is_active?: boolean; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.reagent_type) query.set("reagent_type", params.reagent_type);
+    if (params?.is_active !== undefined) query.set("is_active", String(params.is_active));
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return request<Reagent[]>(`/reagents${qs ? `?${qs}` : ""}`);
+  },
+  get: (id: string) => request<Reagent>(`/reagents/${id}`),
+  create: (payload: ReagentCreatePayload) =>
+    request<Reagent>("/reagents", {
+      method: "POST",
+      body: payload,
+    }),
+  listBatches: (params?: { reagent_id?: string; available_only?: boolean; expiring_days?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.reagent_id) query.set("reagent_id", params.reagent_id);
+    if (params?.available_only !== undefined) query.set("available_only", String(params.available_only));
+    if (params?.expiring_days !== undefined) query.set("expiring_days", String(params.expiring_days));
+    const qs = query.toString();
+    return request<ReagentBatch[]>(`/reagents/batches${qs ? `?${qs}` : ""}`);
+  },
+  createBatch: (reagentId: string, payload: ReagentBatchCreatePayload) =>
+    request<ReagentBatch>(`/reagents/${reagentId}/batches`, {
+      method: "POST",
+      body: payload,
+    }),
+  consumeInExecution: (executionId: string, payload: ExecutionReagentUsagePayload) =>
+    request<ExecutionReagentUsage>(`/reagents/executions/${executionId}/consume`, {
+      method: "POST",
+      body: payload,
+    }),
+  listExecutionUsages: (executionId: string) =>
+    request<ExecutionReagentUsage[]>(`/reagents/executions/${executionId}/reagents`),
+};
+
+export const oosApi = {
+  list: (params?: {
+    lab_test_id?: string;
+    status?: string;
+    deviation_type?: string;
+    is_open?: boolean;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.lab_test_id) query.set("lab_test_id", params.lab_test_id);
+    if (params?.status) query.set("status", params.status);
+    if (params?.deviation_type) query.set("deviation_type", params.deviation_type);
+    if (params?.is_open !== undefined) query.set("is_open", String(params.is_open));
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return request<OOSInvestigation[]>(`/oos${qs ? `?${qs}` : ""}`);
+  },
+  get: (id: string) => request<OOSInvestigation>(`/oos/${id}`),
+  create: (payload: OOSInvestigationCreatePayload) =>
+    request<OOSInvestigation>("/oos", {
+      method: "POST",
+      body: payload,
+    }),
+  updatePhase1: (id: string, payload: OOSPhase1UpdatePayload) =>
+    request<OOSInvestigation>(`/oos/${id}/phase1`, {
+      method: "PUT",
+      body: payload,
+    }),
+  updatePhase2: (id: string, payload: OOSPhase2UpdatePayload) =>
+    request<OOSInvestigation>(`/oos/${id}/phase2`, {
+      method: "PUT",
+      body: payload,
+    }),
+  close: (id: string, payload: OOSClosePayload) =>
+    request<OOSInvestigation>(`/oos/${id}/close`, {
+      method: "POST",
+      body: payload,
+    }),
+};
+
+export const storageApi = {
+  getSummary: () => request<StorageDashboardSummary>("/storage/summary"),
+
+  // Locais Físicos
+  listLocations: (params?: { is_active?: boolean; location_type?: string }) => {
+    const qs = buildQuery({
+      is_active: params?.is_active,
+      location_type: params?.location_type,
+    });
+    return request<StorageLocation[]>(`/storage/locations${qs}`);
+  },
+  getLocation: (id: string) => request<StorageLocation>(`/storage/locations/${id}`),
+  createLocation: (payload: StorageLocationCreatePayload) =>
+    request<StorageLocation>("/storage/locations", {
+      method: "POST",
+      body: payload,
+    }),
+  updateLocation: (id: string, payload: Partial<StorageLocationCreatePayload> & { is_active?: boolean }) =>
+    request<StorageLocation>(`/storage/locations/${id}`, {
+      method: "PATCH",
+      body: payload,
+    }),
+
+  // Movimentações
+  listMovements: (params?: { sample_id?: string }) => {
+    const qs = buildQuery({ sample_id: params?.sample_id });
+    return request<SampleStorageMovement[]>(`/storage/movements${qs}`);
+  },
+  createMovement: (payload: SampleStorageMovementCreatePayload) =>
+    request<SampleStorageMovement>("/storage/movements", {
+      method: "POST",
+      body: payload,
+    }),
+
+  // Contraprovas Periciais
+  listRetentions: (params?: { status?: string; location_id?: string }) => {
+    const qs = buildQuery({
+      status: params?.status,
+      location_id: params?.location_id,
+    });
+    return request<SampleRetention[]>(`/storage/retentions${qs}`);
+  },
+  getRetention: (id: string) => request<SampleRetention>(`/storage/retentions/${id}`),
+  createRetention: (payload: SampleRetentionCreatePayload) =>
+    request<SampleRetention>("/storage/retentions", {
+      method: "POST",
+      body: payload,
+    }),
+  updateRetention: (id: string, payload: { retain_until?: string; seal_number?: string; status?: string; notes?: string }) =>
+    request<SampleRetention>(`/storage/retentions/${id}`, {
+      method: "PATCH",
+      body: payload,
+    }),
+
+  // Descarte com Dupla Assinatura (21 CFR Part 11)
+  listDisposals: (params?: { sample_id?: string }) => {
+    const qs = buildQuery({ sample_id: params?.sample_id });
+    return request<SampleDisposalRecord[]>(`/storage/disposals${qs}`);
+  },
+  executeDisposal: (payload: SampleDisposalCreatePayload) =>
+    request<SampleDisposalRecord>("/storage/disposal", {
+      method: "POST",
+      body: payload,
+    }),
+};
+
+export const spcApi = {
+  createRun: (payload: QCRunCreatePayload) =>
+    request<QCRun>("/spc/runs", {
+      method: "POST",
+      body: payload,
+    }),
+  listRuns: (params?: { method_id?: string; status?: string; is_active_violation?: boolean }) => {
+    const qs = buildQuery({
+      method_id: params?.method_id,
+      status: params?.status,
+      is_active_violation: params?.is_active_violation,
+    });
+    return request<QCRun[]>(`/spc/runs${qs}`);
+  },
+  getChart: (methodId: string) =>
+    request<LeveyJenningsChartData>(`/spc/methods/${methodId}/chart`),
+  resolveRun: (runId: string, payload: QCRunResolvePayload) =>
+    request<QCRun>(`/spc/runs/${runId}/resolve`, {
+      method: "POST",
+      body: payload,
+    }),
+};
+
+
+
 
 
 

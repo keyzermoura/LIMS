@@ -24,23 +24,35 @@ from app.models.enums import (
     CustodyEventType,
     CustodyObjectStatus,
     DecisionRuleType,
+    DeviationType,
+    DisposalMethod,
     EquipmentCalibrationStatus,
     ExecutionStatus,
     InstrumentFileFormat,
     InstrumentImportStatus,
     NotificationCategory,
     NotificationSeverity,
+    OOSInvestigationStatus,
+    OOSRootCauseCategory,
     PresentationStatus,
+    QCStatus,
     QualificationStatus,
+    ReagentBatchStatus,
+    ReagentGrade,
+    ReagentType,
     ReceiptDecisionEnum,
     ReceiptStatus,
+    RetentionStatus,
+    RetentionType,
     SampleStatus,
     SignatureAction,
     SignatureMeaning,
     SolicitationStatus,
+    StorageLocationType,
     TestOutcome,
     TestStatus,
     UserRole,
+    VolumeMassUnit,
 )
 
 user_role_type = SAEnum(UserRole, name="user_role", validate_strings=True)
@@ -115,4 +127,40 @@ instrument_file_format_type = SAEnum(
 )
 instrument_import_status_type = SAEnum(
     InstrumentImportStatus, name="instrument_import_status", validate_strings=True
+)
+reagent_type_enum = SAEnum(
+    ReagentType, name="reagent_type", validate_strings=True
+)
+reagent_batch_status_enum = SAEnum(
+    ReagentBatchStatus, name="reagent_batch_status", validate_strings=True
+)
+reagent_grade_enum = SAEnum(
+    ReagentGrade, name="reagent_grade", validate_strings=True
+)
+volume_mass_unit_enum = SAEnum(
+    VolumeMassUnit, name="volume_mass_unit", validate_strings=True
+)
+deviation_type_enum = SAEnum(
+    DeviationType, name="deviation_type", validate_strings=True
+)
+oos_investigation_status_enum = SAEnum(
+    OOSInvestigationStatus, name="oos_investigation_status", validate_strings=True
+)
+oos_root_cause_category_enum = SAEnum(
+    OOSRootCauseCategory, name="oos_root_cause_category", validate_strings=True
+)
+storage_location_type_enum = SAEnum(
+    StorageLocationType, name="storage_location_type", validate_strings=True
+)
+retention_type_enum = SAEnum(
+    RetentionType, name="retention_type", validate_strings=True
+)
+retention_status_enum = SAEnum(
+    RetentionStatus, name="retention_status", validate_strings=True
+)
+disposal_method_enum = SAEnum(
+    DisposalMethod, name="disposal_method", validate_strings=True
+)
+qc_status_enum = SAEnum(
+    QCStatus, name="qc_status", validate_strings=True
 )

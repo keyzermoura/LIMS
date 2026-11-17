@@ -18,6 +18,9 @@ SEQUENCES = frozenset({
     "receipt_number_seq",
     "custody_object_code_seq",
     "official_report_seq",
+    "oos_investigation_seq",
+    "sample_disposal_seq",
+    "qc_run_seq",
 })
 
 _SQLITE_COUNTERS_TABLE = "_sequence_counters"

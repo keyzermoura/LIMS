@@ -43,6 +43,12 @@ class CapaStatus(str, Enum):
     CANCELADA = "CANCELADA"
 
 
+class QCStatus(str, Enum):
+    CONFORMING = "CONFORMING"
+    WARNING = "WARNING"
+    REJECTED = "REJECTED"
+
+
 class AuditAction(str, Enum):
     CREATE = "CREATE"
     UPDATE = "UPDATE"
@@ -72,6 +78,8 @@ class SignatureMeaning(str, Enum):
     RESPONSABILIDADE_TECNICA = "RESPONSABILIDADE_TECNICA"
     TRANSFERENCIA_DE_CUSTODIA = "TRANSFERENCIA_DE_CUSTODIA"
     VERIFICACAO = "VERIFICACAO"
+    EXECUCAO_DESCARTE = "EXECUCAO_DESCARTE"
+    TESTEMUNHA_DESCARTE = "TESTEMUNHA_DESCARTE"
 
 
 class SignatureAction(str, Enum):
@@ -107,6 +115,14 @@ class AuditEntity(str, Enum):
     CAPA_ACTION_ITEM = "CapaActionItem"
     NOTIFICATION = "Notification"
     INSTRUMENT_DATA_IMPORT = "InstrumentDataImport"
+    REAGENT = "Reagent"
+    REAGENT_BATCH = "ReagentBatch"
+    OOS_INVESTIGATION = "OOSInvestigation"
+    STORAGE_LOCATION = "StorageLocation"
+    STORAGE_MOVEMENT = "StorageMovement"
+    SAMPLE_RETENTION = "SampleRetention"
+    SAMPLE_DISPOSAL = "SampleDisposal"
+    QC_RUN = "QCRun"
 
 
 class SolicitationStatus(str, Enum):
@@ -307,5 +323,129 @@ class InstrumentImportStatus(str, Enum):
     IMPORTED = "IMPORTED"
     MAPPED = "MAPPED"
     REJECTED = "REJECTED"
+
+
+# ---------------------------------------------------------------------------
+# Reagentes, Padrões Analíticos e Insumos (Horizonte 2 / Sprint 7.1)
+# ---------------------------------------------------------------------------
+
+
+class ReagentType(str, Enum):
+    """Tipologia de reagentes, padrões e consumíveis analíticos (ISO/IEC 17025 §6.4)."""
+
+    REAGENT = "REAGENT"
+    PRIMARY_STANDARD_CRM = "PRIMARY_STANDARD_CRM"
+    SECONDARY_STANDARD = "SECONDARY_STANDARD"
+    SOLVENT = "SOLVENT"
+    INDICATOR = "INDICATOR"
+
+
+class ReagentBatchStatus(str, Enum):
+    """Ciclo de vida e disponibilidade de lote de reagente/padrão analítico."""
+
+    AVAILABLE = "AVAILABLE"
+    IN_USE = "IN_USE"
+    EXPIRED = "EXPIRED"
+    DEPLETED = "DEPLETED"
+    QUARANTINE = "QUARANTINE"
+
+
+class ReagentGrade(str, Enum):
+    """Grau de pureza e qualidade técnica do reagente."""
+
+    PA = "PA"
+    HPLC = "HPLC"
+    USP = "USP"
+    ANALYTICAL = "ANALYTICAL"
+
+
+class VolumeMassUnit(str, Enum):
+    """Unidades físicas padronizadas para estoque e consumo de reagentes."""
+
+    G = "g"
+    MG = "mg"
+    ML = "mL"
+    L = "L"
+
+
+# ---------------------------------------------------------------------------
+# Desvios Analíticos OOS / OOT (Horizonte 2 / Sprint 7.2 - ISO 17025 §7.10)
+# ---------------------------------------------------------------------------
+
+
+class DeviationType(str, Enum):
+    """Tipologia do desvio analítico detectado."""
+
+    OOS = "OOS"
+    OOT = "OOT"
+
+
+class OOSInvestigationStatus(str, Enum):
+    """Fases da investigação analítica segundo FDA Guidance e ISO/IEC 17025 §7.10."""
+
+    PHASE_I_PENDING = "PHASE_I_PENDING"
+    PHASE_I_COMPLETED = "PHASE_I_COMPLETED"
+    PHASE_II_REQUIRED = "PHASE_II_REQUIRED"
+    CONFIRMED_LAB_ERROR = "CONFIRMED_LAB_ERROR"
+    CONFIRMED_PRODUCT_FAILURE = "CONFIRMED_PRODUCT_FAILURE"
+    CLOSED = "CLOSED"
+
+
+class OOSRootCauseCategory(str, Enum):
+    """Categorias padronizadas de causa raiz para desvios analíticos."""
+
+    EQUIPMENT_MALFUNCTION = "EQUIPMENT_MALFUNCTION"
+    REAGENT_CONTAMINATION = "REAGENT_CONTAMINATION"
+    OPERATOR_ERROR = "OPERATOR_ERROR"
+    CALCULATION_ERROR = "CALCULATION_ERROR"
+    ENVIRONMENTAL_FLUCTUATION = "ENVIRONMENTAL_FLUCTUATION"
+    SAMPLE_ANOMALY = "SAMPLE_ANOMALY"
+    METHOD_LIMITATION = "METHOD_LIMITATION"
+    OTHER = "OTHER"
+
+
+# ---------------------------------------------------------------------------
+# Cadeia de Armazenamento, Contraprova e Descarte (Horizonte 2 / Sprint 7.3)
+# ---------------------------------------------------------------------------
+
+
+class StorageLocationType(str, Enum):
+    """Tipologia de ambientes de conservação física com controle térmico."""
+
+    ULTRA_FREEZER = "ULTRA_FREEZER"
+    COLD_CHAMBER = "COLD_CHAMBER"
+    REFRIGERATOR = "REFRIGERATOR"
+    CONTROLLED_ROOM = "CONTROLLED_ROOM"
+    DESICCATOR = "DESICCATOR"
+    HAZARDOUS_CABINET = "HAZARDOUS_CABINET"
+
+
+class RetentionType(str, Enum):
+    """Classificação regulatória da guarda de contraprova pericial."""
+
+    CONTRAPROVA_PERICIAL = "CONTRAPROVA_PERICIAL"
+    TESTEMUNHA_QUALIDADE = "TESTEMUNHA_QUALIDADE"
+    RETENCAO_REGULATORIA = "RETENCAO_REGULATORIA"
+
+
+class RetentionStatus(str, Enum):
+    """Estado do ciclo de vida da guarda de contraprova."""
+
+    ACTIVE = "ACTIVE"
+    EXTENDED = "EXTENDED"
+    EXPIRED = "EXPIRED"
+    DISPOSED = "DISPOSED"
+
+
+class DisposalMethod(str, Enum):
+    """Metodologia sanitária e ambiental de descarte irreversível."""
+
+    INCINERACAO = "INCINERACAO"
+    AUTOCLAVAGEM = "AUTOCLAVAGEM"
+    DESCARTE_QUIMICO_ESPECIALIZADO = "DESCARTE_QUIMICO_ESPECIALIZADO"
+    DEVOLUCAO_ORGAO_REGULADOR = "DEVOLUCAO_ORGAO_REGULADOR"
+    RECICLAGEM_CONTROLADA = "RECICLAGEM_CONTROLADA"
+
+
 
 

@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   BarChart3,
+  Beaker,
   Bell,
   BookOpen,
   Boxes,
@@ -15,6 +16,7 @@ import {
   Menu,
   Scale,
   ScrollText,
+  ShieldAlert,
   ShieldCheck,
   Sigma,
   Timer,
@@ -49,9 +51,12 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "Amostras Operacionais", icon: LayoutDashboard, end: true },
   { to: "/tests", label: "Ensaios e laudos", icon: FlaskConical },
   { to: "/equipment", label: "Controle de Equipamentos", icon: Gauge },
+  { to: "/reagents", label: "Reagentes & Padrões CRM", icon: Beaker },
+  { to: "/storage", label: "Cadeia Física & Descarte", icon: Boxes },
   { to: "/methods", label: "Catálogo de Métodos", icon: BookOpen },
   { to: "/qualifications", label: "Qualificação de Analistas", icon: GraduationCap },
   { to: "/uncertainty", label: "Incerteza & ILAC-G8", icon: Sigma },
+  { to: "/oos", label: "Desvios OOS & OOT", icon: ShieldAlert },
   { to: "/capas", label: "CAPA", icon: ClipboardCheck },
   { to: "/analytics", label: "Painel BI & Metrologia", icon: BarChart3 },
   { to: "/notifications", label: "Central de Notificações", icon: Bell },

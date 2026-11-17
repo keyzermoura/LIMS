@@ -1216,3 +1216,482 @@ export interface MfaDisableRequest {
   password: string;
   code: string;
 }
+
+// ---------------------------------------------------------------------------
+// Reagentes, Padrões Analíticos e Insumos (Horizonte 2 / Sprint 7.1 - ISO 17025 §6.4)
+// ---------------------------------------------------------------------------
+
+export type ReagentType =
+  | "REAGENT"
+  | "PRIMARY_STANDARD_CRM"
+  | "SECONDARY_STANDARD"
+  | "SOLVENT"
+  | "INDICATOR";
+
+export type ReagentBatchStatus =
+  | "AVAILABLE"
+  | "IN_USE"
+  | "EXPIRED"
+  | "DEPLETED"
+  | "QUARANTINE";
+
+export type ReagentGrade = "PA" | "HPLC" | "USP" | "ANALYTICAL";
+
+export interface Reagent {
+  id: string;
+  code: string;
+  name: string;
+  chemical_formula?: string | null;
+  cas_number?: string | null;
+  reagent_type: ReagentType;
+  grade: ReagentGrade;
+  storage_temperature_min?: number | null;
+  storage_temperature_max?: number | null;
+  hazard_classification?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReagentBatch {
+  id: string;
+  reagent_id: string;
+  lot_number: string;
+  manufacturer: string;
+  catalog_number?: string | null;
+  received_at: string;
+  opened_at?: string | null;
+  expiration_date: string;
+  initial_quantity: number;
+  current_quantity: number;
+  unit: string;
+  certificate_number?: string | null;
+  uncertainty_value?: number | null;
+  k_factor?: number | null;
+  status: ReagentBatchStatus;
+  is_expired: boolean;
+  is_usable: boolean;
+  notes?: string | null;
+  reagent?: Reagent | null;
+}
+
+export interface ReagentCreatePayload {
+  code: string;
+  name: string;
+  chemical_formula?: string;
+  cas_number?: string;
+  reagent_type: ReagentType;
+  grade?: ReagentGrade;
+  storage_temperature_min?: number;
+  storage_temperature_max?: number;
+  hazard_classification?: string;
+}
+
+export interface ReagentBatchCreatePayload {
+  lot_number: string;
+  manufacturer: string;
+  catalog_number?: string;
+  expiration_date: string;
+  initial_quantity: number;
+  unit?: string;
+  certificate_number?: string;
+  uncertainty_value?: number;
+  k_factor?: number;
+  notes?: string;
+}
+
+export interface ExecutionReagentUsagePayload {
+  batch_id: string;
+  quantity_used: number;
+  unit: string;
+  notes?: string;
+}
+
+export interface ExecutionReagentUsage {
+  id: string;
+  execution_id: string;
+  batch_id: string;
+  quantity_used: number;
+  unit: string;
+  consumed_at: string;
+  recorded_by_id: string;
+  batch?: ReagentBatch | null;
+  recorded_by?: { id?: string; full_name?: string } | null;
+}
+
+// ============================================================================
+// Fase 7 / Sprint 7.2: Desvios Analíticos OOS e OOT (ISO 17025 §7.10)
+// ============================================================================
+
+export type DeviationType = "OOS" | "OOT";
+
+export type OOSInvestigationStatus =
+  | "PHASE_I_PENDING"
+  | "PHASE_I_COMPLETED"
+  | "PHASE_II_REQUIRED"
+  | "CONFIRMED_LAB_ERROR"
+  | "CONFIRMED_PRODUCT_FAILURE"
+  | "CLOSED";
+
+export type OOSRootCauseCategory =
+  | "EQUIPMENT_MALFUNCTION"
+  | "REAGENT_CONTAMINATION"
+  | "OPERATOR_ERROR"
+  | "CALCULATION_ERROR"
+  | "ENVIRONMENTAL_FLUCTUATION"
+  | "SAMPLE_ANOMALY"
+  | "METHOD_LIMITATION"
+  | "OTHER";
+
+export interface RetestResultItem {
+  retest_number: number;
+  analyst_name: string;
+  result_value?: number | null;
+  result_text?: string | null;
+  retest_date: string;
+  outcome: string;
+  notes?: string | null;
+}
+
+export interface OOSInvestigation {
+  id: string;
+  investigation_number: string;
+  lab_test_id: string;
+  execution_id?: string | null;
+  deviation_type: DeviationType;
+  status: OOSInvestigationStatus;
+  initial_result?: number | null;
+  initial_result_text?: string | null;
+  specification_min?: number | null;
+  specification_max?: number | null;
+  specification_text?: string | null;
+  detected_by_id: string;
+  detected_at: string;
+  phase_1_checklist: {
+    calculation_verified?: boolean;
+    instrument_verified?: boolean;
+    reagent_verified?: boolean;
+    analyst_interviewed?: boolean;
+    sample_integrity_verified?: boolean;
+    checklist_notes?: string;
+  };
+  phase_1_conclusion?: string | null;
+  phase_1_completed_at?: string | null;
+  phase_1_responsible_id?: string | null;
+  phase_2_required: boolean;
+  phase_2_plan?: string | null;
+  phase_2_retest_results: RetestResultItem[];
+  root_cause_category?: OOSRootCauseCategory | null;
+  root_cause_description?: string | null;
+  capa_action_id?: string | null;
+  final_disposition?: string | null;
+  closed_at?: string | null;
+  closed_by_id?: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+
+  detected_by?: { id: string; full_name: string; email: string } | null;
+  phase_1_responsible?: { id: string; full_name: string; email: string } | null;
+  closed_by?: { id: string; full_name: string; email: string } | null;
+  lab_test?: {
+    id: string;
+    name: string;
+    code?: string | null;
+    unit?: string | null;
+    device_sample_id: string;
+  } | null;
+}
+
+export interface OOSInvestigationCreatePayload {
+  lab_test_id: string;
+  execution_id?: string;
+  deviation_type?: DeviationType;
+  initial_result?: number;
+  initial_result_text?: string;
+  specification_min?: number;
+  specification_max?: number;
+  specification_text?: string;
+}
+
+export interface OOSPhase1UpdatePayload {
+  calculation_verified: boolean;
+  instrument_verified: boolean;
+  reagent_verified: boolean;
+  analyst_interviewed: boolean;
+  sample_integrity_verified: boolean;
+  checklist_notes?: string;
+  phase_1_conclusion: string;
+  phase_2_required: boolean;
+}
+
+export interface OOSPhase2UpdatePayload {
+  phase_2_plan: string;
+  retest_results: RetestResultItem[];
+  root_cause_category: OOSRootCauseCategory;
+  root_cause_description: string;
+  confirmed_status: "CONFIRMED_LAB_ERROR" | "CONFIRMED_PRODUCT_FAILURE";
+  capa_action_id?: string;
+  auto_create_capa?: boolean;
+}
+
+export interface OOSClosePayload {
+  final_disposition: string;
+}
+
+// ============================================================================
+// Fase 7 (Horizonte 2 — Sprint 7.3): Cadeia Física, Contraprova e Descarte (H2.3 & H2.4)
+// ============================================================================
+
+export type StorageLocationType =
+  | "ULTRA_FREEZER"
+  | "COLD_CHAMBER"
+  | "REFRIGERATOR"
+  | "CONTROLLED_ROOM"
+  | "DESICCATOR"
+  | "HAZARDOUS_CABINET";
+
+export type RetentionType =
+  | "CONTRAPROVA_PERICIAL"
+  | "TESTEMUNHA_QUALIDADE"
+  | "RETENCAO_REGULATORIA";
+
+export type RetentionStatus =
+  | "ACTIVE"
+  | "EXTENDED"
+  | "EXPIRED"
+  | "DISPOSED";
+
+export type DisposalMethod =
+  | "INCINERACAO"
+  | "AUTOCLAVAGEM"
+  | "DESCARTE_QUIMICO_ESPECIALIZADO"
+  | "DEVOLUCAO_ORGAO_REGULADOR"
+  | "RECICLAGEM_CONTROLADA";
+
+export interface StorageLocation {
+  id: string;
+  code: string;
+  name: string;
+  location_type: StorageLocationType;
+  room: string;
+  temperature_target_celsius: number;
+  temperature_min_celsius: number;
+  temperature_max_celsius: number;
+  humidity_max_percent?: number | null;
+  capacity_units: number;
+  current_occupancy: number;
+  is_active: boolean;
+  metadata?: Record<string, any>;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StorageLocationCreatePayload {
+  code: string;
+  name: string;
+  location_type: StorageLocationType;
+  room: string;
+  temperature_target_celsius: number;
+  temperature_min_celsius: number;
+  temperature_max_celsius: number;
+  humidity_max_percent?: number | null;
+  capacity_units: number;
+  metadata?: Record<string, any>;
+}
+
+export interface SampleStorageMovement {
+  id: string;
+  sample_id: string;
+  from_location_id?: string | null;
+  to_location_id: string;
+  moved_by_id: string;
+  moved_at: string;
+  reason: string;
+  temperature_at_movement?: number | null;
+  notes?: string | null;
+  from_location?: StorageLocation | null;
+  to_location?: StorageLocation | null;
+  moved_by?: { id: string; full_name: string; email: string } | null;
+  sample?: {
+    id: string;
+    accession_number: string;
+    commercial_name: string;
+    manufacturer: string;
+    lot_number?: string | null;
+    serial_number?: string | null;
+    status: string;
+  } | null;
+}
+
+export interface SampleStorageMovementCreatePayload {
+  sample_id: string;
+  to_location_id: string;
+  reason: string;
+  temperature_at_movement?: number | null;
+  notes?: string | null;
+}
+
+export interface SampleRetention {
+  id: string;
+  sample_id: string;
+  storage_location_id: string;
+  retention_type: RetentionType;
+  retained_at: string;
+  retain_until: string;
+  quantity_retained: number;
+  unit: string;
+  seal_number: string;
+  status: RetentionStatus;
+  is_expired: boolean;
+  responsible_id: string;
+  notes?: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  storage_location?: StorageLocation | null;
+  responsible?: { id: string; full_name: string; email: string } | null;
+  sample?: {
+    id: string;
+    accession_number: string;
+    commercial_name: string;
+    manufacturer: string;
+    lot_number?: string | null;
+    serial_number?: string | null;
+    status: string;
+  } | null;
+}
+
+export interface SampleRetentionCreatePayload {
+  sample_id: string;
+  storage_location_id: string;
+  retention_type?: RetentionType;
+  retain_until: string;
+  quantity_retained: number;
+  unit?: string;
+  seal_number: string;
+  notes?: string | null;
+}
+
+export interface SampleDisposalRecord {
+  id: string;
+  sample_id: string;
+  retention_id?: string | null;
+  disposal_manifest_number: string;
+  disposal_method: DisposalMethod;
+  disposed_at: string;
+  disposed_by_id: string;
+  witness_id: string;
+  primary_signature_id: string;
+  witness_signature_id: string;
+  environmental_license_number?: string | null;
+  waste_company_name?: string | null;
+  notes?: string | null;
+  version: number;
+  created_at: string;
+  sample?: {
+    id: string;
+    accession_number: string;
+    commercial_name: string;
+    manufacturer: string;
+    lot_number?: string | null;
+    serial_number?: string | null;
+    status: string;
+  } | null;
+  disposed_by?: { id: string; full_name: string; email: string } | null;
+  witness?: { id: string; full_name: string; email: string } | null;
+}
+
+export interface SampleDisposalCreatePayload {
+  sample_id: string;
+  disposal_method: DisposalMethod;
+  primary_esign_token: string;
+  witness_id: string;
+  witness_esign_token: string;
+  environmental_license_number?: string | null;
+  waste_company_name?: string | null;
+  notes?: string | null;
+  force_legal_override?: boolean;
+}
+
+export interface StorageDashboardSummary {
+  total_locations: number;
+  active_locations: number;
+  total_retentions: number;
+  active_retentions: number;
+  expired_retentions: number;
+  total_disposals: number;
+}
+
+// ============================================================================
+// Fase 7 (Horizonte 2 — Sprint 7.4): CEP Real e Regras de Westgard (H2.5)
+// ============================================================================
+
+export type QCStatus = "CONFORMING" | "WARNING" | "REJECTED";
+
+export interface QCRun {
+  id: string;
+  code: string;
+  method_id: string;
+  equipment_id?: string | null;
+  reagent_batch_id?: string | null;
+  operator_id: string;
+  run_at: string;
+  target_mean: number;
+  target_sd: number;
+  measured_value: number;
+  z_score: number;
+  status: QCStatus;
+  violation_rules: string[];
+  is_active_violation: boolean;
+  corrective_notes?: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  method?: { id: string; code: string; name: string; category: string } | null;
+  operator?: { id: string; full_name: string; email: string } | null;
+}
+
+export interface QCRunCreatePayload {
+  method_id: string;
+  equipment_id?: string;
+  reagent_batch_id?: string;
+  measured_value: number;
+  target_mean: number;
+  target_sd: number;
+  notes?: string;
+}
+
+export interface QCRunResolvePayload {
+  corrective_notes: string;
+}
+
+export interface LeveyJenningsChartData {
+  method_id: string;
+  method_name: string;
+  target_mean: number;
+  target_sd: number;
+  plus_1s: number;
+  minus_1s: number;
+  plus_2s: number;
+  minus_2s: number;
+  plus_3s: number;
+  minus_3s: number;
+  points: {
+    run_id: string;
+    code: string;
+    run_at: string;
+    measured_value: number;
+    z_score: number;
+    status: QCStatus;
+    violation_rules: string[];
+    operator_name: string;
+  }[];
+  total_runs: number;
+  active_rejections: number;
+  active_warnings: number;
+}
+
+
+
