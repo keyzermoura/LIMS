@@ -35,6 +35,7 @@ from app.models.enums import (
     OOSInvestigationStatus,
     OOSRootCauseCategory,
     PresentationStatus,
+    QCStatus,
     QualificationStatus,
     ReagentBatchStatus,
     ReagentGrade,
@@ -159,4 +160,7 @@ retention_status_enum = SAEnum(
 )
 disposal_method_enum = SAEnum(
     DisposalMethod, name="disposal_method", validate_strings=True
+)
+qc_status_enum = SAEnum(
+    QCStatus, name="qc_status", validate_strings=True
 )

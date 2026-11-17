@@ -1624,4 +1624,74 @@ export interface StorageDashboardSummary {
   total_disposals: number;
 }
 
+// ============================================================================
+// Fase 7 (Horizonte 2 — Sprint 7.4): CEP Real e Regras de Westgard (H2.5)
+// ============================================================================
+
+export type QCStatus = "CONFORMING" | "WARNING" | "REJECTED";
+
+export interface QCRun {
+  id: string;
+  code: string;
+  method_id: string;
+  equipment_id?: string | null;
+  reagent_batch_id?: string | null;
+  operator_id: string;
+  run_at: string;
+  target_mean: number;
+  target_sd: number;
+  measured_value: number;
+  z_score: number;
+  status: QCStatus;
+  violation_rules: string[];
+  is_active_violation: boolean;
+  corrective_notes?: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  method?: { id: string; code: string; name: string; category: string } | null;
+  operator?: { id: string; full_name: string; email: string } | null;
+}
+
+export interface QCRunCreatePayload {
+  method_id: string;
+  equipment_id?: string;
+  reagent_batch_id?: string;
+  measured_value: number;
+  target_mean: number;
+  target_sd: number;
+  notes?: string;
+}
+
+export interface QCRunResolvePayload {
+  corrective_notes: string;
+}
+
+export interface LeveyJenningsChartData {
+  method_id: string;
+  method_name: string;
+  target_mean: number;
+  target_sd: number;
+  plus_1s: number;
+  minus_1s: number;
+  plus_2s: number;
+  minus_2s: number;
+  plus_3s: number;
+  minus_3s: number;
+  points: {
+    run_id: string;
+    code: string;
+    run_at: string;
+    measured_value: number;
+    z_score: number;
+    status: QCStatus;
+    violation_rules: string[];
+    operator_name: string;
+  }[];
+  total_runs: number;
+  active_rejections: number;
+  active_warnings: number;
+}
+
+
 

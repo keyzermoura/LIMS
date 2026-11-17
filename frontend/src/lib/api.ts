@@ -385,6 +385,10 @@ import type {
   SampleDisposalRecord,
   SampleDisposalCreatePayload,
   StorageDashboardSummary,
+  QCRun,
+  QCRunCreatePayload,
+  QCRunResolvePayload,
+  LeveyJenningsChartData,
 } from "./types";
 
 export const methodsApi = {
@@ -924,6 +928,30 @@ export const storageApi = {
       body: payload,
     }),
 };
+
+export const spcApi = {
+  createRun: (payload: QCRunCreatePayload) =>
+    request<QCRun>("/spc/runs", {
+      method: "POST",
+      body: payload,
+    }),
+  listRuns: (params?: { method_id?: string; status?: string; is_active_violation?: boolean }) => {
+    const qs = buildQuery({
+      method_id: params?.method_id,
+      status: params?.status,
+      is_active_violation: params?.is_active_violation,
+    });
+    return request<QCRun[]>(`/spc/runs${qs}`);
+  },
+  getChart: (methodId: string) =>
+    request<LeveyJenningsChartData>(`/spc/methods/${methodId}/chart`),
+  resolveRun: (runId: string, payload: QCRunResolvePayload) =>
+    request<QCRun>(`/spc/runs/${runId}/resolve`, {
+      method: "POST",
+      body: payload,
+    }),
+};
+
 
 
 

@@ -36,7 +36,7 @@ from app.models.oos_investigation import OOSInvestigation
 from app.models.uncertainty import UncertaintyBudget
 from app.models.user import User
 from app.schemas.official_report import OfficialReportGenerateIn
-from app.services import audit_service, signature_service
+from app.services import audit_service, qc_spc_service, signature_service
 from app.services.audit_service import snapshot
 from app.services.pdf_report_service import generate_official_report_pdf
 
@@ -96,6 +96,17 @@ async def generate_official_report(
                 f"({open_oos.investigation_number} - status: {open_oos.status.value}). "
                 "Emissão de laudo bloqueada (ISO/IEC 17025 §7.10)."
             )
+
+        # Intertravamento regulamentar ISO/IEC 17025 §7.7.1: bloqueia laudo se houver violação ativa de Westgard
+        if t.method_id:
+            has_spc_block, spc_msg = await qc_spc_service.check_method_has_active_violation(
+                db, t.method_id
+            )
+            if has_spc_block:
+                raise ValidationDomainError(
+                    f"O ensaio '{t.name}' está vinculado a método com violação de controle estatístico (CEP/Westgard). "
+                    f"{spc_msg} Emissão de laudo bloqueada (ISO/IEC 17025 §7.7.1)."
+                )
 
     now = utcnow()
     seq = await next_sequence(db, "official_report_seq")

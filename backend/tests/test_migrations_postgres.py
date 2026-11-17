@@ -42,7 +42,7 @@ PHASE5_3 = "0011_fase5_guards_integridade"
 PHASE5_HEAD = "0012_fase5_webhooks"
 PHASE6_1 = "0013_fase6_laudos_emendas"
 PHASE6_HEAD = "0014_fase6_mfa_totp"
-PHASE7_HEAD = "0017_fase7_armazena_descarte"
+PHASE7_HEAD = "0018_fase7_cep_westgard"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -121,6 +121,7 @@ PHASE7_TABLES = {
     "sample_storage_movements",
     "sample_retentions",
     "sample_disposal_records",
+    "qc_runs",
 }
 PHASE7_ENUMS = {
     "reagent_type",
@@ -133,6 +134,7 @@ PHASE7_ENUMS = {
     "retention_type",
     "retention_status",
     "disposal_method",
+    "qc_status",
 }
 
 

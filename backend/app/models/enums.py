@@ -43,6 +43,12 @@ class CapaStatus(str, Enum):
     CANCELADA = "CANCELADA"
 
 
+class QCStatus(str, Enum):
+    CONFORMING = "CONFORMING"
+    WARNING = "WARNING"
+    REJECTED = "REJECTED"
+
+
 class AuditAction(str, Enum):
     CREATE = "CREATE"
     UPDATE = "UPDATE"
@@ -116,6 +122,7 @@ class AuditEntity(str, Enum):
     STORAGE_MOVEMENT = "StorageMovement"
     SAMPLE_RETENTION = "SampleRetention"
     SAMPLE_DISPOSAL = "SampleDisposal"
+    QC_RUN = "QCRun"
 
 
 class SolicitationStatus(str, Enum):
