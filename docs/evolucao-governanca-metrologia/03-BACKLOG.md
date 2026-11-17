@@ -307,3 +307,16 @@ EGLM-005 estabelece baseline antes de alterações estruturais.
 ## Regra de gestão
 
 O backlog não constitui autorização automática para implementar. A tarefa passa a `PRONTA` somente após revisão dos critérios, riscos, contratos e responsáveis.
+
+
+## Issues GitHub abertas
+
+As três primeiras tarefas de diagnóstico foram abertas para execução independente:
+
+| ID | Issue | Estado |
+|---|---|---|
+| EGLM-001 | [#1 — Mapear execução e gravação definitiva](https://github.com/keyzermoura/LIMS/issues/1) | Aberta |
+| EGLM-003 | [#2 — Inventariar RBAC e autorização](https://github.com/keyzermoura/LIMS/issues/2) | Aberta |
+| EGLM-005 | [#3 — Baseline de testes e CI](https://github.com/keyzermoura/LIMS/issues/3) | Aberta |
+
+As Issues detalham escopo, entregáveis, critérios de aceite e restrições. Permanecem tarefas de diagnóstico, sem autorização para alterar código de aplicação.
