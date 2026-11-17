@@ -54,6 +54,11 @@ class SignatureError(DomainError):
     code = "ESIGNATURE_REQUIRED"
 
 
+class AuthError(DomainError):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    code = "AUTHENTICATION_FAILED"
+
+
 class TooManyRequestsError(DomainError):
     status_code = status.HTTP_429_TOO_MANY_REQUESTS
     code = "RATE_LIMITED"

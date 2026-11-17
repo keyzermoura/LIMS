@@ -63,6 +63,12 @@ async def login(
         )
         raise account_lockout.locked_error()
 
+    if user.role == UserRole.SERVICE:
+        await _audit_failed_login(
+            db, user, username, "Contas de serviço não podem realizar login interativo.", context
+        )
+        raise ForbiddenError("Contas de serviço não podem realizar login interativo.")
+
     valid = await run_in_threadpool(verify_password, password, user.hashed_password)
     if not valid:
         reason, just_locked = account_lockout.register_failure(user)

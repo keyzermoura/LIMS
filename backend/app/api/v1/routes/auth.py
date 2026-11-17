@@ -26,7 +26,8 @@ from app.schemas.auth import (
     TokenPair,
     UserOut,
 )
-from app.services import auth_service, mfa_service, signature_service
+from app.schemas.service_client import ServiceTokenResponse
+from app.services import auth_service, mfa_service, service_client_service, signature_service
 
 router = APIRouter(prefix="/auth", tags=["Autenticação e Assinatura"])
 
@@ -241,6 +242,67 @@ async def roles() -> list[str]:
 async def user_detail(user_id: UUID, db: DbSession, user: CurrentUser) -> UserOut:
     target = await auth_service.get_user(db, user_id)
     return UserOut.model_validate(target)
+
+
+@router.post(
+    "/service-token",
+    response_model=ServiceTokenResponse,
+    summary="Emitir token OAuth2 M2M (Client Credentials grant)",
+    responses={
+        400: {"description": "Parâmetros inválidos"},
+        401: {"description": "Credenciais de serviço inválidas"},
+    },
+)
+async def service_token(
+    request: Request,
+    db: DbSession,
+) -> ServiceTokenResponse:
+    """Emite token JWT curto (15 min) para integração Máquina-a-Máquina (RFC 6749 §4.4)."""
+    content_type = request.headers.get("content-type", "")
+    if "application/x-www-form-urlencoded" in content_type:
+        form_data = await request.form()
+        grant_type = str(form_data.get("grant_type") or "client_credentials")
+        client_id = str(form_data.get("client_id") or "")
+        client_secret = str(form_data.get("client_secret") or "")
+        raw_scope = form_data.get("scope")
+        scope_str = str(raw_scope) if raw_scope else None
+    else:
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        grant_type = body.get("grant_type", "client_credentials")
+        client_id = body.get("client_id", "")
+        client_secret = body.get("client_secret", "")
+        scope_str = body.get("scope")
+
+    if grant_type != "client_credentials":
+        from app.core.errors import ValidationDomainError
+        raise ValidationDomainError("Apenas grant_type='client_credentials' é suportado.")
+
+    if not client_id or not client_secret:
+        from app.core.errors import ValidationDomainError
+        raise ValidationDomainError("client_id e client_secret são obrigatórios.")
+
+    context = RequestContext.from_request(request)
+    ratelimit.enforce(
+        f"service_token:{client_id}",
+        limit=settings.LOGIN_RATE_LIMIT * 2,
+        window_seconds=settings.LOGIN_RATE_WINDOW_SECONDS,
+    )
+    token, scopes, expires_in = await service_client_service.issue_service_token(
+        db,
+        client_id=client_id,
+        client_secret=client_secret,
+        requested_scope=scope_str,
+        context=context,
+    )
+    return ServiceTokenResponse(
+        access_token=token,
+        token_type="bearer",
+        expires_in=expires_in,
+        scope=" ".join(scopes),
+    )
 
 
 __all__ = ["router"]

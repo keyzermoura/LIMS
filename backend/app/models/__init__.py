@@ -10,6 +10,7 @@ from app.models.decision import CoordinationReview, ReceiptDecision
 from app.models.device_sample import DeviceSample
 from app.models.electronic_signature import ElectronicSignature
 from app.models.equipment import LaboratoryEquipment
+from app.models.idempotency import IdempotencyKey
 from app.models.instrument_data import InstrumentDataImport
 from app.models.lab_test import LabTest, LabTestResult
 from app.models.notification import Notification
@@ -19,6 +20,7 @@ from app.models.qc_spc import QCRun
 from app.models.qualification import AnalystQualification, TrainingRecord
 from app.models.reagent import Reagent, ReagentBatch, TestExecutionReagentUsage
 from app.models.receipt import CustodyEvent, CustodyObject, Receipt, ReceiptItem
+from app.models.service_client import ServiceClient
 from app.models.solicitation import Solicitation, SolicitationItem
 from app.models.storage_and_disposal import (
     SampleDisposalRecord,
@@ -49,6 +51,7 @@ __all__ = [
     "CustodyObject",
     "DeviceSample",
     "ElectronicSignature",
+    "IdempotencyKey",
     "InstrumentDataImport",
     "LabTest",
     "LabTestResult",
@@ -66,6 +69,7 @@ __all__ = [
     "SampleDisposalRecord",
     "SampleRetention",
     "SampleStorageMovement",
+    "ServiceClient",
     "Solicitation",
     "SolicitationItem",
     "StorageLocation",

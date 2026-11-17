@@ -316,6 +316,19 @@ async def upload_instrument_data(
     # 3. Cálculo de integridade criptográfica
     sha256_hash = compute_sha256(raw_content)
 
+    # 3.1 Verificação de deduplicação metrológica (ALCOA+ / H3.1)
+    existing_import = await db.scalar(
+        select(InstrumentDataImport).where(
+            InstrumentDataImport.equipment_id == equipment_id,
+            InstrumentDataImport.raw_file_hash_sha256 == sha256_hash,
+        )
+    )
+    if existing_import:
+        raise ConflictError(
+            f"Arquivo já importado anteriormente para este equipamento (SHA-256: {sha256_hash}). "
+            f"Reenvio rejeitado pelo controle de deduplicação metrológica conforme ALCOA+."
+        )
+
     # 4. Parsing das grandezas
     parsed_data = parse_instrument_data(file_format, raw_content)
 

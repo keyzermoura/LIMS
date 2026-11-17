@@ -43,6 +43,7 @@ PHASE5_HEAD = "0012_fase5_webhooks"
 PHASE6_1 = "0013_fase6_laudos_emendas"
 PHASE6_HEAD = "0014_fase6_mfa_totp"
 PHASE7_HEAD = "0018_fase7_cep_westgard"
+PHASE8_HEAD = "0019_fase8_servicos_idempotencia"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -122,6 +123,10 @@ PHASE7_TABLES = {
     "sample_retentions",
     "sample_disposal_records",
     "qc_runs",
+}
+PHASE8_TABLES = {
+    "service_clients",
+    "idempotency_keys",
 }
 PHASE7_ENUMS = {
     "reagent_type",
@@ -251,6 +256,7 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
         | PHASE4_TABLES
         | PHASE5_TABLES
         | PHASE7_TABLES
+        | PHASE8_TABLES
     )
 
     # Cada enum nativo deve existir exatamente uma vez (regressão: receipt_decision
@@ -268,7 +274,7 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
     )
     assert triggers
 
-    assert PHASE7_HEAD in _ok(migration_url, "current")
+    assert PHASE8_HEAD in _ok(migration_url, "current")
     # Paridade metadata x migrações: acusa índices, defaults ou tipos divergentes.
     _ok(migration_url, "check")
 
@@ -351,4 +357,5 @@ async def test_downgrade_refuses_when_it_would_lose_data(migration_url: str) -> 
         or PHASE6_1 in current
         or PHASE6_HEAD in current
         or PHASE7_HEAD in current
+        or PHASE8_HEAD in current
     )

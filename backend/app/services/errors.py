@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from fastapi import status
 
-from app.core.errors import DomainError
+from app.core.errors import AuthError, DomainError
+
+__all__ = ["AuthError", "ImmutableRecordError", "SignatureRejectedError"]
 
 
 class SignatureRejectedError(DomainError):

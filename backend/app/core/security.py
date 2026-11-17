@@ -32,7 +32,7 @@ _password_hasher = PasswordHasher(
     salt_len=16,
 )
 
-TokenType = Literal["access", "refresh", "esign", "sample_qr"]
+TokenType = Literal["access", "refresh", "esign", "sample_qr", "service"]
 
 
 class TokenError(Exception):
@@ -45,6 +45,11 @@ class TokenError(Exception):
 def hash_password(plain_password: str) -> str:
     _validate_password_policy(plain_password)
     return _password_hasher.hash(plain_password)
+
+
+def hash_secret(secret: str) -> str:
+    """Hash Argon2id para segredos de integração (sem política de senha humana)."""
+    return _password_hasher.hash(secret)
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
@@ -111,7 +116,9 @@ def _encode(claims: dict[str, Any], ttl: timedelta, token_type: TokenType) -> st
     )
 
 
-def decode_token(token: str, *, expected_type: TokenType) -> dict[str, Any]:
+def decode_token(
+    token: str, *, expected_type: TokenType | tuple[TokenType, ...] | list[TokenType]
+) -> dict[str, Any]:
     try:
         claims = jwt.decode(
             token,
@@ -124,7 +131,12 @@ def decode_token(token: str, *, expected_type: TokenType) -> dict[str, Any]:
     except jwt.InvalidTokenError as exc:
         raise TokenError("Token inválido.") from exc
 
-    if claims.get("typ") != expected_type:
+    expected_types = (
+        (expected_type,)
+        if isinstance(expected_type, str)
+        else tuple(expected_type)
+    )
+    if claims.get("typ") not in expected_types:
         raise TokenError("Tipo de token inesperado.")
     return claims
 
@@ -143,6 +155,26 @@ def create_refresh_token(user_id: UUID, jti: str | None = None) -> str:
     if jti:
         claims["jti"] = jti  # preservado para rotação determinística
     return _encode(claims, timedelta(hours=settings.REFRESH_TOKEN_EXPIRE_HOURS), "refresh")
+
+
+def create_service_token(
+    *,
+    client_id: str,
+    user_id: UUID,
+    scopes: list[str],
+    ttl: timedelta = timedelta(minutes=15),
+) -> str:
+    """Token de acesso Máquina-a-Máquina (M2M) com escopos específicos."""
+    return _encode(
+        {
+            "sub": f"client:{client_id}",
+            "uid": str(user_id),
+            "client_id": client_id,
+            "scp": scopes,
+        },
+        ttl,
+        "service",
+    )
 
 
 def create_esign_token(

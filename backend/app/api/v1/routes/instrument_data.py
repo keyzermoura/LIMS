@@ -8,7 +8,8 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Header, Query, UploadFile, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.api.deps import CurrentUser, DbSession, require_roles
@@ -19,14 +20,14 @@ from app.schemas.instrument_data import (
     InstrumentDataMapIn,
     InstrumentDataSummary,
 )
-from app.services import instrument_parser_service
+from app.services import idempotency_service, instrument_parser_service
 
 router = APIRouter(
     prefix="/instrument-data",
     tags=["Aquisição de Dados de Instrumentos (Fase 5)"],
 )
 
-WRITE_ROLES = (UserRole.ADMIN, UserRole.FISCAL, UserRole.TECNICO)
+WRITE_ROLES = (UserRole.ADMIN, UserRole.FISCAL, UserRole.TECNICO, UserRole.SERVICE)
 
 
 class RawUploadIn(BaseModel):
@@ -49,11 +50,35 @@ async def upload_instrument_file(
     file_format: Annotated[InstrumentFileFormat, Form(description="Formato do arquivo")],
     file: UploadFile = File(...),
     test_execution_id: Annotated[UUID | None, Form(description="ID opcional da execução de ensaio")] = None,
+    idempotency_key: Annotated[
+        str | None,
+        Header(alias="Idempotency-Key", description="Chave de idempotência (RFC 7231 / H3.1)"),
+    ] = None,
     current_user: User = Depends(require_roles(*WRITE_ROLES)),
-) -> InstrumentDataImportOut:
+):
     """Ingere arquivo bruto multipart, valida calibração, calcula SHA-256 e extrai medições."""
     content_bytes = await file.read()
     raw_content = content_bytes.decode("utf-8", errors="replace")
+
+    client_id = (
+        current_user._service_client.client_id
+        if hasattr(current_user, "_service_client")
+        else str(current_user.id)
+    )
+
+    if idempotency_key:
+        req_hash = idempotency_service.compute_payload_hash({
+            "equipment_id": str(equipment_id),
+            "file_format": file_format.value,
+            "raw_content": raw_content,
+            "test_execution_id": str(test_execution_id) if test_execution_id else None,
+        })
+        is_replay, cached_status, cached_body = await idempotency_service.check_idempotency(
+            db, client_id=client_id, key=idempotency_key, request_hash=req_hash
+        )
+        if is_replay and cached_body is not None:
+            return JSONResponse(status_code=cached_status or 201, content=cached_body)
+
     record = await instrument_parser_service.upload_instrument_data(
         db,
         equipment_id=equipment_id,
@@ -64,7 +89,21 @@ async def upload_instrument_file(
         file_format=file_format,
         test_execution_id=test_execution_id,
     )
-    return InstrumentDataImportOut.model_validate(record)
+    out_model = InstrumentDataImportOut.model_validate(record)
+
+    if idempotency_key:
+        await idempotency_service.record_idempotency(
+            db,
+            client_id=client_id,
+            key=idempotency_key,
+            request_hash=req_hash,
+            response_status=status.HTTP_201_CREATED,
+            response_body=out_model.model_dump(mode="json"),
+            ttl_seconds=idempotency_service.INSTRUMENT_IDEMPOTENCY_TTL_SECONDS,
+            created_by_user_id=current_user.id,
+        )
+
+    return out_model
 
 
 @router.post(
@@ -76,9 +115,27 @@ async def upload_instrument_file(
 async def upload_raw_instrument_data(
     payload: RawUploadIn,
     db: DbSession,
+    idempotency_key: Annotated[
+        str | None,
+        Header(alias="Idempotency-Key", description="Chave de idempotência (RFC 7231 / H3.1)"),
+    ] = None,
     current_user: User = Depends(require_roles(*WRITE_ROLES)),
-) -> InstrumentDataImportOut:
+):
     """Ingere conteúdo bruto de instrumento via corpo JSON estruturado."""
+    client_id = (
+        current_user._service_client.client_id
+        if hasattr(current_user, "_service_client")
+        else str(current_user.id)
+    )
+
+    if idempotency_key:
+        req_hash = idempotency_service.compute_payload_hash(payload.model_dump(mode="json"))
+        is_replay, cached_status, cached_body = await idempotency_service.check_idempotency(
+            db, client_id=client_id, key=idempotency_key, request_hash=req_hash
+        )
+        if is_replay and cached_body is not None:
+            return JSONResponse(status_code=cached_status or 201, content=cached_body)
+
     record = await instrument_parser_service.upload_instrument_data(
         db,
         equipment_id=payload.equipment_id,
@@ -89,7 +146,21 @@ async def upload_raw_instrument_data(
         file_format=payload.file_format,
         test_execution_id=payload.test_execution_id,
     )
-    return InstrumentDataImportOut.model_validate(record)
+    out_model = InstrumentDataImportOut.model_validate(record)
+
+    if idempotency_key:
+        await idempotency_service.record_idempotency(
+            db,
+            client_id=client_id,
+            key=idempotency_key,
+            request_hash=req_hash,
+            response_status=status.HTTP_201_CREATED,
+            response_body=out_model.model_dump(mode="json"),
+            ttl_seconds=idempotency_service.INSTRUMENT_IDEMPOTENCY_TTL_SECONDS,
+            created_by_user_id=current_user.id,
+        )
+
+    return out_model
 
 
 @router.get("", response_model=list[InstrumentDataImportOut])
