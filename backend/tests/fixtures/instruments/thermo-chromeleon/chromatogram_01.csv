@@ -1,0 +1,7 @@
+Sequence;TEOR_VALPROATO_2026
+Sample;PADRAO_REFERENCIA_CRM_01
+Instrument;Vanquish Flex UHPLC
+
+Peak;Peak Name;Ret.Time;Area;Height;Rel.Area
+1;Impureza B;1,92;18200,5;2100,0;1,55
+2;Valproato de Sodio;6,45;1154000,8;98400,2;98,45

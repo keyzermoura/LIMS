@@ -1,0 +1,9 @@
+[Header]
+Sample Name,Lote Injetavel 404
+Method Name,TEOR_PROMINENCE_HPLC.met
+Date,2026/11/17 09:15:30
+
+[Peak Table]
+#,"R.Time","Area","Height","Area%","Name"
+1,1.845,25400.1,3400.2,2.05,"Injecao"
+2,5.210,1215000.4,112000.9,97.95,"Principio Ativo"

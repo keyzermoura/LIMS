@@ -34,7 +34,7 @@ from app.models.enums import (
 from app.models.equipment import LaboratoryEquipment
 from app.models.instrument_data import InstrumentDataImport
 from app.models.test_execution import TestExecution
-from app.services import audit_service
+from app.services import audit_service, instrument_profiles
 
 
 def compute_sha256(content: bytes | str) -> str:
@@ -285,6 +285,7 @@ async def upload_instrument_data(
     file_name: str,
     raw_content: str,
     file_format: InstrumentFileFormat,
+    profile_id: str | None = None,
     test_execution_id: UUID | None = None,
 ) -> InstrumentDataImport:
     """Valida calibração, calcula hash imutável SHA-256, parseia e armazena os dados brutos."""
@@ -330,7 +331,23 @@ async def upload_instrument_data(
         )
 
     # 4. Parsing das grandezas
-    parsed_data = parse_instrument_data(file_format, raw_content)
+    if profile_id:
+        profile = instrument_profiles.get_profile(profile_id)
+        parsed_data = instrument_profiles.parse_with_profile(profile, raw_content)
+    else:
+        matched = instrument_profiles.match_profile_for_equipment(
+            equipment.manufacturer, equipment.model
+        )
+        if matched and file_format in (
+            InstrumentFileFormat.CHROMATOGRAPHY_CSV,
+            InstrumentFileFormat.GENERIC_JSON,
+        ):
+            try:
+                parsed_data = instrument_profiles.parse_with_profile(matched, raw_content)
+            except Exception:
+                parsed_data = parse_instrument_data(file_format, raw_content)
+        else:
+            parsed_data = parse_instrument_data(file_format, raw_content)
 
     # 5. Persistência
     record = InstrumentDataImport(
