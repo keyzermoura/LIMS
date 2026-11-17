@@ -42,7 +42,7 @@ PHASE5_3 = "0011_fase5_guards_integridade"
 PHASE5_HEAD = "0012_fase5_webhooks"
 PHASE6_1 = "0013_fase6_laudos_emendas"
 PHASE6_HEAD = "0014_fase6_mfa_totp"
-PHASE7_HEAD = "0017_fase7_armazenamento_descarte"
+PHASE7_HEAD = "0017_fase7_armazena_descarte"
 
 PHASE1_TABLES = {
     "solicitations",

@@ -1,6 +1,6 @@
 """Horizonte 2: Cadeia Física de Armazenamento, Retenção de Contraprova e Descarte (H2.3 & H2.4).
 
-Revision ID: 0017_fase7_armazenamento_descarte
+Revision ID: 0017_fase7_armazena_descarte
 Revises: 0016_fase7_oos_investigations
 Create Date: 2026-11-17
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0017_fase7_armazenamento_descarte"
+revision: str = "0017_fase7_armazena_descarte"
 down_revision: str | None = "0016_fase7_oos_investigations"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
