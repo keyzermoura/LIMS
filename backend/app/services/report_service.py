@@ -26,11 +26,13 @@ from app.models.enums import (
     AuditAction,
     AuditEntity,
     CoordinationReviewStatus,
+    OOSInvestigationStatus,
     SignatureAction,
     TestStatus,
 )
 from app.models.lab_test import LabTest
 from app.models.official_report import OfficialReport
+from app.models.oos_investigation import OOSInvestigation
 from app.models.uncertainty import UncertaintyBudget
 from app.models.user import User
 from app.schemas.official_report import OfficialReportGenerateIn
@@ -79,6 +81,20 @@ async def generate_official_report(
         if t.review_status != CoordinationReviewStatus.APROVADO:
             raise ValidationDomainError(
                 f"O ensaio '{t.name}' não possui parecer técnico de aprovação (review_status: {t.review_status.value})."
+            )
+
+        # Intertravamento regulamentar ISO/IEC 17025 §7.10: bloqueia laudo se houver OOS pendente
+        open_oos = await db.scalar(
+            select(OOSInvestigation).where(
+                OOSInvestigation.lab_test_id == t.id,
+                OOSInvestigation.status != OOSInvestigationStatus.CLOSED,
+            )
+        )
+        if open_oos:
+            raise ValidationDomainError(
+                f"O ensaio '{t.name}' possui investigação de desvio analítico OOS pendente "
+                f"({open_oos.investigation_number} - status: {open_oos.status.value}). "
+                "Emissão de laudo bloqueada (ISO/IEC 17025 §7.10)."
             )
 
     now = utcnow()

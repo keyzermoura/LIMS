@@ -14,6 +14,7 @@ from app.models.instrument_data import InstrumentDataImport
 from app.models.lab_test import LabTest, LabTestResult
 from app.models.notification import Notification
 from app.models.official_report import OfficialReport
+from app.models.oos_investigation import OOSInvestigation
 from app.models.qualification import AnalystQualification, TrainingRecord
 from app.models.reagent import Reagent, ReagentBatch, TestExecutionReagentUsage
 from app.models.receipt import CustodyEvent, CustodyObject, Receipt, ReceiptItem
@@ -47,6 +48,7 @@ __all__ = [
     "LaboratoryEquipment",
     "Notification",
     "OfficialReport",
+    "OOSInvestigation",
     "Reagent",
     "ReagentBatch",
     "Receipt",

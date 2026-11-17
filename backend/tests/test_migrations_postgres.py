@@ -42,7 +42,7 @@ PHASE5_3 = "0011_fase5_guards_integridade"
 PHASE5_HEAD = "0012_fase5_webhooks"
 PHASE6_1 = "0013_fase6_laudos_emendas"
 PHASE6_HEAD = "0014_fase6_mfa_totp"
-PHASE7_HEAD = "0015_fase7_reagentes_padroes"
+PHASE7_HEAD = "0016_fase7_oos_investigations"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -116,11 +116,15 @@ PHASE7_TABLES = {
     "reagents",
     "reagent_batches",
     "test_execution_reagent_usages",
+    "oos_investigations",
 }
 PHASE7_ENUMS = {
     "reagent_type",
     "reagent_grade",
     "reagent_batch_status",
+    "deviation_type",
+    "oos_investigation_status",
+    "oos_root_cause_category",
 }
 
 

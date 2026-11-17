@@ -109,6 +109,7 @@ class AuditEntity(str, Enum):
     INSTRUMENT_DATA_IMPORT = "InstrumentDataImport"
     REAGENT = "Reagent"
     REAGENT_BATCH = "ReagentBatch"
+    OOS_INVESTIGATION = "OOSInvestigation"
 
 
 class SolicitationStatus(str, Enum):
@@ -352,5 +353,42 @@ class VolumeMassUnit(str, Enum):
     MG = "mg"
     ML = "mL"
     L = "L"
+
+
+# ---------------------------------------------------------------------------
+# Desvios Analíticos OOS / OOT (Horizonte 2 / Sprint 7.2 - ISO 17025 §7.10)
+# ---------------------------------------------------------------------------
+
+
+class DeviationType(str, Enum):
+    """Tipologia do desvio analítico detectado."""
+
+    OOS = "OOS"
+    OOT = "OOT"
+
+
+class OOSInvestigationStatus(str, Enum):
+    """Fases da investigação analítica segundo FDA Guidance e ISO/IEC 17025 §7.10."""
+
+    PHASE_I_PENDING = "PHASE_I_PENDING"
+    PHASE_I_COMPLETED = "PHASE_I_COMPLETED"
+    PHASE_II_REQUIRED = "PHASE_II_REQUIRED"
+    CONFIRMED_LAB_ERROR = "CONFIRMED_LAB_ERROR"
+    CONFIRMED_PRODUCT_FAILURE = "CONFIRMED_PRODUCT_FAILURE"
+    CLOSED = "CLOSED"
+
+
+class OOSRootCauseCategory(str, Enum):
+    """Categorias padronizadas de causa raiz para desvios analíticos."""
+
+    EQUIPMENT_MALFUNCTION = "EQUIPMENT_MALFUNCTION"
+    REAGENT_CONTAMINATION = "REAGENT_CONTAMINATION"
+    OPERATOR_ERROR = "OPERATOR_ERROR"
+    CALCULATION_ERROR = "CALCULATION_ERROR"
+    ENVIRONMENTAL_FLUCTUATION = "ENVIRONMENTAL_FLUCTUATION"
+    SAMPLE_ANOMALY = "SAMPLE_ANOMALY"
+    METHOD_LIMITATION = "METHOD_LIMITATION"
+    OTHER = "OTHER"
+
 
 

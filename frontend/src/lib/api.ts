@@ -371,6 +371,11 @@ import type {
   ReagentBatchCreatePayload,
   ExecutionReagentUsagePayload,
   ExecutionReagentUsage,
+  OOSInvestigation,
+  OOSInvestigationCreatePayload,
+  OOSPhase1UpdatePayload,
+  OOSPhase2UpdatePayload,
+  OOSClosePayload,
 } from "./types";
 
 export const methodsApi = {
@@ -804,6 +809,47 @@ export const reagentsApi = {
   listExecutionUsages: (executionId: string) =>
     request<ExecutionReagentUsage[]>(`/reagents/executions/${executionId}/reagents`),
 };
+
+export const oosApi = {
+  list: (params?: {
+    lab_test_id?: string;
+    status?: string;
+    deviation_type?: string;
+    is_open?: boolean;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.lab_test_id) query.set("lab_test_id", params.lab_test_id);
+    if (params?.status) query.set("status", params.status);
+    if (params?.deviation_type) query.set("deviation_type", params.deviation_type);
+    if (params?.is_open !== undefined) query.set("is_open", String(params.is_open));
+    if (params?.search) query.set("search", params.search);
+    const qs = query.toString();
+    return request<OOSInvestigation[]>(`/oos${qs ? `?${qs}` : ""}`);
+  },
+  get: (id: string) => request<OOSInvestigation>(`/oos/${id}`),
+  create: (payload: OOSInvestigationCreatePayload) =>
+    request<OOSInvestigation>("/oos", {
+      method: "POST",
+      body: payload,
+    }),
+  updatePhase1: (id: string, payload: OOSPhase1UpdatePayload) =>
+    request<OOSInvestigation>(`/oos/${id}/phase1`, {
+      method: "PUT",
+      body: payload,
+    }),
+  updatePhase2: (id: string, payload: OOSPhase2UpdatePayload) =>
+    request<OOSInvestigation>(`/oos/${id}/phase2`, {
+      method: "PUT",
+      body: payload,
+    }),
+  close: (id: string, payload: OOSClosePayload) =>
+    request<OOSInvestigation>(`/oos/${id}/close`, {
+      method: "POST",
+      body: payload,
+    }),
+};
+
 
 
 

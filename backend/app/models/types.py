@@ -24,12 +24,15 @@ from app.models.enums import (
     CustodyEventType,
     CustodyObjectStatus,
     DecisionRuleType,
+    DeviationType,
     EquipmentCalibrationStatus,
     ExecutionStatus,
     InstrumentFileFormat,
     InstrumentImportStatus,
     NotificationCategory,
     NotificationSeverity,
+    OOSInvestigationStatus,
+    OOSRootCauseCategory,
     PresentationStatus,
     QualificationStatus,
     ReagentBatchStatus,
@@ -131,4 +134,13 @@ reagent_grade_enum = SAEnum(
 )
 volume_mass_unit_enum = SAEnum(
     VolumeMassUnit, name="volume_mass_unit", validate_strings=True
+)
+deviation_type_enum = SAEnum(
+    DeviationType, name="deviation_type", validate_strings=True
+)
+oos_investigation_status_enum = SAEnum(
+    OOSInvestigationStatus, name="oos_investigation_status", validate_strings=True
+)
+oos_root_cause_category_enum = SAEnum(
+    OOSRootCauseCategory, name="oos_root_cause_category", validate_strings=True
 )

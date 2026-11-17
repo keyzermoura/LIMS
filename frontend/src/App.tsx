@@ -20,6 +20,7 @@ import { AnalyticsPage } from "@/pages/Analytics";
 import { NotificationsPage } from "@/pages/Notifications";
 import InstrumentAcquisition from "@/pages/InstrumentAcquisition";
 import { ReagentsPage } from "@/pages/Reagents";
+import { OOSInvestigationsPage } from "@/pages/OOSInvestigations";
 
 function FullScreenLoader() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="/methods" element={<TestCatalogPage />} />
         <Route path="/qualifications" element={<QualificationsPage />} />
         <Route path="/uncertainty" element={<UncertaintyPage />} />
+        <Route path="/oos" element={<OOSInvestigationsPage />} />
         <Route path="/capas" element={<CapasPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
