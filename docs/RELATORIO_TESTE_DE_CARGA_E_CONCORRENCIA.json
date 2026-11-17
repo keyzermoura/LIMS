@@ -1,0 +1,64 @@
+[
+  {
+    "name": "Autenticação Concorrente Multi-Usuário (Login)",
+    "total_requests": 25,
+    "successes": 7,
+    "failures": 18,
+    "throughput_rps": 14.21,
+    "latency_min_ms": 544.95,
+    "latency_avg_ms": 1158.58,
+    "latency_p50_ms": 1202.43,
+    "latency_p95_ms": 1698.62,
+    "latency_p99_ms": 1711.34,
+    "latency_max_ms": 1711.34,
+    "sample_errors": [
+      "Status 429",
+      "Status 429",
+      "Status 429",
+      "Status 429",
+      "Status 429"
+    ]
+  },
+  {
+    "name": "Consultas Analíticas Concorrentes (/samples e /meta)",
+    "total_requests": 50,
+    "successes": 50,
+    "failures": 0,
+    "throughput_rps": 126.07,
+    "latency_min_ms": 82.32,
+    "latency_avg_ms": 213.17,
+    "latency_p50_ms": 203.75,
+    "latency_p95_ms": 352.62,
+    "latency_p99_ms": 357.4,
+    "latency_max_ms": 357.4,
+    "sample_errors": []
+  },
+  {
+    "name": "Validação Pública de Laudos / Tokens (Public Access)",
+    "total_requests": 50,
+    "successes": 50,
+    "failures": 0,
+    "throughput_rps": 115.94,
+    "latency_min_ms": 75.03,
+    "latency_avg_ms": 240.01,
+    "latency_p50_ms": 231.21,
+    "latency_p95_ms": 380.74,
+    "latency_p99_ms": 407.61,
+    "latency_max_ms": 407.61,
+    "sample_errors": []
+  },
+  {
+    "name": "Requisições M2M com Chave de Idempotência Compartilhada",
+    "total_requests": 30,
+    "successes": 30,
+    "failures": 0,
+    "throughput_rps": 77.67,
+    "latency_min_ms": 104.68,
+    "latency_avg_ms": 268.35,
+    "latency_p50_ms": 290.86,
+    "latency_p95_ms": 377.85,
+    "latency_p99_ms": 383.15,
+    "latency_max_ms": 383.15,
+    "sample_errors": []
+  }
+]
