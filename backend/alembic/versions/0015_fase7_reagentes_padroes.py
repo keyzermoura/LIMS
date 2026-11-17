@@ -76,7 +76,7 @@ def upgrade() -> None:
     op.create_table(
         "reagents",
         sa.Column("id", uuid_type, primary_key=True),
-        sa.Column("code", sa.String(32), unique=True, nullable=False),
+        sa.Column("code", sa.String(32), nullable=False),
         sa.Column("name", sa.String(160), nullable=False),
         sa.Column("chemical_formula", sa.String(64), nullable=True),
         sa.Column("cas_number", sa.String(32), nullable=True),
@@ -91,10 +91,10 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
     )
-    op.create_index("ix_reagents_code", "reagents", ["code"], unique=True)
-    op.create_index("ix_reagents_name", "reagents", ["name"], unique=False)
-    op.create_index("ix_reagents_cas_number", "reagents", ["cas_number"], unique=False)
-    op.create_index("ix_reagents_reagent_type", "reagents", ["reagent_type"], unique=False)
+    op.create_index(op.f("ix_reagents_code"), "reagents", ["code"], unique=True)
+    op.create_index(op.f("ix_reagents_name"), "reagents", ["name"], unique=False)
+    op.create_index(op.f("ix_reagents_cas_number"), "reagents", ["cas_number"], unique=False)
+    op.create_index(op.f("ix_reagents_reagent_type"), "reagents", ["reagent_type"], unique=False)
 
     # 2. Tabela reagent_batches
     op.create_table(
@@ -120,10 +120,10 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
         sa.ForeignKeyConstraint(["reagent_id"], ["reagents.id"], ondelete="RESTRICT"),
     )
-    op.create_index("ix_reagent_batches_reagent_id", "reagent_batches", ["reagent_id"], unique=False)
-    op.create_index("ix_reagent_batches_lot_number", "reagent_batches", ["lot_number"], unique=False)
-    op.create_index("ix_reagent_batches_expiration_date", "reagent_batches", ["expiration_date"], unique=False)
-    op.create_index("ix_reagent_batches_status", "reagent_batches", ["status"], unique=False)
+    op.create_index(op.f("ix_reagent_batches_reagent_id"), "reagent_batches", ["reagent_id"], unique=False)
+    op.create_index(op.f("ix_reagent_batches_lot_number"), "reagent_batches", ["lot_number"], unique=False)
+    op.create_index(op.f("ix_reagent_batches_expiration_date"), "reagent_batches", ["expiration_date"], unique=False)
+    op.create_index(op.f("ix_reagent_batches_status"), "reagent_batches", ["status"], unique=False)
 
     # 3. Tabela test_execution_reagent_usages
     op.create_table(
@@ -141,8 +141,8 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["batch_id"], ["reagent_batches.id"], ondelete="RESTRICT"),
         sa.ForeignKeyConstraint(["recorded_by_id"], ["users.id"], ondelete="RESTRICT"),
     )
-    op.create_index("ix_test_execution_reagent_usages_execution_id", "test_execution_reagent_usages", ["execution_id"], unique=False)
-    op.create_index("ix_test_execution_reagent_usages_batch_id", "test_execution_reagent_usages", ["batch_id"], unique=False)
+    op.create_index(op.f("ix_test_execution_reagent_usages_execution_id"), "test_execution_reagent_usages", ["execution_id"], unique=False)
+    op.create_index(op.f("ix_test_execution_reagent_usages_batch_id"), "test_execution_reagent_usages", ["batch_id"], unique=False)
 
 
 def downgrade() -> None:

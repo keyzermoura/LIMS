@@ -12,7 +12,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import (
@@ -79,7 +79,7 @@ class ReagentBatch(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, Bas
     manufacturer: Mapped[str] = mapped_column(String(120), nullable=False)
     catalog_number: Mapped[str | None] = mapped_column(String(64), nullable=True)
     received_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=utcnow
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
     )
     opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     expiration_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
@@ -132,7 +132,7 @@ class TestExecutionReagentUsage(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     quantity_used: Mapped[float] = mapped_column(Float, nullable=False)
     unit: Mapped[str] = mapped_column(String(16), nullable=False)
     consumed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=utcnow
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
     )
     recorded_by_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False

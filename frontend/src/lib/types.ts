@@ -1272,6 +1272,7 @@ export interface ReagentBatch {
   is_expired: boolean;
   is_usable: boolean;
   notes?: string | null;
+  reagent?: Reagent | null;
 }
 
 export interface ReagentCreatePayload {
@@ -1303,6 +1304,7 @@ export interface ExecutionReagentUsagePayload {
   batch_id: string;
   quantity_used: number;
   unit: string;
+  notes?: string;
 }
 
 export interface ExecutionReagentUsage {
@@ -1313,4 +1315,6 @@ export interface ExecutionReagentUsage {
   unit: string;
   consumed_at: string;
   recorded_by_id: string;
+  batch?: ReagentBatch | null;
+  recorded_by?: { id?: string; full_name?: string } | null;
 }

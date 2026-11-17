@@ -457,7 +457,7 @@ export function ReagentsPage() {
         onOpenChange={setCreateReagentOpen}
         onSuccess={() => {
           reagentsQuery.refetch();
-          push({ title: "Reagente Cadastrado", message: "Insumo adicionado ao catálogo com sucesso.", variant: "success" });
+          push({ title: "Reagente Cadastrado", description: "Insumo adicionado ao catálogo com sucesso.", variant: "success" });
         }}
       />
 
@@ -469,7 +469,7 @@ export function ReagentsPage() {
         initialReagentId={selectedReagentForBatch}
         onSuccess={() => {
           batchesQuery.refetch();
-          push({ title: "Lote Recebido", message: "Lote físico registrado no estoque do laboratório.", variant: "success" });
+          push({ title: "Lote Recebido", description: "Lote físico registrado no estoque do laboratório.", variant: "success" });
         }}
       />
     </div>
