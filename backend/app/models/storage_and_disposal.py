@@ -123,7 +123,10 @@ class SampleRetention(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, 
     __tablename__ = "sample_retentions"
 
     sample_id: Mapped[UUID] = mapped_column(
-        ForeignKey("device_samples.id", ondelete="RESTRICT"), unique=True, nullable=False, index=True
+        ForeignKey("device_samples.id", ondelete="RESTRICT"),
+        unique=True,
+        nullable=False,
+        index=True,
     )
     storage_location_id: Mapped[UUID] = mapped_column(
         ForeignKey("storage_locations.id", ondelete="RESTRICT"), nullable=False, index=True

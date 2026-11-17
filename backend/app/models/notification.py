@@ -33,9 +33,7 @@ class Notification(UUIDPrimaryKeyMixin, TimestampMixin, JsonMetadataMixin, Base)
     user_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
     )
-    target_role: Mapped[UserRole | None] = mapped_column(
-        user_role_type, nullable=True, index=True
-    )
+    target_role: Mapped[UserRole | None] = mapped_column(user_role_type, nullable=True, index=True)
     title: Mapped[str] = mapped_column(String(160), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     severity: Mapped[NotificationSeverity] = mapped_column(

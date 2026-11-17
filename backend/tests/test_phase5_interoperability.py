@@ -202,6 +202,7 @@ async def test_public_report_verification_by_token_and_hash(
 
     # Cria amostra
     from app.models.device_sample import DeviceSample
+
     sample_id = uuid4()
     async with db_factory() as db:
         sample = DeviceSample(

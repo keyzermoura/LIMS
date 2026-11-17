@@ -43,7 +43,8 @@ PHASE5_HEAD = "0012_fase5_webhooks"
 PHASE6_1 = "0013_fase6_laudos_emendas"
 PHASE6_HEAD = "0014_fase6_mfa_totp"
 PHASE7_HEAD = "0018_fase7_cep_westgard"
-PHASE8_HEAD = "0020_fase8_outbox_webhooks"
+PHASE8_PREV = "0020_fase8_outbox_webhooks"
+PHASE8_HEAD = "0021_fase8_mfa_secret_text"
 
 PHASE1_TABLES = {
     "solicitations",
@@ -196,9 +197,7 @@ async def _scalars(url: str, sql: str, **params: object) -> list[object]:
 
 
 async def _tables(url: str) -> set[str]:
-    rows = await _scalars(
-        url, "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
-    )
+    rows = await _scalars(url, "SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
     return {str(r) for r in rows}
 
 
@@ -263,9 +262,7 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
     # Cada enum nativo deve existir exatamente uma vez (regressão: receipt_decision
     # é compartilhado por duas tabelas e já foi criado em duplicidade).
     counts = await _enum_counts(migration_url)
-    for enum_name in (
-        PHASE1_ENUMS | PHASE2_ENUMS | PHASE4_ENUMS | PHASE5_ENUMS | PHASE7_ENUMS
-    ):
+    for enum_name in PHASE1_ENUMS | PHASE2_ENUMS | PHASE4_ENUMS | PHASE5_ENUMS | PHASE7_ENUMS:
         assert counts.get(enum_name) == 1, f"enum {enum_name}: {counts.get(enum_name)}"
 
     # Guardas de imutabilidade da migração 0002 continuam presentes.
@@ -286,26 +283,11 @@ async def test_downgrade_is_reversible(migration_url: str) -> None:
 
     tables = await _tables(migration_url)
     assert not (
-        (
-            PHASE1_TABLES
-            | PHASE2_TABLES
-            | PHASE3_TABLES
-            | PHASE4_TABLES
-            | PHASE5_TABLES
-        )
-        & tables
+        (PHASE1_TABLES | PHASE2_TABLES | PHASE3_TABLES | PHASE4_TABLES | PHASE5_TABLES) & tables
     )
     assert {"users", "device_samples", "audit_logs"} <= tables
     counts = await _enum_counts(migration_url)
-    assert not (
-        (
-            PHASE1_ENUMS
-            | PHASE2_ENUMS
-            | PHASE4_ENUMS
-            | PHASE5_ENUMS
-        )
-        & set(counts)
-    )
+    assert not ((PHASE1_ENUMS | PHASE2_ENUMS | PHASE4_ENUMS | PHASE5_ENUMS) & set(counts))
 
     nullable = await _scalars(
         migration_url,
@@ -358,5 +340,6 @@ async def test_downgrade_refuses_when_it_would_lose_data(migration_url: str) -> 
         or PHASE6_1 in current
         or PHASE6_HEAD in current
         or PHASE7_HEAD in current
+        or PHASE8_PREV in current
         or PHASE8_HEAD in current
     )

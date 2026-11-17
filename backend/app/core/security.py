@@ -32,7 +32,7 @@ _password_hasher = PasswordHasher(
     salt_len=16,
 )
 
-TokenType = Literal["access", "refresh", "esign", "sample_qr", "service"]
+TokenType = Literal["access", "refresh", "esign", "sample_qr", "service", "mfa_pending"]
 
 
 class TokenError(Exception):
@@ -131,11 +131,7 @@ def decode_token(
     except jwt.InvalidTokenError as exc:
         raise TokenError("Token inválido.") from exc
 
-    expected_types = (
-        (expected_type,)
-        if isinstance(expected_type, str)
-        else tuple(expected_type)
-    )
+    expected_types = (expected_type,) if isinstance(expected_type, str) else tuple(expected_type)
     if claims.get("typ") not in expected_types:
         raise TokenError("Tipo de token inesperado.")
     return claims
@@ -155,6 +151,11 @@ def create_refresh_token(user_id: UUID, jti: str | None = None) -> str:
     if jti:
         claims["jti"] = jti  # preservado para rotação determinística
     return _encode(claims, timedelta(hours=settings.REFRESH_TOKEN_EXPIRE_HOURS), "refresh")
+
+
+def create_mfa_pending_token(user_id: UUID) -> str:
+    """Token de uso temporário (5 minutos) para desafio de segundo fator (MFA TOTP) no login."""
+    return _encode({"sub": str(user_id)}, timedelta(minutes=5), "mfa_pending")
 
 
 def create_service_token(

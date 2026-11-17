@@ -11,8 +11,12 @@ from pydantic import BaseModel, ConfigDict, Field
 class ServiceClientCreate(BaseModel):
     name: str = Field(min_length=3, max_length=160, description="Nome identificador da integração")
     scopes: list[str] = Field(default_factory=list, description="Escopos concedidos à conta")
-    expires_in_days: int = Field(default=90, ge=1, le=365, description="Validade da credencial em dias")
-    ip_allowlist: list[str] | None = Field(default=None, description="Lista opcional de IPs/CIDRs permitidos")
+    expires_in_days: int = Field(
+        default=90, ge=1, le=365, description="Validade da credencial em dias"
+    )
+    ip_allowlist: list[str] | None = Field(
+        default=None, description="Lista opcional de IPs/CIDRs permitidos"
+    )
     service_username: str | None = Field(
         default=None,
         min_length=3,

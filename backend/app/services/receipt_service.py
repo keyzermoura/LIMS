@@ -237,7 +237,9 @@ async def conference_item(
             i.conference_status in {ConferenceStatus.COM_RESSALVA, ConferenceStatus.NAO_CONFORME}
             for i in receipt.items
         )
-        new_receipt_status = ReceiptStatus.PENDENTE if any_non_conforming else ReceiptStatus.CONCLUIDO
+        new_receipt_status = (
+            ReceiptStatus.PENDENTE if any_non_conforming else ReceiptStatus.CONCLUIDO
+        )
         if receipt.status != new_receipt_status:
             receipt.status = new_receipt_status
             receipt.version += 1
@@ -268,7 +270,9 @@ async def get_custody_object(db: AsyncSession, custody_object_id: UUID) -> Custo
         select(CustodyObject)
         .options(
             selectinload(CustodyObject.receipt_item).selectinload(ReceiptItem.solicitation_item),
-            selectinload(CustodyObject.receipt_item).selectinload(ReceiptItem.receipt).selectinload(Receipt.solicitation),
+            selectinload(CustodyObject.receipt_item)
+            .selectinload(ReceiptItem.receipt)
+            .selectinload(Receipt.solicitation),
             selectinload(CustodyObject.current_custodian),
             selectinload(CustodyObject.linked_device_sample),
         )
@@ -309,7 +313,9 @@ async def transfer_custody(
         )
 
     if obj.version != payload.version:
-        raise ConflictError("O objeto de custódia foi modificado por outro processo. Atualize e tente novamente.")
+        raise ConflictError(
+            "O objeto de custódia foi modificado por outro processo. Atualize e tente novamente."
+        )
 
     new_custodian = await db.get(User, payload.to_custodian_id)
     if new_custodian is None:
@@ -370,7 +376,9 @@ async def accept_custody_object(
         )
 
     if obj.version != payload.version:
-        raise ConflictError("O objeto foi modificado por outro processo. Atualize e tente novamente.")
+        raise ConflictError(
+            "O objeto foi modificado por outro processo. Atualize e tente novamente."
+        )
 
     receipt_item = obj.receipt_item
     solicitation_item = receipt_item.solicitation_item

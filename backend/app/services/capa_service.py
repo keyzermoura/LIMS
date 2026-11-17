@@ -95,7 +95,9 @@ async def create_capa(
         lab_test_id=payload.lab_test_id,
         source_type=payload.source_type,
         title=payload.title.strip(),
-        containment_action=payload.containment_action.strip() if payload.containment_action else None,
+        containment_action=payload.containment_action.strip()
+        if payload.containment_action
+        else None,
         ishikawa_causes=payload.ishikawa_causes,
         five_whys=payload.five_whys,
         root_cause=payload.root_cause.strip(),
@@ -131,9 +133,7 @@ async def create_capa(
             db.add(item)
         await db.flush()
 
-    await signature_service.bind_record(
-        db, signature, {"capa": audit_service.snapshot(capa)}
-    )
+    await signature_service.bind_record(db, signature, {"capa": audit_service.snapshot(capa)})
 
     log = await audit_service.append(
         db,
@@ -162,9 +162,7 @@ async def update_capa(
     signature: ElectronicSignature,
     context: RequestContext,
 ) -> tuple[CapaAction, int]:
-    capa = await db.scalar(
-        select(CapaAction).where(CapaAction.id == capa_id).with_for_update()
-    )
+    capa = await db.scalar(select(CapaAction).where(CapaAction.id == capa_id).with_for_update())
     if capa is None:
         raise NotFoundError("CAPA não encontrada.")
 
@@ -184,9 +182,7 @@ async def update_capa(
 
     if payload.status == CapaStatus.CONCLUIDA:
         if not payload.effectiveness_check and not capa.effectiveness_check:
-            raise ValidationDomainError(
-                "Para concluir a CAPA, registre a verificação de eficácia."
-            )
+            raise ValidationDomainError("Para concluir a CAPA, registre a verificação de eficácia.")
         # Verifica se todas as ações estão concluídas ou canceladas
         pending_items = await db.scalars(
             select(CapaActionItem).where(
@@ -328,8 +324,14 @@ async def update_action_item(
     if capa.status in FINAL_STATUSES:
         raise ConflictError("Não é possível modificar ações de uma CAPA finalizada.")
 
-    if actor.role not in EDITOR_ROLES and capa.owner_id != actor.id and item.assigned_to_id != actor.id:
-        raise ForbiddenError("Somente o responsável pela ação, dono da CAPA ou gestão pode editá-la.")
+    if (
+        actor.role not in EDITOR_ROLES
+        and capa.owner_id != actor.id
+        and item.assigned_to_id != actor.id
+    ):
+        raise ForbiddenError(
+            "Somente o responsável pela ação, dono da CAPA ou gestão pode editá-la."
+        )
 
     old_values = audit_service.snapshot(item)
 
@@ -426,16 +428,16 @@ async def evaluate_effectiveness(
     context: RequestContext,
 ) -> tuple[CapaAction, CapaAction | None, int]:
     """Avaliação formal de eficácia temporal (ISO/IEC 17025:2017 §8.7.3)."""
-    capa = await db.scalar(
-        select(CapaAction).where(CapaAction.id == capa_id).with_for_update()
-    )
+    capa = await db.scalar(select(CapaAction).where(CapaAction.id == capa_id).with_for_update())
     if capa is None:
         raise NotFoundError("CAPA não encontrada.")
     if capa.status == CapaStatus.CANCELADA:
         raise ConflictError("Não é possível avaliar eficácia de uma CAPA cancelada.")
 
     if actor.role not in EDITOR_ROLES and capa.owner_id != actor.id:
-        raise ForbiddenError("Somente o responsável pela CAPA ou gestão da qualidade pode avaliar eficácia.")
+        raise ForbiddenError(
+            "Somente o responsável pela CAPA ou gestão da qualidade pode avaliar eficácia."
+        )
 
     # Verifica se existem ações pendentes ou em andamento
     pending_items = await db.scalars(
@@ -463,7 +465,10 @@ async def evaluate_effectiveness(
 
     new_derived_capa: CapaAction | None = None
 
-    if payload.effectiveness_status == CapaEffectivenessStatus.EFICAZ and not payload.recurrence_detected:
+    if (
+        payload.effectiveness_status == CapaEffectivenessStatus.EFICAZ
+        and not payload.recurrence_detected
+    ):
         capa.status = CapaStatus.CONCLUIDA
         capa.closed_at = now
         capa.closed_by_id = actor.id
@@ -538,7 +543,9 @@ async def open_capa_from_uncertainty(
     if budget.lab_test and budget.lab_test.device_sample_id:
         sample_id = budget.lab_test.device_sample_id
 
-    test_title = budget.lab_test.name if budget.lab_test else f"Ensaio {budget.lab_test_id or budget.id}"
+    test_title = (
+        budget.lab_test.name if budget.lab_test else f"Ensaio {budget.lab_test_id or budget.id}"
+    )
 
     capa = CapaAction(
         id=uuid4(),
@@ -546,7 +553,9 @@ async def open_capa_from_uncertainty(
         device_sample_id=sample_id,
         lab_test_id=budget.lab_test_id,
         source_type=CapaSourceType.INCERTEZA_METROLOGICA,
-        title=f"Desvio Metrológico (Incerteza): {test_title} - {budget.conformity_status.value}"[:200],
+        title=f"Desvio Metrológico (Incerteza): {test_title} - {budget.conformity_status.value}"[
+            :200
+        ],
         containment_action="Segregação da amostra e suspensão da liberação do resultado metrológico.",
         root_cause=f"Resultado metrológico '{budget.conformity_status.value}' frente aos limites especificados. Declaração: {budget.conformity_statement or 'N/A'}",
         action_plan="Investigar repetibilidade dos ensaios, calibração do instrumento e estabilidade ambiental.",
@@ -602,10 +611,6 @@ async def list_capas(
         stmt = stmt.where(CapaAction.device_sample_id == sample_id)
 
     total = await db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    stmt = (
-        stmt.order_by(CapaAction.opened_at.desc())
-        .offset((page - 1) * size)
-        .limit(size)
-    )
+    stmt = stmt.order_by(CapaAction.opened_at.desc()).offset((page - 1) * size).limit(size)
     result = await db.execute(stmt)
     return list(result.scalars().all()), int(total)

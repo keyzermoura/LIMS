@@ -37,14 +37,14 @@ class ReceiptDecision(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, 
     custody_object_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("custody_objects.id", ondelete="SET NULL"), index=True
     )
-    decision: Mapped[ReceiptDecisionEnum] = mapped_column(
-        receipt_decision_type, nullable=False
-    )
+    decision: Mapped[ReceiptDecisionEnum] = mapped_column(receipt_decision_type, nullable=False)
     justification: Mapped[str] = mapped_column(Text, nullable=False)
     decided_by_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
-    requires_coordination_review: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    requires_coordination_review: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
 
     # Relacionamentos
     receipt_item: Mapped[ReceiptItem] = relationship("ReceiptItem", back_populates="decisions")
@@ -64,7 +64,10 @@ class CoordinationReview(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "coordination_reviews"
 
     decision_id: Mapped[UUID] = mapped_column(
-        ForeignKey("receipt_decisions.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
+        ForeignKey("receipt_decisions.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
     )
     status: Mapped[CoordinationReviewStatus] = mapped_column(
         coordination_review_status_type,
@@ -72,12 +75,14 @@ class CoordinationReview(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=CoordinationReviewStatus.PENDENTE,
         index=True,
     )
-    reviewed_by_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT")
-    )
+    reviewed_by_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     review_notes: Mapped[str | None] = mapped_column(Text)
 
     # Relacionamentos
-    decision: Mapped[ReceiptDecision] = relationship("ReceiptDecision", back_populates="coordination_review")
-    reviewed_by: Mapped[User | None] = relationship("User", foreign_keys=[reviewed_by_id], lazy="selectin")
+    decision: Mapped[ReceiptDecision] = relationship(
+        "ReceiptDecision", back_populates="coordination_review"
+    )
+    reviewed_by: Mapped[User | None] = relationship(
+        "User", foreign_keys=[reviewed_by_id], lazy="selectin"
+    )

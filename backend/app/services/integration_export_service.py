@@ -175,7 +175,9 @@ async def export_reports_cursor(
                 id=rep.id,
                 report_number=rep.report_number,
                 sample_id=rep.device_sample_id,
-                sample_accession_number=rep.device_sample.accession_number if rep.device_sample else "N/A",
+                sample_accession_number=rep.device_sample.accession_number
+                if rep.device_sample
+                else "N/A",
                 title=rep.title,
                 conclusion=rep.conclusion.value,
                 sha256_hash=rep.sha256_hash,
@@ -208,9 +210,7 @@ async def export_samples_cursor(
     limit: int = 50,
 ) -> CursorPage[ExportSampleItem]:
     """Exporta amostras operacionais com paginação por cursor."""
-    query = select(DeviceSample).order_by(
-        DeviceSample.created_at.asc(), DeviceSample.id.asc()
-    )
+    query = select(DeviceSample).order_by(DeviceSample.created_at.asc(), DeviceSample.id.asc())
 
     if updated_since:
         query = query.where(DeviceSample.updated_at >= updated_since)
@@ -278,7 +278,9 @@ async def get_qc_metrics_export(db: AsyncSession) -> ExportQcMetricItem:
     }
 
     outcome_counts = await db.execute(
-        select(LabTest.outcome, func.count(LabTest.id)).where(LabTest.outcome.isnot(None)).group_by(LabTest.outcome)
+        select(LabTest.outcome, func.count(LabTest.id))
+        .where(LabTest.outcome.isnot(None))
+        .group_by(LabTest.outcome)
     )
     tests_by_outcome = {
         (k.value if k is not None else "UNKNOWN"): v for k, v in outcome_counts.all()
@@ -286,11 +288,14 @@ async def get_qc_metrics_export(db: AsyncSession) -> ExportQcMetricItem:
 
     total_official_reports = await db.scalar(select(func.count(OfficialReport.id))) or 0
     total_oos = await db.scalar(select(func.count(OOSInvestigation.id))) or 0
-    open_oos = await db.scalar(
-        select(func.count(OOSInvestigation.id)).where(
-            OOSInvestigation.status != OOSInvestigationStatus.CLOSED
+    open_oos = (
+        await db.scalar(
+            select(func.count(OOSInvestigation.id)).where(
+                OOSInvestigation.status != OOSInvestigationStatus.CLOSED
+            )
         )
-    ) or 0
+        or 0
+    )
 
     return ExportQcMetricItem(
         total_tests=total_tests,

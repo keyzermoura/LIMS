@@ -153,11 +153,7 @@ async def list_samples(
         )
 
     total = await db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    stmt = (
-        stmt.order_by(DeviceSample.received_at.desc())
-        .offset((page - 1) * size)
-        .limit(size)
-    )
+    stmt = stmt.order_by(DeviceSample.received_at.desc()).offset((page - 1) * size).limit(size)
     result = await db.execute(stmt)
     return list(result.scalars().all()), int(total)
 
@@ -189,9 +185,7 @@ async def update_status(
     if payload.status == SampleStatus.APROVADO:
         rows = (
             await db.execute(
-                select(LabTest.status, LabTest.outcome).where(
-                    LabTest.device_sample_id == sample.id
-                )
+                select(LabTest.status, LabTest.outcome).where(LabTest.device_sample_id == sample.id)
             )
         ).all()
         if not rows or not all(
@@ -282,17 +276,13 @@ async def timeline(db: AsyncSession, sample_id: UUID) -> list[dict[str, Any]]:
                     else "Transferência de custódia"
                 ),
                 "description": event.reason,
-                "actor_name": event.to_custodian.full_name
-                if event.to_custodian
-                else None,
+                "actor_name": event.to_custodian.full_name if event.to_custodian else None,
                 "location": event.location_to,
                 "metadata": {
                     "from_custodian": event.from_custodian.full_name
                     if event.from_custodian
                     else None,
-                    "to_custodian": event.to_custodian.full_name
-                    if event.to_custodian
-                    else None,
+                    "to_custodian": event.to_custodian.full_name if event.to_custodian else None,
                     "seal_number": event.seal_number,
                     "signature_id": str(event.signature_id) if event.signature_id else None,
                 },
@@ -300,11 +290,7 @@ async def timeline(db: AsyncSession, sample_id: UUID) -> list[dict[str, Any]]:
         )
 
     tests = list(
-        (
-            await db.execute(
-                select(LabTest).where(LabTest.device_sample_id == sample_id)
-            )
-        ).scalars()
+        (await db.execute(select(LabTest).where(LabTest.device_sample_id == sample_id))).scalars()
     )
     # A criação do ensaio é atribuída pelo evento de auditoria (fonte
     # autoritativa), pois `tested_by` passa a apontar para quem assinou o laudo.
@@ -349,17 +335,13 @@ async def timeline(db: AsyncSession, sample_id: UUID) -> list[dict[str, Any]]:
                     "metadata": {
                         "test_id": str(test.id),
                         "outcome": test.outcome.value if test.outcome else None,
-                        "signature_id": str(test.signature_id)
-                        if test.signature_id
-                        else None,
+                        "signature_id": str(test.signature_id) if test.signature_id else None,
                     },
                 }
             )
 
     capas = (
-        await db.execute(
-            select(CapaAction).where(CapaAction.device_sample_id == sample_id)
-        )
+        await db.execute(select(CapaAction).where(CapaAction.device_sample_id == sample_id))
     ).scalars()
     for capa in capas:
         events.append(
@@ -429,9 +411,7 @@ async def recompute_status(
 
     rows = (
         await db.execute(
-            select(LabTest.status, LabTest.outcome).where(
-                LabTest.device_sample_id == sample.id
-            )
+            select(LabTest.status, LabTest.outcome).where(LabTest.device_sample_id == sample.id)
         )
     ).all()
 
@@ -441,8 +421,7 @@ async def recompute_status(
     if any(row.outcome == TestOutcome.REPROVADO for row in rows):
         target = SampleStatus.REPROVADO
     elif rows and all(
-        row.status == TestStatus.CONCLUIDO and row.outcome == TestOutcome.APROVADO
-        for row in rows
+        row.status == TestStatus.CONCLUIDO and row.outcome == TestOutcome.APROVADO for row in rows
     ):
         target = SampleStatus.APROVADO
     elif rows:

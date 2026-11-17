@@ -14,7 +14,9 @@ from app.models.official_report import OfficialReport
 from app.schemas.official_report import OfficialReportPublicVerifyOut
 from app.services import report_service
 
-public_reports_router = APIRouter(prefix="/public/reports", tags=["Verificação Pública de Documentos"])
+public_reports_router = APIRouter(
+    prefix="/public/reports", tags=["Verificação Pública de Documentos"]
+)
 
 
 @public_reports_router.get(
@@ -40,13 +42,10 @@ async def download_public_report_pdf(
     db: DbSession,
 ) -> Response:
     """Permite download do arquivo PDF original caso o token ou hash corresponda ao laudo pericial."""
-    stmt = (
-        select(OfficialReport)
-        .where(
-            or_(
-                OfficialReport.auth_token == token_or_hash,
-                OfficialReport.sha256_hash == token_or_hash,
-            )
+    stmt = select(OfficialReport).where(
+        or_(
+            OfficialReport.auth_token == token_or_hash,
+            OfficialReport.sha256_hash == token_or_hash,
         )
     )
     report = await db.scalar(stmt)

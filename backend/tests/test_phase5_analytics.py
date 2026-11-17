@@ -46,13 +46,9 @@ async def test_analytics_requires_authentication(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_operational_analytics_payload(
-    client: AsyncClient, users: dict[str, Any]
-) -> None:
+async def test_operational_analytics_payload(client: AsyncClient, users: dict[str, Any]) -> None:
     """Valida a estrutura completa e integridade do payload de métricas operacionais sem dados fabricados."""
-    adm_token = (
-        await login(client, "admin", users["admin"]["password"])
-    )["access_token"]
+    adm_token = (await login(client, "admin", users["admin"]["password"]))["access_token"]
 
     res = await client.get(
         f"{API}/analytics/operational",
@@ -108,13 +104,9 @@ async def test_operational_analytics_payload(
 
 
 @pytest.mark.asyncio
-async def test_quality_control_chart_payload(
-    client: AsyncClient, users: dict[str, Any]
-) -> None:
+async def test_quality_control_chart_payload(client: AsyncClient, users: dict[str, Any]) -> None:
     """Valida os parâmetros da Carta de Controle de Shewhart sem dados sintéticos simulados."""
-    tec_token = (
-        await login(client, "tecnico", users["tecnico"]["password"])
-    )["access_token"]
+    tec_token = (await login(client, "tecnico", users["tecnico"]["password"]))["access_token"]
 
     res = await client.get(
         f"{API}/analytics/quality-control",

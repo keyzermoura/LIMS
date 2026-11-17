@@ -8,9 +8,10 @@ Documentação:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -47,9 +48,18 @@ triggers no PostgreSQL (`UPDATE`, `DELETE` e `TRUNCATE` bloqueados).
 """
 
 TAGS_METADATA = [
-    {"name": "Autenticação e Assinatura", "description": "JWT, reautenticação e assinatura eletrônica."},
-    {"name": "Amostras e Cadeia de Custódia", "description": "Entrada, QR Code, timeline e transferências."},
-    {"name": "Ensaios e Assinatura de Laudos", "description": "Resultados imutáveis e CAPA automática."},
+    {
+        "name": "Autenticação e Assinatura",
+        "description": "JWT, reautenticação e assinatura eletrônica.",
+    },
+    {
+        "name": "Amostras e Cadeia de Custódia",
+        "description": "Entrada, QR Code, timeline e transferências.",
+    },
+    {
+        "name": "Ensaios e Assinatura de Laudos",
+        "description": "Resultados imutáveis e CAPA automática.",
+    },
     {"name": "CAPA", "description": "Ações corretivas e preventivas."},
     {"name": "Trilha de Auditoria", "description": "Consulta e verificação de integridade."},
     {"name": "Usuários", "description": "Gestão de usuários e custodiantes."},
@@ -61,19 +71,31 @@ async def lifespan(app: FastAPI):
     logger.info(
         "Iniciando %s v%s (%s)", settings.PROJECT_NAME, settings.VERSION, settings.ENVIRONMENT
     )
+    worker_task: asyncio.Task[None] | None = None
     try:
         await init_db()
         if settings.AUTO_CREATE_SCHEMA:
             logger.info("Schema e proteções de imutabilidade aplicados.")
         else:
-            logger.info(
-                "AUTO_CREATE_SCHEMA=false: schema gerenciado por migrações."
-            )
+            logger.info("AUTO_CREATE_SCHEMA=false: schema gerenciado por migrações.")
+
+        if settings.OUTBOX_WORKER_ENABLED:
+            from app.services.outbox_worker import start_outbox_worker
+
+            worker_task = asyncio.create_task(start_outbox_worker())
+            logger.info("Outbox worker assíncrono iniciado com sucesso.")
     except Exception:
         # A API sobe mesmo com banco indisponível; /health reporta o estado.
         logger.exception("Falha ao inicializar o banco de dados.")
-    yield
-    await engine.dispose()
+    try:
+        yield
+    finally:
+        if worker_task:
+            worker_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await worker_task
+            logger.info("Outbox worker assíncrono encerrado.")
+        await engine.dispose()
 
 
 app = FastAPI(
@@ -82,9 +104,9 @@ app = FastAPI(
     description=OPENAPI_DESCRIPTION,
     openapi_tags=TAGS_METADATA,
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    docs_url="/docs" if settings.docs_enabled else None,
+    redoc_url="/redoc" if settings.docs_enabled else None,
+    openapi_url="/openapi.json" if settings.docs_enabled else None,
     contact={"name": "Qualidade / Assuntos Regulatórios"},
     license_info={"name": "Uso interno — dados regulados"},
 )
@@ -94,7 +116,14 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Signature-Token", "X-Request-ID", "Idempotency-Key", "Accept"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Signature-Token",
+        "X-Request-ID",
+        "Idempotency-Key",
+        "Accept",
+    ],
     expose_headers=[
         "X-Request-ID",
         "X-Process-Time",
@@ -127,9 +156,7 @@ async def security_context(request: Request, call_next):
     # Dados regulados não devem ser cacheados por proxies/navegador.
     response.headers["Cache-Control"] = "no-store"
     if settings.ENVIRONMENT == "prod":
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains"
-        )
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
     logger.info(
         "%s %s -> %s (%.1fms) request_id=%s",

@@ -50,13 +50,17 @@ class LaboratoryEquipment(
         index=True,
     )
     last_calibration_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    calibration_due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    calibration_due_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), index=True
+    )
     certificate_number: Mapped[str | None] = mapped_column(String(120))
     calibration_agency: Mapped[str | None] = mapped_column(String(200))
     notes: Mapped[str | None] = mapped_column(Text)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
-    executions: Mapped[list[TestExecution]] = relationship("TestExecution", back_populates="equipment")
+    executions: Mapped[list[TestExecution]] = relationship(
+        "TestExecution", back_populates="equipment"
+    )
 
     @property
     def is_calibration_valid(self) -> bool:

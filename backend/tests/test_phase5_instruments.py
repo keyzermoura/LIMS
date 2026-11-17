@@ -143,9 +143,7 @@ async def test_balance_ascii_ingestion_and_sha256(
     db_factory: async_sessionmaker[AsyncSession],
 ) -> None:
     """Valida ingestão de dados brutos de Balança Analítica, cálculo de hash SHA-256 e parsing."""
-    tec_token = (
-        await login(client, "tecnico", users["tecnico"]["password"])
-    )["access_token"]
+    tec_token = (await login(client, "tecnico", users["tecnico"]["password"]))["access_token"]
 
     eq = await create_helper_equipment(db_factory, code="BAL-01", name="Balança Mettler Semi-Micro")
 
@@ -194,21 +192,16 @@ async def test_uv_vis_and_hplc_parsers(
     db_factory: async_sessionmaker[AsyncSession],
 ) -> None:
     """Valida ingestão de dados de Espectrofotometria UV-Vis e Cromatografia HPLC."""
-    tec_token = (
-        await login(client, "tecnico", users["tecnico"]["password"])
-    )["access_token"]
+    tec_token = (await login(client, "tecnico", users["tecnico"]["password"]))["access_token"]
 
     eq_uv = await create_helper_equipment(db_factory, code="UV-01", name="Espectrofotômetro UV-Vis")
-    eq_hplc = await create_helper_equipment(db_factory, code="HPLC-01", name="Cromatógrafo Líquido HPLC")
+    eq_hplc = await create_helper_equipment(
+        db_factory, code="HPLC-01", name="Cromatógrafo Líquido HPLC"
+    )
 
     # 1. Teste UV-Vis
     raw_uv = (
-        "Wavelength,Absorbance\n"
-        "240.0,0.125\n"
-        "250.0,0.450\n"
-        "260.0,1.854\n"
-        "270.0,0.920\n"
-        "280.0,0.210\n"
+        "Wavelength,Absorbance\n240.0,0.125\n250.0,0.450\n260.0,1.854\n270.0,0.920\n280.0,0.210\n"
     )
     res_uv = await client.post(
         f"{API}/instrument-data/upload-raw",
@@ -227,11 +220,7 @@ async def test_uv_vis_and_hplc_parsers(
     assert uv_data["points_count"] == 5
 
     # 2. Teste HPLC
-    raw_hplc = (
-        "Peak,RT,Area,Height,%Area\n"
-        "1,1.85,15200,2100,1.2\n"
-        "2,4.50,1250000,95000,98.8\n"
-    )
+    raw_hplc = "Peak,RT,Area,Height,%Area\n1,1.85,15200,2100,1.2\n2,4.50,1250000,95000,98.8\n"
     res_hplc = await client.post(
         f"{API}/instrument-data/upload-raw",
         headers=auth(tec_token),
@@ -256,9 +245,7 @@ async def test_calibration_interlock_blocks_overdue_equipment(
     db_factory: async_sessionmaker[AsyncSession],
 ) -> None:
     """Garante intertravamento metrológico: rejeição de aquisições de equipamentos com calibração vencida."""
-    tec_token = (
-        await login(client, "tecnico", users["tecnico"]["password"])
-    )["access_token"]
+    tec_token = (await login(client, "tecnico", users["tecnico"]["password"]))["access_token"]
 
     # Equipamento com calibração vencida
     overdue_eq = await create_helper_equipment(
@@ -291,9 +278,7 @@ async def test_map_instrument_data_to_test_execution(
     db_factory: async_sessionmaker[AsyncSession],
 ) -> None:
     """Valida o mapeamento direto de leituras importadas para a entidade TestExecution."""
-    tec_token = (
-        await login(client, "tecnico", users["tecnico"]["password"])
-    )["access_token"]
+    tec_token = (await login(client, "tecnico", users["tecnico"]["password"]))["access_token"]
 
     eq = await create_helper_equipment(db_factory, code="BAL-MAP-01")
     _, execution = await create_helper_execution(db_factory, users["admin"]["id"])

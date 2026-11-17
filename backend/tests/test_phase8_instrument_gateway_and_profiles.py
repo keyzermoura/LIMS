@@ -150,7 +150,9 @@ async def test_instrument_upload_with_profile_id_api(
         "raw_content": raw_content,
         "profile_id": "agilent-chemstation-csv",
     }
-    res = await client.post(f"{API}/instrument-data/upload-raw", json=payload, headers=admin_headers)
+    res = await client.post(
+        f"{API}/instrument-data/upload-raw", json=payload, headers=admin_headers
+    )
     assert res.status_code == 201, res.text
     data = res.json()
     assert data["parsed_data"]["profile_id"] == "agilent-chemstation-csv"
@@ -192,7 +194,9 @@ async def test_equipment_auto_match_profile_api(
         "file_format": "CHROMATOGRAPHY_CSV",
         "raw_content": raw_content,
     }
-    res = await client.post(f"{API}/instrument-data/upload-raw", json=payload, headers=admin_headers)
+    res = await client.post(
+        f"{API}/instrument-data/upload-raw", json=payload, headers=admin_headers
+    )
     assert res.status_code == 201, res.text
     data = res.json()
     assert data["parsed_data"]["profile_id"] == "shimadzu-labsolutions-csv"

@@ -170,7 +170,9 @@ def parse_with_profile(profile: InstrumentProfile, raw_text: str) -> dict[str, A
 
     # Verifica se os requeridos foram mapeados
     for req in required_cols:
-        canonical_key = next((k for k, v in profile.columns.items() if v.lower() == req.lower()), None)
+        canonical_key = next(
+            (k for k, v in profile.columns.items() if v.lower() == req.lower()), None
+        )
         if canonical_key and canonical_key not in col_map:
             raise ValidationDomainError(
                 f"Coluna obrigatória '{req}' do perfil '{profile.profile_id}' não pôde ser mapeada."

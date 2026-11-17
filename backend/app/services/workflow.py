@@ -57,9 +57,7 @@ ALLOWED_SOLICITATION_TRANSITIONS: dict[SolicitationStatus, set[SolicitationStatu
 }
 
 
-def ensure_solicitation_transition(
-    current: SolicitationStatus, target: SolicitationStatus
-) -> None:
+def ensure_solicitation_transition(current: SolicitationStatus, target: SolicitationStatus) -> None:
     if current == target:
         raise ValidationDomainError(f"A solicitação já está com status {target.value}.")
     if target not in ALLOWED_SOLICITATION_TRANSITIONS[current]:
@@ -129,5 +127,7 @@ def ensure_custody_object_transition(
     if target not in ALLOWED_CUSTODY_OBJECT_TRANSITIONS[current]:
         raise ValidationDomainError(
             f"Transição não permitida para objeto de custódia: {current.value} → {target.value}.",
-            details={"allowed": sorted(s.value for s in ALLOWED_CUSTODY_OBJECT_TRANSITIONS[current])},
+            details={
+                "allowed": sorted(s.value for s in ALLOWED_CUSTODY_OBJECT_TRANSITIONS[current])
+            },
         )

@@ -5,6 +5,7 @@ Conforme ESPECIFICACAO_CAMADA_INTEGRACAO_LIMS.md §4 e ALCOA+.
 
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
@@ -57,13 +58,17 @@ def test_webhook_hmac_sha256_signature_and_verification() -> None:
     assert outbox_service.verify_webhook_signature("segredo_falso", now_ts, body_str, sig) is False
 
     # 3. Rejeição por payload adulterado
-    tampered = outbox_service.canonical_json({"report_number": "REL-2026-0001", "conclusion": "REPROVADO"})
+    tampered = outbox_service.canonical_json(
+        {"report_number": "REL-2026-0001", "conclusion": "REPROVADO"}
+    )
     assert outbox_service.verify_webhook_signature(secret, now_ts, tampered, sig) is False
 
     # 4. Rejeição anti-replay por carimbo expirado (> 300 s)
     expired_ts = now_ts - 301
     expired_sig = outbox_service.sign_webhook_payload(secret, expired_ts, body_str)
-    assert outbox_service.verify_webhook_signature(secret, expired_ts, body_str, expired_sig) is False
+    assert (
+        outbox_service.verify_webhook_signature(secret, expired_ts, body_str, expired_sig) is False
+    )
 
 
 @pytest.mark.asyncio
@@ -169,7 +174,9 @@ async def test_oos_investigation_triggers_outbox_event(
                 specification_max=7.0,
             ),
             actor=user,
-            context=RequestContext(ip_address="127.0.0.1", user_agent="pytest", request_id="req-oos-test"),
+            context=RequestContext(
+                ip_address="127.0.0.1", user_agent="pytest", request_id="req-oos-test"
+            ),
         )
         inv_id = str(inv.id)
 
@@ -245,7 +252,11 @@ async def test_outbox_dispatcher_delivers_to_subscribers(
         assert ev.dead_lettered_at is None
 
         deliveries = list(
-            (await db.scalars(select(WebhookDelivery).where(WebhookDelivery.event == "report.issued"))).all()
+            (
+                await db.scalars(
+                    select(WebhookDelivery).where(WebhookDelivery.event == "report.issued")
+                )
+            ).all()
         )
         assert len(deliveries) >= 1
         d = deliveries[0]
@@ -378,3 +389,43 @@ async def test_outbox_api_endpoints(
     res_dispatch = await client.post(f"{API}/outbox/dispatch", headers=admin_headers)
     assert res_dispatch.status_code == 200
     assert "dispatched_count" in res_dispatch.json()
+
+
+@pytest.mark.asyncio
+async def test_outbox_background_worker_lifecycle(
+    db_factory: async_sessionmaker[AsyncSession],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Valida que o worker em background processa eventos periodicamente sem intervenção humana."""
+    import asyncio
+
+    from app.core.config import settings
+    from app.models.outbox import IntegrationOutbox
+    from app.services.outbox_worker import start_outbox_worker
+
+    monkeypatch.setattr(settings, "OUTBOX_POLL_INTERVAL_SECONDS", 0.05)
+    monkeypatch.setattr(settings, "OUTBOX_BATCH_SIZE", 5)
+
+    async with db_factory() as db:
+        ev = await outbox_service.enqueue_event(
+            db,
+            event_type="sample.received",
+            aggregate_type="DeviceSample",
+            aggregate_id=str(uuid4()),
+            payload={"action": "AUTO_WORKER_TEST"},
+        )
+        await db.commit()
+        ev_id = ev.id
+
+    worker_task = asyncio.create_task(start_outbox_worker(session_factory=db_factory))
+    try:
+        # Aguarda para o worker rodar ao menos 1 ciclo
+        await asyncio.sleep(0.25)
+        async with db_factory() as db:
+            updated = await db.get(IntegrationOutbox, ev_id)
+            assert updated is not None
+            assert updated.attempts >= 1 or updated.published_at is not None
+    finally:
+        worker_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await worker_task

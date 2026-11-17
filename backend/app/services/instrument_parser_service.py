@@ -46,7 +46,7 @@ def compute_sha256(content: bytes | str) -> str:
 
 def parse_balanca_ascii(raw_text: str) -> dict[str, Any]:
     """Extrai leituras de peso de protocolos ASCII/RS-232 de balanças analíticas.
-    
+
     Suporta saídas Mettler Toledo, Shimadzu, Sartorius e balanças genéricas:
     Exemplos:
     - N  +   12.4568 g
@@ -91,11 +91,15 @@ def parse_balanca_ascii(raw_text: str) -> dict[str, Any]:
         # Identificação de Tara (T / Tare / Tara)
         elif re.search(r"^(T\b|Tare|Tara)", line_clean, re.IGNORECASE):
             tare = val
-            readings.append({"type": "TARE", "value": val, "unit": current_unit, "line": line_clean})
+            readings.append(
+                {"type": "TARE", "value": val, "unit": current_unit, "line": line_clean}
+            )
         # Identificação de Peso Bruto (G / B / Gross / Bruto)
         elif re.search(r"^(G\b|B\b|Gross|Bruto)", line_clean, re.IGNORECASE):
             gross_weight = val
-            readings.append({"type": "GROSS", "value": val, "unit": current_unit, "line": line_clean})
+            readings.append(
+                {"type": "GROSS", "value": val, "unit": current_unit, "line": line_clean}
+            )
         # Leitura estável direta (Ex: S S 12.4568 g ou apenas valor numérico com unidade)
         else:
             if re.search(r"\bD\b", line_clean):  # Dynamic / Instável
@@ -103,14 +107,18 @@ def parse_balanca_ascii(raw_text: str) -> dict[str, Any]:
             if net_weight is None:
                 net_weight = val
                 unit = current_unit
-            readings.append({"type": "SAMPLE", "value": val, "unit": current_unit, "line": line_clean})
+            readings.append(
+                {"type": "SAMPLE", "value": val, "unit": current_unit, "line": line_clean}
+            )
 
     if net_weight is None and readings:
         net_weight = readings[0]["value"]
         unit = readings[0]["unit"]
 
     if net_weight is None:
-        raise ValidationDomainError("Não foi possível identificar nenhuma leitura de peso válida no arquivo.")
+        raise ValidationDomainError(
+            "Não foi possível identificar nenhuma leitura de peso válida no arquivo."
+        )
 
     return {
         "instrument_type": "BALANCA_ANALITICA",
@@ -126,7 +134,7 @@ def parse_balanca_ascii(raw_text: str) -> dict[str, Any]:
 
 def parse_uv_vis_csv(raw_text: str) -> dict[str, Any]:
     """Processa dados de varredura ou fotometria de Espectrofotômetro UV-Vis.
-    
+
     Espera formato tabular (CSV, TSV, ponto e vírgula):
     Wavelength, Absorbance
     200.0, 0.052
@@ -165,7 +173,9 @@ def parse_uv_vis_csv(raw_text: str) -> dict[str, Any]:
             continue
 
     if not spectrum:
-        raise ValidationDomainError("Nenhum par (Comprimento de Onda, Absorbância) numérico foi encontrado.")
+        raise ValidationDomainError(
+            "Nenhum par (Comprimento de Onda, Absorbância) numérico foi encontrado."
+        )
 
     return {
         "instrument_type": "ESPECTROFOTOMETRO_UV_VIS",
@@ -180,7 +190,7 @@ def parse_uv_vis_csv(raw_text: str) -> dict[str, Any]:
 
 def parse_chromatography_csv(raw_text: str) -> dict[str, Any]:
     """Processa tabelas de integração de picos cromatográficos (HPLC / GC).
-    
+
     Espera colunas como:
     Peak#, Retention Time, Area, Height, % Area
     1, 2.15, 120500, 15000, 1.2
@@ -204,7 +214,11 @@ def parse_chromatography_csv(raw_text: str) -> dict[str, Any]:
             continue
         try:
             # Trata possíveis formatos: [Peak#, RT, Area, Height, %Area] ou [RT, Area, Height]
-            nums = [float(col.strip().replace(",", ".")) for col in row if re.match(r"^-?[0-9]+(\.[0-9]+)?$", col.strip().replace(",", "."))]
+            nums = [
+                float(col.strip().replace(",", "."))
+                for col in row
+                if re.match(r"^-?[0-9]+(\.[0-9]+)?$", col.strip().replace(",", "."))
+            ]
             if len(nums) < 2:
                 continue
 
@@ -230,7 +244,9 @@ def parse_chromatography_csv(raw_text: str) -> dict[str, Any]:
             continue
 
     if not peaks:
-        raise ValidationDomainError("Nenhum pico cromatográfico válido foi identificado no arquivo.")
+        raise ValidationDomainError(
+            "Nenhum pico cromatográfico válido foi identificado no arquivo."
+        )
 
     purity = (max_area / total_area * 100.0) if total_area > 0 else 0.0
 
@@ -256,9 +272,7 @@ def parse_generic_json(raw_text: str) -> dict[str, Any]:
         raise ValidationDomainError(f"Arquivo JSON inválido: {exc}") from exc
 
 
-def parse_instrument_data(
-    file_format: InstrumentFileFormat, raw_text: str
-) -> dict[str, Any]:
+def parse_instrument_data(file_format: InstrumentFileFormat, raw_text: str) -> dict[str, Any]:
     """Despacha a análise para o parser específico de acordo com o formato."""
     if file_format == InstrumentFileFormat.BALANCA_ASCII:
         return parse_balanca_ascii(raw_text)
@@ -298,9 +312,8 @@ async def upload_instrument_data(
     today = now.date()
     calib_date = equipment.calibration_due_date.date() if equipment.calibration_due_date else None
 
-    if (
-        equipment.calibration_status == EquipmentCalibrationStatus.VENCIDO
-        or (calib_date and calib_date < today)
+    if equipment.calibration_status == EquipmentCalibrationStatus.VENCIDO or (
+        calib_date and calib_date < today
     ):
         raise ConflictError(
             f"Aquisição bloqueada: Equipamento {equipment.code} está com calibração vencida "
@@ -406,9 +419,7 @@ async def list_instrument_imports(
     return list((await db.scalars(stmt)).all())
 
 
-async def get_instrument_import(
-    db: AsyncSession, import_id: UUID
-) -> InstrumentDataImport:
+async def get_instrument_import(db: AsyncSession, import_id: UUID) -> InstrumentDataImport:
     """Busca um registro de importação por UUID."""
     record = await db.get(InstrumentDataImport, import_id)
     if not record:

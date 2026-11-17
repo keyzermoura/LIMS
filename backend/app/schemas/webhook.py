@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class WebhookSubscriptionCreateIn(BaseModel):
@@ -19,7 +19,9 @@ class WebhookSubscriptionCreateIn(BaseModel):
         max_length=255,
         description="Segredo compartilhado para assinatura HMAC SHA-256 (se omitido, será gerado automaticamente)",
     )
-    description: str | None = Field(None, max_length=255, description="Identificação do sistema cliente integrador")
+    description: str | None = Field(
+        None, max_length=255, description="Identificação do sistema cliente integrador"
+    )
     events: list[str] = Field(
         default_factory=lambda: ["*"],
         description="Lista de eventos inscritos (ex: ['report.issued', 'test.completed'] ou ['*'])",
@@ -38,8 +40,7 @@ class WebhookSubscriptionOut(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WebhookDeliveryOut(BaseModel):
@@ -56,8 +57,7 @@ class WebhookDeliveryOut(BaseModel):
     delivered_at: datetime | None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WebhookPingResponse(BaseModel):

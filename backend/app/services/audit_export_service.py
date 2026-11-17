@@ -128,9 +128,9 @@ def _csv_bytes(records: list[dict[str, Any]]) -> bytes:
 
 
 def _json_bytes(records: list[dict[str, Any]]) -> bytes:
-    return (
-        json.dumps(records, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    ).encode("utf-8")
+    return (json.dumps(records, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
 
 
 def _zip_bytes(
@@ -194,9 +194,7 @@ async def export_bundle(
             },
         )
 
-    rows = (
-        await db.execute(stmt.order_by(AuditLog.sequence.asc()))
-    ).scalars().all()
+    rows = (await db.execute(stmt.order_by(AuditLog.sequence.asc()))).scalars().all()
     records = [_record(row) for row in rows]
 
     now = utcnow()
@@ -205,9 +203,7 @@ async def export_bundle(
 
     data_bytes = _jsonl_bytes(records)
     presentation_name = PRESENTATION_NAMES[fmt]
-    presentation_bytes = (
-        _csv_bytes(records) if fmt == "csv" else _json_bytes(records)
-    )
+    presentation_bytes = _csv_bytes(records) if fmt == "csv" else _json_bytes(records)
 
     data_sha256 = sha256_hex(data_bytes)
     data_hmac = hmac_sha256(key, data_sha256)
@@ -233,9 +229,7 @@ async def export_bundle(
         "head_hash": head["hash"] if head else None,
         "head_hmac": head["hmac"] if head else None,
         "chain_anchor": (
-            {"sequence": first["sequence"] - 1, "hash": first["prev_hash"]}
-            if first
-            else None
+            {"sequence": first["sequence"] - 1, "hash": first["prev_hash"]} if first else None
         ),
         "canonicalization": CANONICALIZATION_VERSION,
         "data_file": "events.jsonl",
@@ -264,13 +258,8 @@ async def export_bundle(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     ).encode("utf-8")
 
-    content = _zip_bytes(
-        manifest_bytes, data_bytes, presentation_name, presentation_bytes
-    )
-    filename = (
-        f"trilha-auditoria-{now.strftime('%Y%m%dT%H%M%SZ')}-"
-        f"{str(export_id)[:8]}.zip"
-    )
+    content = _zip_bytes(manifest_bytes, data_bytes, presentation_name, presentation_bytes)
+    filename = f"trilha-auditoria-{now.strftime('%Y%m%dT%H%M%SZ')}-{str(export_id)[:8]}.zip"
 
     return ExportBundle(
         content=content,
@@ -311,12 +300,8 @@ def _new_report() -> dict[str, Any]:
     }
 
 
-def _issue(
-    report: dict[str, Any], sequence: int, kind: str, detail: str
-) -> None:
-    report["issues"].append(
-        {"sequence": sequence, "type": kind, "detail": detail}
-    )
+def _issue(report: dict[str, Any], sequence: int, kind: str, detail: str) -> None:
+    report["issues"].append({"sequence": sequence, "type": kind, "detail": detail})
 
 
 async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
@@ -395,14 +380,10 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
             return report
 
         report["export_id"] = (
-            manifest.get("export_id")
-            if isinstance(manifest.get("export_id"), str)
-            else None
+            manifest.get("export_id") if isinstance(manifest.get("export_id"), str) else None
         )
         report["generated_at"] = (
-            manifest.get("generated_at")
-            if isinstance(manifest.get("generated_at"), str)
-            else None
+            manifest.get("generated_at") if isinstance(manifest.get("generated_at"), str) else None
         )
         report["canonicalization"] = (
             manifest.get("canonicalization")
@@ -412,8 +393,7 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
         generated_by = manifest.get("generated_by")
         if isinstance(generated_by, dict):
             report["generated_by"] = (
-                f"{generated_by.get('username', '—')} "
-                f"({generated_by.get('role', '—')})"
+                f"{generated_by.get('username', '—')} ({generated_by.get('role', '—')})"
             )
 
         if manifest.get("format") != EXPORT_FORMAT:
@@ -428,15 +408,13 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
         provided_hash = manifest.get("manifest_hash")
         provided_mac = manifest.get("hmac")
         core = {
-            key: value
-            for key, value in manifest.items()
-            if key not in {"manifest_hash", "hmac"}
+            key: value for key, value in manifest.items() if key not in {"manifest_hash", "hmac"}
         }
         expected_hash = sha256_hex(canonical_json(core))
         report["manifest_hash"] = provided_hash if isinstance(provided_hash, str) else None
-        report["manifest_hash_ok"] = isinstance(
-            provided_hash, str
-        ) and constant_time_equals(expected_hash, provided_hash)
+        report["manifest_hash_ok"] = isinstance(provided_hash, str) and constant_time_equals(
+            expected_hash, provided_hash
+        )
         if not report["manifest_hash_ok"]:
             _issue(
                 report,
@@ -449,9 +427,7 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
         report["manifest_hmac_ok"] = (
             isinstance(provided_mac, str)
             and isinstance(provided_hash, str)
-            and constant_time_equals(
-                hmac_sha256(key, provided_hash), provided_mac
-            )
+            and constant_time_equals(hmac_sha256(key, provided_hash), provided_mac)
         )
         if not report["manifest_hmac_ok"]:
             _issue(
@@ -476,12 +452,10 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
         data_sha256 = sha256_hex(data_bytes)
         declared_data_hash = manifest.get("data_sha256")
         declared_data_mac = manifest.get("data_hmac")
-        report["data_hash_ok"] = isinstance(
-            declared_data_hash, str
-        ) and constant_time_equals(data_sha256, declared_data_hash)
-        report["data_hmac_ok"] = isinstance(
-            declared_data_mac, str
-        ) and constant_time_equals(
+        report["data_hash_ok"] = isinstance(declared_data_hash, str) and constant_time_equals(
+            data_sha256, declared_data_hash
+        )
+        report["data_hmac_ok"] = isinstance(declared_data_mac, str) and constant_time_equals(
             hmac_sha256(key, data_sha256), declared_data_mac
         )
         if not report["data_hash_ok"]:
@@ -505,9 +479,7 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
         if isinstance(files, list) and files:
             files_ok = True
             for entry in files:
-                if not isinstance(entry, dict) or not isinstance(
-                    entry.get("name"), str
-                ):
+                if not isinstance(entry, dict) or not isinstance(entry.get("name"), str):
                     files_ok = False
                     _issue(
                         report,
@@ -527,9 +499,7 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
                     )
                     continue
                 blob = archive.read(name)
-                if not constant_time_equals(
-                    sha256_hex(blob), str(entry.get("sha256", ""))
-                ):
+                if not constant_time_equals(sha256_hex(blob), str(entry.get("sha256", ""))):
                     files_ok = False
                     _issue(
                         report,
@@ -620,9 +590,7 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
                 )
                 continue
 
-            recomputed = sha256_hex(
-                f"{sequence}:{prev_hash}:{canonical_json(payload)}"
-            )
+            recomputed = sha256_hex(f"{sequence}:{prev_hash}:{canonical_json(payload)}")
             if not constant_time_equals(recomputed, digest):
                 chain_ok = False
                 _issue(
@@ -698,11 +666,7 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
                 "SEQUENCE_RANGE_MISMATCH",
                 "A primeira sequência difere da declarada no manifesto.",
             )
-        if (
-            first
-            and not filtered_export
-            and report["first_sequence"] != 1
-        ):
+        if first and not filtered_export and report["first_sequence"] != 1:
             _issue(
                 report,
                 0,
@@ -750,9 +714,7 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
                     expected_anchor_hash = audit_service.GENESIS_HASH
                 else:
                     anchor_hash = await db.scalar(
-                        select(AuditLog.hash).where(
-                            AuditLog.sequence == anchor_sequence
-                        )
+                        select(AuditLog.hash).where(AuditLog.sequence == anchor_sequence)
                     )
                     if anchor_hash is None:
                         matches_database = False
@@ -793,10 +755,7 @@ async def verify_bundle(db: AsyncSession, content: bytes) -> dict[str, Any]:
                         "HEAD_NOT_IN_DB",
                         "A cabeça exportada não existe no banco atual.",
                     )
-                elif (
-                    head_row.hash != head.get("hash")
-                    or head_row.hmac != head.get("hmac")
-                ):
+                elif head_row.hash != head.get("hash") or head_row.hmac != head.get("hmac"):
                     matches_database = False
                     _issue(
                         report,

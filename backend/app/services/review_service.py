@@ -76,11 +76,7 @@ async def record_test_review(
     context: RequestContext | None = None,
 ) -> tuple[TestReview, int]:
     """Julgamento técnico do ensaio com segregação de funções e assinatura eletrônica (4-eyes principle)."""
-    stmt = (
-        select(LabTest)
-        .options(selectinload(LabTest.tested_by))
-        .where(LabTest.id == test_id)
-    )
+    stmt = select(LabTest).options(selectinload(LabTest.tested_by)).where(LabTest.id == test_id)
     test = await db.scalar(stmt)
     if test is None:
         raise NotFoundError("Ensaio laboratorial não encontrado.")
@@ -92,9 +88,8 @@ async def record_test_review(
             "Segregação de funções violada: o revisor técnico por pares não pode ser o mesmo analista que executou o ensaio."
         )
 
-    if (
-        payload.status == CoordinationReviewStatus.DEVOLVIDO
-        and (not payload.justification or len(payload.justification.strip()) < 10)
+    if payload.status == CoordinationReviewStatus.DEVOLVIDO and (
+        not payload.justification or len(payload.justification.strip()) < 10
     ):
         raise ValidationDomainError(
             "Justificativa obrigatória (mínimo 10 caracteres) ao devolver ensaio com ressalva."
@@ -117,9 +112,7 @@ async def record_test_review(
 
     now = utcnow()
     count_stmt = (
-        select(func.count())
-        .select_from(TestReview)
-        .where(TestReview.lab_test_id == test.id)
+        select(func.count()).select_from(TestReview).where(TestReview.lab_test_id == test.id)
     )
     total_reviews = (await db.scalar(count_stmt)) or 0
     review_number = total_reviews + 1

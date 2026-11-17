@@ -29,16 +29,12 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class InstrumentDataImport(
-    UUIDPrimaryKeyMixin, TimestampMixin, JsonMetadataMixin, Base
-):
+class InstrumentDataImport(UUIDPrimaryKeyMixin, TimestampMixin, JsonMetadataMixin, Base):
     """Registro imutável de dados brutos importados de instrumentos laboratoriais."""
 
     __tablename__ = "instrument_data_imports"
     __table_args__ = (
-        UniqueConstraint(
-            "equipment_id", "raw_file_hash_sha256", name="uq_instrument_import_dedup"
-        ),
+        UniqueConstraint("equipment_id", "raw_file_hash_sha256", name="uq_instrument_import_dedup"),
     )
 
     equipment_id: Mapped[UUID] = mapped_column(
@@ -91,9 +87,7 @@ class InstrumentDataImport(
     test_execution: Mapped[TestExecution | None] = relationship(
         "TestExecution", foreign_keys=[test_execution_id], lazy="selectin"
     )
-    imported_by: Mapped[User] = relationship(
-        "User", foreign_keys=[imported_by_id], lazy="selectin"
-    )
+    imported_by: Mapped[User] = relationship("User", foreign_keys=[imported_by_id], lazy="selectin")
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<InstrumentDataImport {self.id} {self.file_name} [{self.file_format.value}]>"

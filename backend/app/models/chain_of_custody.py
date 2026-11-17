@@ -50,12 +50,8 @@ class ChainOfCustody(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     notes: Mapped[str | None] = mapped_column(Text)
 
-    to_custodian = relationship(
-        "User", foreign_keys=[to_custodian_id], lazy="selectin"
-    )
-    from_custodian = relationship(
-        "User", foreign_keys=[from_custodian_id], lazy="selectin"
-    )
+    to_custodian = relationship("User", foreign_keys=[to_custodian_id], lazy="selectin")
+    from_custodian = relationship("User", foreign_keys=[from_custodian_id], lazy="selectin")
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<ChainOfCustody sample={self.device_sample_id} at={self.transferred_at}>"

@@ -164,21 +164,33 @@ async def test_service_client_secret_rotation(
     # 1. Novo segredo deve autenticar com sucesso
     res_new_auth = await client.post(
         f"{API}/auth/service-token",
-        json={"grant_type": "client_credentials", "client_id": client_id, "client_secret": new_secret},
+        json={
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": new_secret,
+        },
     )
     assert res_new_auth.status_code == 200, res_new_auth.text
 
     # 2. Segredo antigo continua válido durante a janela de transição (sobreposição)
     res_old_auth = await client.post(
         f"{API}/auth/service-token",
-        json={"grant_type": "client_credentials", "client_id": client_id, "client_secret": old_secret},
+        json={
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": old_secret,
+        },
     )
     assert res_old_auth.status_code == 200, res_old_auth.text
 
     # 3. Segredo inválido é sumariamente rejeitado
     res_bad = await client.post(
         f"{API}/auth/service-token",
-        json={"grant_type": "client_credentials", "client_id": client_id, "client_secret": "segredo-falso-1234567890"},
+        json={
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": "segredo-falso-1234567890",
+        },
     )
     assert res_bad.status_code == 401
 
@@ -205,7 +217,11 @@ async def test_service_client_revocation_blocks_access(
 
     res_tok = await client.post(
         f"{API}/auth/service-token",
-        json={"grant_type": "client_credentials", "client_id": client_id, "client_secret": c_data["client_secret"]},
+        json={
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": c_data["client_secret"],
+        },
     )
     assert res_tok.status_code == 200
     token = res_tok.json()["access_token"]
@@ -223,7 +239,11 @@ async def test_service_client_revocation_blocks_access(
     # 1. Nova solicitação de token é rejeitada
     res_tok_after = await client.post(
         f"{API}/auth/service-token",
-        json={"grant_type": "client_credentials", "client_id": client_id, "client_secret": c_data["client_secret"]},
+        json={
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": c_data["client_secret"],
+        },
     )
     assert res_tok_after.status_code == 401
 
@@ -269,20 +289,26 @@ async def test_idempotent_instrument_upload_and_replay(
 
     # Primeiro envio com Idempotency-Key
     headers_1 = {**admin_headers, "Idempotency-Key": idemp_key}
-    res_1 = await client.post(f"{API}/instrument-data/upload-raw", json=raw_payload, headers=headers_1)
+    res_1 = await client.post(
+        f"{API}/instrument-data/upload-raw", json=raw_payload, headers=headers_1
+    )
     assert res_1.status_code == 201, res_1.text
     body_1 = res_1.json()
     record_id = body_1["id"]
 
     # Segundo envio com a MESMA Idempotency-Key e MESMO payload
-    res_2 = await client.post(f"{API}/instrument-data/upload-raw", json=raw_payload, headers=headers_1)
+    res_2 = await client.post(
+        f"{API}/instrument-data/upload-raw", json=raw_payload, headers=headers_1
+    )
     assert res_2.status_code == 201, res_2.text
     body_2 = res_2.json()
     assert body_2["id"] == record_id, "O replay deve retornar o mesmo registro sem duplicar"
 
     # Terceiro envio com a MESMA Idempotency-Key porém payload DIFERENTE (deve conflitar 409)
     altered_payload = {**raw_payload, "raw_content": "Net: 99.9999 g\n"}
-    res_3 = await client.post(f"{API}/instrument-data/upload-raw", json=altered_payload, headers=headers_1)
+    res_3 = await client.post(
+        f"{API}/instrument-data/upload-raw", json=altered_payload, headers=headers_1
+    )
     assert res_3.status_code == 409, res_3.text
     assert "payload divergente" in res_3.text
 
@@ -321,10 +347,14 @@ async def test_instrument_deduplication_via_unique_sha256(
     }
 
     # Primeiro envio sem chave de idempotência
-    res_1 = await client.post(f"{API}/instrument-data/upload-raw", json=raw_payload, headers=admin_headers)
+    res_1 = await client.post(
+        f"{API}/instrument-data/upload-raw", json=raw_payload, headers=admin_headers
+    )
     assert res_1.status_code == 201, res_1.text
 
     # Segundo envio idêntico sem chave de idempotência -> Conflito 409 por deduplicação metrológica
-    res_2 = await client.post(f"{API}/instrument-data/upload-raw", json=raw_payload, headers=admin_headers)
+    res_2 = await client.post(
+        f"{API}/instrument-data/upload-raw", json=raw_payload, headers=admin_headers
+    )
     assert res_2.status_code == 409, res_2.text
     assert "Arquivo já importado anteriormente" in res_2.text

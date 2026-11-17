@@ -84,7 +84,9 @@ export interface TokenPair {
   refresh_token: string;
   token_type: string;
   expires_in: number;
-  user: Me;
+  user?: Me;
+  mfa_required?: boolean;
+  mfa_token?: string;
 }
 
 export interface Page<T> {

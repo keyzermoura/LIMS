@@ -75,8 +75,6 @@ async def transfer_custody(
     response_model=list[CustodyOut],
     summary="Histórico completo de custódia",
 )
-async def custody_history(
-    sample_id: UUID, db: DbSession, user: CurrentUser
-) -> list[CustodyOut]:
+async def custody_history(sample_id: UUID, db: DbSession, user: CurrentUser) -> list[CustodyOut]:
     events = await custody_service.history(db, sample_id)
     return [CustodyOut.model_validate(event) for event in events]

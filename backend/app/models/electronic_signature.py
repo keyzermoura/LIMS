@@ -42,9 +42,7 @@ class ElectronicSignature(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
     )
     reason: Mapped[str] = mapped_column(Text, nullable=False)
-    method: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="PASSWORD"
-    )
+    method: Mapped[str] = mapped_column(String(32), nullable=False, default="PASSWORD")
 
     # Hash do "manifesto" (quem/quando/o quê/por quê) e do registro assinado.
     manifest: Mapped[dict[str, Any]] = mapped_column(nullable=False)
@@ -60,9 +58,7 @@ class ElectronicSignature(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     signed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
     )
-    expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     consumed_ip: Mapped[str | None] = mapped_column(String(64))
     consumed_user_agent: Mapped[str | None] = mapped_column(String(512))

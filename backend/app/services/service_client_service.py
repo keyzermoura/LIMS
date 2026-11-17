@@ -50,17 +50,13 @@ async def create_service_client(
 
     # Garante que o usuário de serviço existe ou cria um dedicado
     username = (
-        payload.service_username.strip().lower()
-        if payload.service_username
-        else f"usr_{client_id}"
+        payload.service_username.strip().lower() if payload.service_username else f"usr_{client_id}"
     )
 
     existing_user = await db.scalar(select(User).where(User.username == username))
     if existing_user:
         if existing_user.role != UserRole.SERVICE:
-            raise ConflictError(
-                f"O usuário {username} já existe e não é uma conta de serviço."
-            )
+            raise ConflictError(f"O usuário {username} já existe e não é uma conta de serviço.")
         service_user = existing_user
     else:
         service_user = User(
@@ -132,9 +128,7 @@ async def rotate_service_client_secret(
     if actor.role != UserRole.ADMIN:
         raise ForbiddenError("Apenas administradores podem rotacionar credenciais de serviço.")
 
-    client = await db.scalar(
-        select(ServiceClient).where(ServiceClient.client_id == client_id)
-    )
+    client = await db.scalar(select(ServiceClient).where(ServiceClient.client_id == client_id))
     if not client:
         raise NotFoundError("Cliente de serviço não encontrado.")
 
@@ -176,9 +170,7 @@ async def deactivate_service_client(
     if actor.role != UserRole.ADMIN:
         raise ForbiddenError("Apenas administradores podem desativar contas de serviço.")
 
-    client = await db.scalar(
-        select(ServiceClient).where(ServiceClient.client_id == client_id)
-    )
+    client = await db.scalar(select(ServiceClient).where(ServiceClient.client_id == client_id))
     if not client:
         raise NotFoundError("Cliente de serviço não encontrado.")
 
@@ -207,9 +199,7 @@ async def list_service_clients(
     if actor.role != UserRole.ADMIN:
         raise ForbiddenError("Apenas administradores podem visualizar contas de serviço.")
 
-    result = await db.scalars(
-        select(ServiceClient).order_by(ServiceClient.created_at.desc())
-    )
+    result = await db.scalars(select(ServiceClient).order_by(ServiceClient.created_at.desc()))
     return list(result.all())
 
 
@@ -222,9 +212,7 @@ async def issue_service_token(
     context: RequestContext,
 ) -> tuple[str, list[str], int]:
     """Autentica o cliente M2M via OAuth2 Client Credentials e emite JWT de curta duração."""
-    client = await db.scalar(
-        select(ServiceClient).where(ServiceClient.client_id == client_id)
-    )
+    client = await db.scalar(select(ServiceClient).where(ServiceClient.client_id == client_id))
     if not client or not client.is_active:
         logger.warning("Falha de autenticação M2M: cliente %s inexistente ou inativo.", client_id)
         raise AuthError("Credenciais de serviço inválidas.")
@@ -249,7 +237,9 @@ async def issue_service_token(
     # Valida usuário de serviço associado
     service_user = await db.get(User, client.service_user_id)
     if not service_user or not service_user.is_active or service_user.role != UserRole.SERVICE:
-        logger.error("Falha de autenticação M2M: usuário de serviço para cliente %s indisponível.", client_id)
+        logger.error(
+            "Falha de autenticação M2M: usuário de serviço para cliente %s indisponível.", client_id
+        )
         raise AuthError("Conta de serviço associada inválida.")
 
     # Interseção de escopos

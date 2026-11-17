@@ -130,11 +130,7 @@ async def list_solicitations(
         count_stmt = count_stmt.where(condition)
 
     total = int(await db.scalar(count_stmt) or 0)
-    stmt = (
-        stmt.order_by(Solicitation.created_at.desc())
-        .offset((page - 1) * size)
-        .limit(size)
-    )
+    stmt = stmt.order_by(Solicitation.created_at.desc()).offset((page - 1) * size).limit(size)
 
     result = await db.scalars(stmt)
     return list(result.all()), total
@@ -157,7 +153,9 @@ async def update_solicitation(
         )
 
     if solicitation.version != payload.version:
-        raise ConflictError("A solicitação foi modificada por outro processo. Atualize e tente novamente.")
+        raise ConflictError(
+            "A solicitação foi modificada por outro processo. Atualize e tente novamente."
+        )
 
     old_snapshot = snapshot(solicitation)
 
@@ -230,10 +228,14 @@ async def submit_solicitation(
     ensure_solicitation_transition(solicitation.status, SolicitationStatus.SUBMETIDA)
 
     if len(solicitation.items) == 0:
-        raise ValidationDomainError("Não é possível submeter uma solicitação sem itens cadastrados.")
+        raise ValidationDomainError(
+            "Não é possível submeter uma solicitação sem itens cadastrados."
+        )
 
     if solicitation.version != payload.version:
-        raise ConflictError("A solicitação foi modificada por outro processo. Atualize e tente novamente.")
+        raise ConflictError(
+            "A solicitação foi modificada por outro processo. Atualize e tente novamente."
+        )
 
     old_snapshot = snapshot(solicitation)
     solicitation.status = SolicitationStatus.SUBMETIDA
@@ -273,7 +275,9 @@ async def cancel_solicitation(
     ensure_solicitation_transition(solicitation.status, SolicitationStatus.CANCELADA)
 
     if solicitation.version != version:
-        raise ConflictError("A solicitação foi modificada por outro processo. Atualize e tente novamente.")
+        raise ConflictError(
+            "A solicitação foi modificada por outro processo. Atualize e tente novamente."
+        )
 
     old_snapshot = snapshot(solicitation)
     solicitation.status = SolicitationStatus.CANCELADA

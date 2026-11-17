@@ -26,9 +26,7 @@ async def _login(client: AsyncClient, username: str, password: str) -> str:
     return str(res.json()["access_token"])
 
 
-async def test_full_phase1_flow(
-    client: AsyncClient, users: dict[str, dict[str, Any]]
-) -> None:
+async def test_full_phase1_flow(client: AsyncClient, users: dict[str, dict[str, Any]]) -> None:
     fiscal_token = await _login(client, "fiscal", users["fiscal"]["password"])
     tecnico_token = await _login(client, "tecnico", users["tecnico"]["password"])
     custodiante_token = await _login(client, "custodiante", users["custodiante"]["password"])
@@ -72,9 +70,7 @@ async def test_full_phase1_flow(
         ],
     }
 
-    create_res = await client.post(
-        "/api/v1/solicitations", json=sol_payload, headers=fiscal_auth
-    )
+    create_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     assert create_res.status_code == 201, create_res.text
     sol_data = create_res.json()
     sol_id = sol_data["id"]
@@ -172,9 +168,7 @@ async def test_full_phase1_flow(
     assert dup_rec.status_code == 409
 
     # Consulta recebimento pela solicitação
-    rec_by_sol = await client.get(
-        f"/api/v1/solicitations/{sol_id}/receipt", headers=tecnico_auth
-    )
+    rec_by_sol = await client.get(f"/api/v1/solicitations/{sol_id}/receipt", headers=tecnico_auth)
     assert rec_by_sol.status_code == 200
     assert rec_by_sol.json()["id"] == receipt_id
 

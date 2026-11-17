@@ -35,7 +35,9 @@ class TestExecutionRecordData(BaseModel):
 
 
 class TestExecutionInterrupt(BaseModel):
-    reason: str = Field(min_length=5, max_length=1000, description="Motivo técnico da interrupção do ensaio")
+    reason: str = Field(
+        min_length=5, max_length=1000, description="Motivo técnico da interrupção do ensaio"
+    )
 
 
 class TestExecutionComplete(BaseModel):
@@ -45,7 +47,9 @@ class TestExecutionComplete(BaseModel):
     )
     result_value: Decimal | None = None
     result_text: str | None = Field(default=None, max_length=500)
-    outcome: TestOutcome = Field(description="Resultado obtido nesta execução (APROVADO, REPROVADO, INCONCLUSIVO)")
+    outcome: TestOutcome = Field(
+        description="Resultado obtido nesta execução (APROVADO, REPROVADO, INCONCLUSIVO)"
+    )
     temperature_celsius: Decimal | None = None
     humidity_percent: Decimal | None = None
     pressure_hpa: Decimal | None = None

@@ -29,7 +29,9 @@ def compute_payload_hash(payload: Any) -> str:
         raw = payload.encode("utf-8")
     else:
         # JSON canônico com chaves ordenadas
-        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode(
+            "utf-8"
+        )
     return hashlib.sha256(raw).hexdigest()
 
 

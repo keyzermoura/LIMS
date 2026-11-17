@@ -118,8 +118,7 @@ async def test_sim01_recebimento_integral_com_aceite(
     criteria = tmpl_res.json()[0]["criteria"]
 
     checklist_answers = [
-        {"criterion_id": c["id"], "result": ChecklistResult.CONFORME.value}
-        for c in criteria
+        {"criterion_id": c["id"], "result": ChecklistResult.CONFORME.value} for c in criteria
     ]
     eval_res = await client.post(
         f"/api/v1/receipts/{receipt['id']}/items/{item1['id']}/checklist",
@@ -183,7 +182,9 @@ async def test_sim02_recebimento_parcial_com_item_nao_apresentado(
     }
     sol_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     sol_id = sol_res.json()["id"]
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
 
     rec_res = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",
@@ -235,7 +236,9 @@ async def test_sim03_divergencia_quantidade_declarada_vs_apresentada(
     }
     sol_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     sol_id = sol_res.json()["id"]
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
 
     rec_res = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",
@@ -281,13 +284,13 @@ async def test_sim04_multiplos_objetos_decisoes_independentes(
 
     sol_payload = {
         "requester_name": "Coordenação de Produtos",
-        "items": [
-            {"product_name": "Bomba de Infusão Contínua", "declared_quantity": 2.0}
-        ],
+        "items": [{"product_name": "Bomba de Infusão Contínua", "declared_quantity": 2.0}],
     }
     sol_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     sol_id = sol_res.json()["id"]
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
 
     rec_res = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",
@@ -341,7 +344,9 @@ async def test_sim05_pendencia_saneavel_com_ressalva_e_coordenacao(
     }
     sol_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     sol_id = sol_res.json()["id"]
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
 
     rec_res = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",
@@ -355,11 +360,13 @@ async def test_sim05_pendencia_saneavel_com_ressalva_e_coordenacao(
     answers = []
     for c in tmpl["criteria"]:
         if c["criterion_class"] == CriterionClass.SANEAVEL.value:
-            answers.append({
-                "criterion_id": c["id"],
-                "result": ChecklistResult.NAO_CONFORME.value,
-                "justification": "Falta guia rápida de operação em português; manual completo em PDF foi fornecido.",
-            })
+            answers.append(
+                {
+                    "criterion_id": c["id"],
+                    "result": ChecklistResult.NAO_CONFORME.value,
+                    "justification": "Falta guia rápida de operação em português; manual completo em PDF foi fornecido.",
+                }
+            )
         else:
             answers.append({"criterion_id": c["id"], "result": ChecklistResult.CONFORME.value})
 
@@ -416,7 +423,9 @@ async def test_sim06_recusa_com_permanencia_em_custodia(
     }
     sol_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     sol_id = sol_res.json()["id"]
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
 
     rec_res = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",
@@ -463,7 +472,9 @@ async def test_sim07_transferencia_de_custodia_entre_responsaveis(
     }
     sol_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     sol_id = sol_res.json()["id"]
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
 
     rec_res = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",
@@ -495,7 +506,9 @@ async def test_sim07_transferencia_de_custodia_entre_responsaveis(
     assert updated_obj["status"] == CustodyObjectStatus.SOB_GUARDA.value
 
     # Trilha append-only reflete o evento
-    hist_res = await client.get(f"/api/v1/custody/objects/{obj['id']}/history", headers=tecnico_auth)
+    hist_res = await client.get(
+        f"/api/v1/custody/objects/{obj['id']}/history", headers=tecnico_auth
+    )
     assert hist_res.status_code == 200
     events = hist_res.json()
     assert len(events) >= 2  # INGRESSO + TRANSFERENCIA
@@ -519,7 +532,9 @@ async def test_sim08_mudanca_de_localizacao_sem_troca_de_custodiante(
     }
     sol_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     sol_id = sol_res.json()["id"]
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
 
     rec_res = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",
@@ -609,7 +624,9 @@ async def test_sim10_concorrencia_otimista_e_idempotencia(
     assert conflict_res.status_code == 409
 
     # 2. Duplicação de recebimento para a mesma solicitação deve retornar 409 Conflict
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
     rec1 = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",
         json={"arrival_location": "Doca"},
@@ -662,7 +679,9 @@ async def test_sim12_segregacao_estrita_funcoes_regra_d10(
     }
     sol_res = await client.post("/api/v1/solicitations", json=sol_payload, headers=fiscal_auth)
     sol_id = sol_res.json()["id"]
-    await client.post(f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth)
+    await client.post(
+        f"/api/v1/solicitations/{sol_id}/submit", json={"version": 1}, headers=fiscal_auth
+    )
 
     rec_res = await client.post(
         f"/api/v1/solicitations/{sol_id}/receipt",

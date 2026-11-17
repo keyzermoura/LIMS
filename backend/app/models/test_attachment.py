@@ -50,9 +50,7 @@ class TestAttachment(UUIDPrimaryKeyMixin, Base):
     # Relacionamentos
     lab_test: Mapped[LabTest] = relationship("LabTest", back_populates="attachments")
     execution: Mapped[TestExecution | None] = relationship("TestExecution", lazy="selectin")
-    uploaded_by: Mapped[User] = relationship(
-        "User", foreign_keys=[uploaded_by_id], lazy="selectin"
-    )
+    uploaded_by: Mapped[User] = relationship("User", foreign_keys=[uploaded_by_id], lazy="selectin")
 
     def __repr__(self) -> str:
         return f"<TestAttachment {self.filename} ({self.file_size} bytes, sha256={self.sha256_hash[:8]})>"

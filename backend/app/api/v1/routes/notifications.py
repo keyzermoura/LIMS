@@ -31,7 +31,9 @@ async def list_notifications(
     db: DbSession,
     current_user: CurrentUser,
     unread_only: Annotated[bool, Query(description="Filtrar apenas não lidas")] = False,
-    severity: Annotated[NotificationSeverity | None, Query(description="Filtrar por severidade")] = None,
+    severity: Annotated[
+        NotificationSeverity | None, Query(description="Filtrar por severidade")
+    ] = None,
     limit: Annotated[int, Query(ge=1, le=100, description="Limite de registros")] = 50,
 ) -> list[NotificationOut]:
     """Lista notificações visíveis para o usuário corrente e seu respectivo perfil."""

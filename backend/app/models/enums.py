@@ -11,11 +11,11 @@ from enum import Enum
 
 class UserRole(str, Enum):
     ADMIN = "ADMIN"
-    FISCAL = "FISCAL"              # fiscal sanitário / inspetor
-    TECNICO = "TECNICO"            # técnico de laboratório
-    CUSTODIANTE = "CUSTODIANTE"    # responsável pela guarda física
-    AUDITOR = "AUDITOR"            # auditor da qualidade (somente leitura)
-    SERVICE = "SERVICE"            # conta de serviço/máquina (M2M); login interativo bloqueado
+    FISCAL = "FISCAL"  # fiscal sanitário / inspetor
+    TECNICO = "TECNICO"  # técnico de laboratório
+    CUSTODIANTE = "CUSTODIANTE"  # responsável pela guarda física
+    AUDITOR = "AUDITOR"  # auditor da qualidade (somente leitura)
+    SERVICE = "SERVICE"  # conta de serviço/máquina (M2M); login interativo bloqueado
 
 
 class SampleStatus(str, Enum):
@@ -451,7 +451,3 @@ class DisposalMethod(str, Enum):
     DESCARTE_QUIMICO_ESPECIALIZADO = "DESCARTE_QUIMICO_ESPECIALIZADO"
     DEVOLUCAO_ORGAO_REGULADOR = "DEVOLUCAO_ORGAO_REGULADOR"
     RECICLAGEM_CONTROLADA = "RECICLAGEM_CONTROLADA"
-
-
-
-

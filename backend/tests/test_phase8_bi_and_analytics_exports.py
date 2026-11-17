@@ -79,7 +79,9 @@ async def test_export_tests_cursor_pagination(
     tecnico_headers = auth(login_tecnico["access_token"])
 
     async with db_factory() as session:
-        admin_user = (await session.execute(select(User).where(User.username == "admin"))).scalar_one()
+        admin_user = (
+            await session.execute(select(User).where(User.username == "admin"))
+        ).scalar_one()
 
         sample = DeviceSample(
             accession_number=f"ACC-BI-{uuid4().hex[:6]}",
@@ -94,11 +96,11 @@ async def test_export_tests_cursor_pagination(
         for i in range(3):
             test = LabTest(
                 device_sample_id=sample.id,
-                name=f"Ensaio BI HPLC #{i+1}",
+                name=f"Ensaio BI HPLC #{i + 1}",
                 unit="%",
                 status=TestStatus.CONCLUIDO,
                 outcome=TestOutcome.APROVADO,
-                result_value=Decimal(f"99.{i+1}"),
+                result_value=Decimal(f"99.{i + 1}"),
             )
             session.add(test)
         await session.commit()
@@ -142,7 +144,9 @@ async def test_export_reports_and_content_negotiation(
     fiscal_headers["Accept"] = "application/vnd.lims.v1+json"
 
     async with db_factory() as session:
-        admin_user = (await session.execute(select(User).where(User.username == "admin"))).scalar_one()
+        admin_user = (
+            await session.execute(select(User).where(User.username == "admin"))
+        ).scalar_one()
 
         sample = DeviceSample(
             accession_number=f"ACC-REP-{uuid4().hex[:6]}",

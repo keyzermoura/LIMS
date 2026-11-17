@@ -150,7 +150,12 @@ async def cancel_solicitation(
 ) -> SolicitationOut:
     context = RequestContext.from_request(request)
     solicitation, audit_seq = await solicitation_service.cancel_solicitation(
-        db, solicitation_id=solicitation_id, reason=reason, actor=user, version=version, context=context
+        db,
+        solicitation_id=solicitation_id,
+        reason=reason,
+        actor=user,
+        version=version,
+        context=context,
     )
     response.headers["X-Audit-Sequence"] = str(audit_seq)
     out = SolicitationOut.model_validate(solicitation)

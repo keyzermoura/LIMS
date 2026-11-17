@@ -58,9 +58,7 @@ class AnalystQualification(
     granted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow
     )
-    expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), index=True
-    )
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     authorized_by_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
@@ -71,9 +69,7 @@ class AnalystQualification(
     notes: Mapped[str | None] = mapped_column(Text)
 
     # Relacionamentos
-    user: Mapped[User] = relationship(
-        "User", foreign_keys=[user_id], lazy="selectin"
-    )
+    user: Mapped[User] = relationship("User", foreign_keys=[user_id], lazy="selectin")
     method: Mapped[TestMethod] = relationship(
         "TestMethod", foreign_keys=[method_id], lazy="selectin"
     )
@@ -84,7 +80,10 @@ class AnalystQualification(
         "ElectronicSignature", foreign_keys=[signature_id], lazy="selectin"
     )
     trainings: Mapped[list[TrainingRecord]] = relationship(
-        "TrainingRecord", back_populates="qualification", cascade="all, delete-orphan", lazy="selectin"
+        "TrainingRecord",
+        back_populates="qualification",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     @property
@@ -120,9 +119,7 @@ class TrainingRecord(
     notes: Mapped[str | None] = mapped_column(Text)
 
     # Relacionamentos
-    user: Mapped[User] = relationship(
-        "User", foreign_keys=[user_id], lazy="selectin"
-    )
+    user: Mapped[User] = relationship("User", foreign_keys=[user_id], lazy="selectin")
     qualification: Mapped[AnalystQualification | None] = relationship(
         "AnalystQualification", back_populates="trainings", lazy="selectin"
     )

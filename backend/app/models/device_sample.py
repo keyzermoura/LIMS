@@ -71,12 +71,8 @@ class DeviceSample(
     current_location: Mapped[str | None] = mapped_column(String(160))
 
     # Relação many-to-one carregada via JOIN — evita lazy load em async.
-    current_custodian = relationship(
-        "User", foreign_keys=[current_custodian_id], lazy="selectin"
-    )
-    received_by = relationship(
-        "User", foreign_keys=[received_by_id], lazy="selectin"
-    )
+    current_custodian = relationship("User", foreign_keys=[current_custodian_id], lazy="selectin")
+    received_by = relationship("User", foreign_keys=[received_by_id], lazy="selectin")
 
     @property
     def qr_identifier(self) -> str:

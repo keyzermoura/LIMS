@@ -52,7 +52,9 @@ async def list_investigations(
     db: DbSession,
     user: CurrentUser,
     lab_test_id: UUID | None = Query(None, description="Filtrar por ensaio"),
-    status_filter: OOSInvestigationStatus | None = Query(None, alias="status", description="Filtrar por status"),
+    status_filter: OOSInvestigationStatus | None = Query(
+        None, alias="status", description="Filtrar por status"
+    ),
     deviation_type: DeviationType | None = Query(None, description="OOS ou OOT"),
     is_open: bool | None = Query(None, description="Filtrar apenas abertas/fechadas"),
     search: str | None = Query(None, description="Buscar por número de investigação"),

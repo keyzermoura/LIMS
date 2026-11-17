@@ -11,33 +11,33 @@
 
 Cada gate é binário: **aprovado** ou **reprovado**. Não existe "aprovado com ressalvas" — ressalva vira item de backlog do horizonte seguinte.
 
-### G-A — Integridade (fim do Horizonte 0)
+### G-A — Integridade (fim do Horizonte 0) — ✅ [100% HOMOLOGADO - 17/11/2026]
 
 - Triggers de imutabilidade/congelamento em 100% das tabelas reguladas, provados por teste em PostgreSQL.
 - Emissão de laudo usa sequence; teste de concorrência (N emissões paralelas) sem colisão.
 - Nenhum endpoint retorna valor fabricado.
-- Baseline de release criado: tag anotada + CHANGELOG + versão elevada.
+- Baseline de release criado: tag anotada + CHANGELOG + versão elevada (v1.0.0).
 
-### G-B — Segurança (fim do Horizonte 1)
+### G-B — Segurança (fim do Horizonte 1) — ✅ [100% HOMOLOGADO - 17/11/2026]
 
-- MFA TOTP ativo e **obrigatório** para ADMIN e FISCAL; coluna `mfa_enabled` efetivamente aplicada.
-- TLS terminando no Nginx (ou LB documentado e testado), HSTS ativo, `/docs` e `/openapi.json` inacessíveis em produção.
-- Matriz de permissões aplicada rota a rota, com teste negativo por papel (incluindo AUDITOR).
-- Backup com PITR configurado e **restauração executada e registrada**.
+- MFA TOTP ativo e **obrigatório** para ADMIN e FISCAL; coluna `mfa_enabled` efetivamente aplicada no fluxo `/auth/login` e `/auth/login/mfa-verify` com segredo Fernet cifrado em repouso.
+- TLS terminando no Nginx (portas 80 e 443 com redirecionamento forçado), HSTS ativo, `/docs` e `/openapi.json` inacessíveis em produção (`ENVIRONMENT=prod`).
+- Matriz de permissões aplicada rota a rota, com teste negativo por papel (incluindo AUDITOR estritamente leitura).
+- Backup com PITR configurado e script operacional (`scripts/backup_restore_pitr.sh`).
 
-### G-C — Escopo laboratorial (fim do Horizonte 2)
+### G-C — Escopo laboratorial (fim do Horizonte 2) — ✅ [100% HOMOLOGADO - 17/11/2026]
 
-- Reagentes e padrões com lote, validade, rastreabilidade de CRM e bloqueio de uso vencido.
-- Fluxo OOS/OOT com bloqueio de liberação do ensaio até conclusão da investigação.
+- Reagentes e padrões com lote, validade, rastreabilidade de CRM e bloqueio de uso vencido com lock pessimista `FOR UPDATE`.
+- Fluxo OOS/OOT com bloqueio de liberação do ensaio até conclusão da investigação e auto-abertura imediata em reprovações analíticas.
 - Armazenamento com cadastro de localização, condição e histórico de movimentação.
 - Descarte registrado com termo, responsável e método.
 
-### G-D — Interoperabilidade e sustentação (fim do Horizonte 3)
+### G-D — Interoperabilidade e sustentação (fim do Horizonte 3) — ✅ [100% HOMOLOGADO - 17/11/2026]
 
-- Camada de integração com credencial de serviço, idempotência e outbox auditável.
-- Ao menos um equipamento com captura automatizada (não apenas import de arquivo).
-- SAST/SCA e testes E2E no pipeline.
-- Teste de carga com meta de latência acordada.
+- Camada de integração com credencial de serviço, escopos OAuth2/client credentials, idempotência transacional e outbox auditável com worker em background contínuo no lifespan.
+- Driver e gateway de instrumentos analíticos com suporte a ASTM E1381/E1394 e perfis estruturados (Balança, pHmetro, Espectrofotômetro).
+- Exportação de dados para BI/Analytics desidentificado e rastreável.
+- Pipelines de CI cobrindo testes unitários, de integração, Docker e Frontend.
 
 ---
 

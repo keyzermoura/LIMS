@@ -65,7 +65,7 @@ async def issue(
     if len(reason) < MIN_REASON_LENGTH:
         raise SignatureRejectedError(
             f"O motivo da assinatura deve ter ao menos {MIN_REASON_LENGTH} caracteres.",
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             audit=False,
         )
 
@@ -295,9 +295,7 @@ async def consume(
             status_code=status.HTTP_403_FORBIDDEN,
         )
 
-    record = await db.get(
-        ElectronicSignature, UUID(claims["sid"]), with_for_update=True
-    )
+    record = await db.get(ElectronicSignature, UUID(claims["sid"]), with_for_update=True)
     if record is None:
         await _reject(
             db,

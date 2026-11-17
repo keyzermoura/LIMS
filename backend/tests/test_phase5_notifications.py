@@ -51,12 +51,8 @@ async def test_notification_creation_and_rbac_delivery(
     client: AsyncClient, users: dict[str, Any]
 ) -> None:
     """Valida criação manual de alerta e entrega direcionada por perfil e individual."""
-    tec_token = (
-        await login(client, "tecnico", users["tecnico"]["password"])
-    )["access_token"]
-    fisc_token = (
-        await login(client, "fiscal", users["fiscal"]["password"])
-    )["access_token"]
+    tec_token = (await login(client, "tecnico", users["tecnico"]["password"]))["access_token"]
+    fisc_token = (await login(client, "fiscal", users["fiscal"]["password"]))["access_token"]
 
     # 1. Cria notificação direcionada a TECNICO
     payload_tec = {
@@ -112,9 +108,7 @@ async def test_notifications_summary_and_mark_all_read(
     client: AsyncClient, users: dict[str, Any]
 ) -> None:
     """Valida o cálculo do sumário de severidades e o comando de marcar todas como lidas."""
-    adm_token = (
-        await login(client, "admin", users["admin"]["password"])
-    )["access_token"]
+    adm_token = (await login(client, "admin", users["admin"]["password"]))["access_token"]
 
     # Emite 2 notificações com severidades distintas para ADMIN
     await client.post(
@@ -168,13 +162,9 @@ async def test_notifications_summary_and_mark_all_read(
 
 
 @pytest.mark.asyncio
-async def test_proactive_system_alerts_sweep(
-    client: AsyncClient, users: dict[str, Any]
-) -> None:
+async def test_proactive_system_alerts_sweep(client: AsyncClient, users: dict[str, Any]) -> None:
     """Valida a varredura proativa de desvios laboratoriais e a garantia de idempotência."""
-    tec_token = (
-        await login(client, "tecnico", users["tecnico"]["password"])
-    )["access_token"]
+    tec_token = (await login(client, "tecnico", users["tecnico"]["password"]))["access_token"]
 
     # 1. Primeira execução da varredura
     res_sweep1 = await client.post(

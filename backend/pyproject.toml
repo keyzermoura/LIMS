@@ -1,6 +1,6 @@
 [project]
 name = "lims-post-market"
-version = "0.1.0"
+version = "1.0.0"
 description = "LIMS para fiscalização pós-mercado de dispositivos médicos"
 requires-python = ">=3.11"
 

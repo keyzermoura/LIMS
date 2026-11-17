@@ -54,7 +54,9 @@ async def upload_instrument_file(
         str | None,
         Form(description="Perfil declarativo de instrumento (H3.3)"),
     ] = None,
-    test_execution_id: Annotated[UUID | None, Form(description="ID opcional da execução de ensaio")] = None,
+    test_execution_id: Annotated[
+        UUID | None, Form(description="ID opcional da execução de ensaio")
+    ] = None,
     idempotency_key: Annotated[
         str | None,
         Header(alias="Idempotency-Key", description="Chave de idempotência (RFC 7231 / H3.1)"),
@@ -72,13 +74,15 @@ async def upload_instrument_file(
     )
 
     if idempotency_key:
-        req_hash = idempotency_service.compute_payload_hash({
-            "equipment_id": str(equipment_id),
-            "file_format": file_format.value,
-            "raw_content": raw_content,
-            "profile_id": profile_id,
-            "test_execution_id": str(test_execution_id) if test_execution_id else None,
-        })
+        req_hash = idempotency_service.compute_payload_hash(
+            {
+                "equipment_id": str(equipment_id),
+                "file_format": file_format.value,
+                "raw_content": raw_content,
+                "profile_id": profile_id,
+                "test_execution_id": str(test_execution_id) if test_execution_id else None,
+            }
+        )
         is_replay, cached_status, cached_body = await idempotency_service.check_idempotency(
             db, client_id=client_id, key=idempotency_key, request_hash=req_hash
         )
@@ -195,8 +199,12 @@ async def list_instrument_imports(
     db: DbSession,
     _: CurrentUser,
     equipment_id: Annotated[UUID | None, Query(description="Filtrar por equipamento")] = None,
-    test_execution_id: Annotated[UUID | None, Query(description="Filtrar por execução de ensaio")] = None,
-    import_status: Annotated[InstrumentImportStatus | None, Query(alias="status", description="Filtrar por status")] = None,
+    test_execution_id: Annotated[
+        UUID | None, Query(description="Filtrar por execução de ensaio")
+    ] = None,
+    import_status: Annotated[
+        InstrumentImportStatus | None, Query(alias="status", description="Filtrar por status")
+    ] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> list[InstrumentDataImportOut]:
     """Lista importações de dados de instrumentos realizadas no laboratório."""

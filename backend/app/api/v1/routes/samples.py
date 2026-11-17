@@ -141,9 +141,7 @@ async def get_sample(sample_id: UUID, db: DbSession, user: CurrentUser) -> Sampl
     response_model=list[TimelineEvent],
     summary="Timeline de entrada e cadeia de custódia",
 )
-async def sample_timeline(
-    sample_id: UUID, db: DbSession, user: CurrentUser
-) -> list[TimelineEvent]:
+async def sample_timeline(sample_id: UUID, db: DbSession, user: CurrentUser) -> list[TimelineEvent]:
     events = await sample_service.timeline(db, sample_id)
     return [TimelineEvent.model_validate(event) for event in events]
 
@@ -153,9 +151,7 @@ async def sample_timeline(
     response_model=list[CustodyOut],
     summary="Histórico de custódia",
 )
-async def custody_history(
-    sample_id: UUID, db: DbSession, user: CurrentUser
-) -> list[CustodyOut]:
+async def custody_history(sample_id: UUID, db: DbSession, user: CurrentUser) -> list[CustodyOut]:
     events = await custody_service.history(db, sample_id)
     return [CustodyOut.model_validate(event) for event in events]
 
@@ -169,9 +165,7 @@ async def sample_signatures(
     sample_id: UUID, db: DbSession, user: CurrentUser
 ) -> list[EventSignatureOut]:
     await sample_service.get_sample(db, sample_id)
-    rows = await signature_service.consumed_signatures_for(
-        db, "DeviceSample", str(sample_id)
-    )
+    rows = await signature_service.consumed_signatures_for(db, "DeviceSample", str(sample_id))
     return [
         EventSignatureOut(
             signature_id=row.id,
@@ -208,9 +202,7 @@ async def sample_qr(sample_id: UUID, db: DbSession, user: CurrentUser) -> Sample
     summary="Imagem PNG do QR Code (para etiqueta)",
     responses={200: {"content": {"image/png": {}}}},
 )
-async def sample_qr_png(
-    sample_id: UUID, db: DbSession, user: CurrentUser
-) -> StreamingResponse:
+async def sample_qr_png(sample_id: UUID, db: DbSession, user: CurrentUser) -> StreamingResponse:
     sample = await sample_service.get_sample(db, sample_id)
     token = sign_qr_payload(sample.id, sample.accession_number)
 

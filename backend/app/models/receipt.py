@@ -46,9 +46,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class Receipt(
-    UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base
-):
+class Receipt(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base):
     """Registro único de chegada física principal vinculada à solicitação."""
 
     __tablename__ = "receipts"
@@ -59,9 +57,7 @@ class Receipt(
         nullable=False,
         index=True,
     )
-    receipt_number: Mapped[str] = mapped_column(
-        String(32), unique=True, nullable=False, index=True
-    )
+    receipt_number: Mapped[str] = mapped_column(String(32), unique=True, nullable=False, index=True)
     arrived_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     received_by_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
@@ -121,10 +117,16 @@ class ReceiptItem(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, Base
     receipt: Mapped[Receipt] = relationship("Receipt", back_populates="items")
     solicitation_item: Mapped[SolicitationItem] = relationship("SolicitationItem", lazy="selectin")
     custody_objects: Mapped[list[CustodyObject]] = relationship(
-        "CustodyObject", back_populates="receipt_item", cascade="all, delete-orphan", lazy="selectin"
+        "CustodyObject",
+        back_populates="receipt_item",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
     checklist_answers: Mapped[list[ChecklistAnswer]] = relationship(
-        "ChecklistAnswer", back_populates="receipt_item", cascade="all, delete-orphan", lazy="selectin"
+        "ChecklistAnswer",
+        back_populates="receipt_item",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
     decisions: Mapped[list[ReceiptDecision]] = relationship(
         "ReceiptDecision", back_populates="receipt_item", lazy="selectin"
@@ -141,9 +143,7 @@ class CustodyObject(
     receipt_item_id: Mapped[UUID] = mapped_column(
         ForeignKey("receipt_items.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    object_code: Mapped[str] = mapped_column(
-        String(32), unique=True, nullable=False, index=True
-    )
+    object_code: Mapped[str] = mapped_column(String(32), unique=True, nullable=False, index=True)
     grouping_description: Mapped[str | None] = mapped_column(String(500))
     represented_quantity: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     current_location: Mapped[str | None] = mapped_column(String(255))
@@ -163,13 +163,20 @@ class CustodyObject(
     )
 
     # Relacionamentos
-    receipt_item: Mapped[ReceiptItem] = relationship("ReceiptItem", back_populates="custody_objects")
-    current_custodian: Mapped[User | None] = relationship("User", foreign_keys=[current_custodian_id], lazy="selectin")
+    receipt_item: Mapped[ReceiptItem] = relationship(
+        "ReceiptItem", back_populates="custody_objects"
+    )
+    current_custodian: Mapped[User | None] = relationship(
+        "User", foreign_keys=[current_custodian_id], lazy="selectin"
+    )
     linked_device_sample: Mapped[DeviceSample | None] = relationship(
         "DeviceSample", foreign_keys=[linked_device_sample_id], lazy="selectin"
     )
     custody_events: Mapped[list[CustodyEvent]] = relationship(
-        "CustodyEvent", back_populates="custody_object", cascade="all, delete-orphan", lazy="selectin"
+        "CustodyEvent",
+        back_populates="custody_object",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -204,7 +211,15 @@ class CustodyEvent(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # Relacionamentos
-    custody_object: Mapped[CustodyObject] = relationship("CustodyObject", back_populates="custody_events")
-    from_custodian: Mapped[User | None] = relationship("User", foreign_keys=[from_custodian_id], lazy="selectin")
-    to_custodian: Mapped[User | None] = relationship("User", foreign_keys=[to_custodian_id], lazy="selectin")
-    registered_by: Mapped[User] = relationship("User", foreign_keys=[registered_by_id], lazy="selectin")
+    custody_object: Mapped[CustodyObject] = relationship(
+        "CustodyObject", back_populates="custody_events"
+    )
+    from_custodian: Mapped[User | None] = relationship(
+        "User", foreign_keys=[from_custodian_id], lazy="selectin"
+    )
+    to_custodian: Mapped[User | None] = relationship(
+        "User", foreign_keys=[to_custodian_id], lazy="selectin"
+    )
+    registered_by: Mapped[User] = relationship(
+        "User", foreign_keys=[registered_by_id], lazy="selectin"
+    )

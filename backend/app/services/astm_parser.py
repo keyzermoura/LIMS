@@ -56,7 +56,9 @@ def parse_astm_e1394(raw_text: str) -> dict[str, Any]:
             # Patient / Sample record: P|1||SampleID||||||||||
             sample_info = {
                 "sequence": parts[1] if len(parts) > 1 else "1",
-                "sample_id": parts[3] if len(parts) > 3 else (parts[2] if len(parts) > 2 else "UNKNOWN"),
+                "sample_id": parts[3]
+                if len(parts) > 3
+                else (parts[2] if len(parts) > 2 else "UNKNOWN"),
             }
         elif record_type == "O":
             # Order record: O|1|SampleBarcode||^^^TestCode||||||||||
@@ -79,18 +81,22 @@ def parse_astm_e1394(raw_text: str) -> dict[str, Any]:
             except ValueError:
                 numeric_val = None
 
-            results.append({
-                "parameter": test_param,
-                "value_raw": value_str,
-                "value_numeric": numeric_val,
-                "units": units,
-                "reference_range": ref_range,
-                "abnormal_flag": abnormal_flag,
-                "status": result_status,
-            })
+            results.append(
+                {
+                    "parameter": test_param,
+                    "value_raw": value_str,
+                    "value_numeric": numeric_val,
+                    "units": units,
+                    "reference_range": ref_range,
+                    "abnormal_flag": abnormal_flag,
+                    "status": result_status,
+                }
+            )
 
     if not results:
-        raise ValidationDomainError("Nenhum registro de resultado ('R') foi encontrado na mensagem ASTM.")
+        raise ValidationDomainError(
+            "Nenhum registro de resultado ('R') foi encontrado na mensagem ASTM."
+        )
 
     return {
         "instrument_type": "ANALISADOR_ASTM_E1394",

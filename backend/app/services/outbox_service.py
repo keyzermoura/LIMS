@@ -53,7 +53,10 @@ def verify_webhook_signature(
     """Verifica autenticidade, integridade e proteção anti-replay contra desvio temporal."""
     now_ts = int(datetime.now(UTC).timestamp())
     if abs(now_ts - timestamp) > max_drift_seconds:
-        logger.warning("Rejeição anti-replay de webhook: desvio temporal excessivo (%ss).", abs(now_ts - timestamp))
+        logger.warning(
+            "Rejeição anti-replay de webhook: desvio temporal excessivo (%ss).",
+            abs(now_ts - timestamp),
+        )
         return False
 
     expected_sig = sign_webhook_payload(secret, timestamp, payload_json)
@@ -123,10 +126,7 @@ async def dispatch_pending_outbox(
     try:
         for event in events:
             # Encontra assinaturas que escutam este tipo de evento ou wildcard "*"
-            matching_subs = [
-                s for s in all_subs
-                if event.event_type in s.events or "*" in s.events
-            ]
+            matching_subs = [s for s in all_subs if event.event_type in s.events or "*" in s.events]
 
             if not matching_subs:
                 # Nenhum receptor registrado: evento considerado publicado
@@ -204,7 +204,7 @@ async def dispatch_pending_outbox(
                         first_error,
                     )
                 else:
-                    backoff_seconds = min(3600, 2 ** event.attempts * 5)
+                    backoff_seconds = min(3600, 2**event.attempts * 5)
                     event.next_attempt_at = utcnow() + timedelta(seconds=backoff_seconds)
 
         await db.commit()

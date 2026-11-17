@@ -21,6 +21,7 @@ from app.schemas.auth import (
     MfaDisableRequest,
     MfaEnableRequest,
     MfaEnableResponse,
+    MfaLoginVerifyRequest,
     MfaSetupResponse,
     RefreshRequest,
     TokenPair,
@@ -59,10 +60,54 @@ async def login(
         limit=settings.LOGIN_RATE_LIMIT,
         window_seconds=settings.LOGIN_RATE_WINDOW_SECONDS,
     )
-    user, access, refresh = await auth_service.login(
+    user, access, refresh, mfa_required, mfa_token = await auth_service.login(
         db,
         username=form.username,
         password=form.password,
+        context=context,
+    )
+    if mfa_required:
+        return TokenPair(
+            access_token="",
+            refresh_token="",
+            expires_in=300,
+            user=_to_me(user),
+            mfa_required=True,
+            mfa_token=mfa_token,
+        )
+    return TokenPair(
+        access_token=access,
+        refresh_token=refresh,
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=_to_me(user),
+        mfa_required=False,
+    )
+
+
+@router.post(
+    "/login/mfa-verify",
+    response_model=TokenPair,
+    summary="Concluir autenticação com segundo fator (TOTP ou recovery code)",
+    responses={
+        400: {"description": "Código TOTP ou de recuperação inválido"},
+        401: {"description": "Desafio MFA inválido ou expirado"},
+    },
+)
+async def login_mfa_verify(
+    payload: MfaLoginVerifyRequest,
+    request: Request,
+    db: DbSession,
+) -> TokenPair:
+    context = RequestContext.from_request(request)
+    ratelimit.enforce(
+        f"mfa_verify:{context.ip_address or 'unknown'}",
+        limit=settings.LOGIN_RATE_LIMIT,
+        window_seconds=settings.LOGIN_RATE_WINDOW_SECONDS,
+    )
+    user, access, refresh = await auth_service.verify_login_mfa(
+        db,
+        mfa_token=payload.mfa_token,
+        code=payload.code,
         context=context,
     )
     return TokenPair(
@@ -70,13 +115,12 @@ async def login(
         refresh_token=refresh,
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=_to_me(user),
+        mfa_required=False,
     )
 
 
 @router.post("/refresh", response_model=TokenPair, summary="Rotacionar sessão")
-async def refresh_session(
-    payload: RefreshRequest, request: Request, db: DbSession
-) -> TokenPair:
+async def refresh_session(payload: RefreshRequest, request: Request, db: DbSession) -> TokenPair:
     user, access, refresh = await auth_service.refresh(
         db,
         refresh_token=payload.refresh_token,
@@ -278,10 +322,12 @@ async def service_token(
 
     if grant_type != "client_credentials":
         from app.core.errors import ValidationDomainError
+
         raise ValidationDomainError("Apenas grant_type='client_credentials' é suportado.")
 
     if not client_id or not client_secret:
         from app.core.errors import ValidationDomainError
+
         raise ValidationDomainError("client_id e client_secret são obrigatórios.")
 
     context = RequestContext.from_request(request)

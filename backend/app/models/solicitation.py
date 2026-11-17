@@ -61,7 +61,10 @@ class Solicitation(
     # Relacionamentos
     created_by: Mapped[User] = relationship("User", foreign_keys=[created_by_id], lazy="selectin")
     items: Mapped[list[SolicitationItem]] = relationship(
-        "SolicitationItem", back_populates="solicitation", cascade="all, delete-orphan", lazy="selectin"
+        "SolicitationItem",
+        back_populates="solicitation",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
     receipt: Mapped[Receipt | None] = relationship(
         "Receipt", back_populates="solicitation", uselist=False, lazy="selectin"

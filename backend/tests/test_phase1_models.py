@@ -321,4 +321,3 @@ async def test_checklist_and_decision_with_coordination(
         assert loaded_dec.coordination_review is not None
         assert loaded_dec.coordination_review.status == CoordinationReviewStatus.APROVADO
         assert loaded_dec.coordination_review.reviewed_by_id == coordenador.id
-

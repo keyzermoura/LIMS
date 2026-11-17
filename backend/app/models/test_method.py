@@ -24,9 +24,7 @@ if TYPE_CHECKING:
     from app.models.lab_test import LabTest
 
 
-class TestMethod(
-    UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base
-):
+class TestMethod(UUIDPrimaryKeyMixin, TimestampMixin, OptimisticLockMixin, JsonMetadataMixin, Base):
     __tablename__ = "test_methods"
 
     code: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)

@@ -83,9 +83,7 @@ async def db_factory(
             yield factory
         return
 
-    engine = create_async_engine(
-        f"sqlite+aiosqlite:///{(tmp_path / 'lims-test.db').as_posix()}"
-    )
+    engine = create_async_engine(f"sqlite+aiosqlite:///{(tmp_path / 'lims-test.db').as_posix()}")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -109,9 +107,7 @@ async def _postgres_factory() -> AsyncIterator[async_sessionmaker[AsyncSession]]
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         await _install_sql_files(engine)
-        yield async_sessionmaker(
-            engine, class_=AsyncSession, expire_on_commit=False
-        )
+        yield async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     finally:
         await engine.dispose()
         async with admin.begin() as conn:
@@ -136,9 +132,7 @@ async def client(
     ratelimit.limiter.reset()
     fastapi_app.dependency_overrides[get_db_session] = override_db_session
     transport = ASGITransport(app=fastapi_app)
-    async with AsyncClient(
-        transport=transport, base_url="http://testserver"
-    ) as http_client:
+    async with AsyncClient(transport=transport, base_url="http://testserver") as http_client:
         yield http_client
     fastapi_app.dependency_overrides.pop(get_db_session, None)
 

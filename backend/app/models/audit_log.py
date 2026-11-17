@@ -51,9 +51,7 @@ class AuditLog(Base):
         primary_key=True,
         autoincrement=True,
     )
-    sequence: Mapped[int] = mapped_column(
-        BigInteger, nullable=False, unique=True, index=True
-    )
+    sequence: Mapped[int] = mapped_column(BigInteger, nullable=False, unique=True, index=True)
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, index=True
     )

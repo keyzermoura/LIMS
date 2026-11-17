@@ -7,6 +7,7 @@ import secrets
 from datetime import UTC, timedelta
 from uuid import UUID
 
+from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
@@ -19,6 +20,7 @@ from app.core.security import (
     TokenError,
     burn_password_check,
     create_access_token,
+    create_mfa_pending_token,
     create_refresh_token,
     decode_token,
     hash_password,
@@ -42,13 +44,11 @@ async def login(
     username: str,
     password: str,
     context: RequestContext,
-) -> tuple[User, str, str]:
+) -> tuple[User, str, str, bool, str | None]:
     # `FOR UPDATE` serializa tentativas concorrentes do mesmo usuário para que
     # o contador de falhas e o bloqueio não sejam perdidos (lost update).
     user = await db.scalar(
-        select(User)
-        .where(User.username == username.strip().lower())
-        .with_for_update()
+        select(User).where(User.username == username.strip().lower()).with_for_update()
     )
 
     if user is None:
@@ -81,6 +81,22 @@ async def login(
         await _audit_failed_login(db, user, username, "Usuário inativo.", context)
         raise ForbiddenError("Usuário inativo. Contate o administrador.")
 
+    # Se o MFA estiver ativado, emite desafio temporário em vez da sessão definitiva
+    if user.mfa_enabled:
+        mfa_token = create_mfa_pending_token(user.id)
+        await audit_service.append(
+            db,
+            action=AuditAction.LOGIN,
+            entity_type=AuditEntity.USER.value,
+            entity_id=user.id,
+            actor=user,
+            new_value={"username": user.username, "mfa_challenge_issued": True},
+            reason="Primeiro fator (senha) validado. Desafio de segundo fator (MFA) emitido.",
+            context=context,
+        )
+        await db.commit()
+        return user, "", "", True, mfa_token
+
     account_lockout.reset_failures(user)
     user.last_login_at = utcnow()
 
@@ -96,6 +112,66 @@ async def login(
         context=context,
     )
     await db.commit()
+    return user, access_token, refresh_token, False, None
+
+
+async def verify_login_mfa(
+    db: AsyncSession,
+    *,
+    mfa_token: str,
+    code: str,
+    context: RequestContext,
+) -> tuple[User, str, str]:
+    """Conclui autenticação com conferência de segundo fator (TOTP ou recovery code)."""
+    try:
+        claims = decode_token(mfa_token, expected_type="mfa_pending")
+    except TokenError as exc:
+        raise ForbiddenError(f"Desafio MFA expirado ou inválido: {exc}") from exc
+
+    user_id = UUID(claims["sub"])
+    user = await db.scalar(select(User).where(User.id == user_id).with_for_update())
+    if user is None:
+        raise _invalid_credentials()
+
+    if user.is_locked:
+        await _audit_failed_login(
+            db, user, user.username, "Conta bloqueada durante desafio MFA.", context
+        )
+        raise account_lockout.locked_error()
+
+    if not user.is_active:
+        raise ForbiddenError("Usuário inativo. Contate o administrador.")
+
+    from app.services import mfa_service
+
+    is_valid = mfa_service.verify_user_mfa(user, code)
+    if not is_valid:
+        reason, just_locked = account_lockout.register_failure(user)
+        await _audit_failed_login(
+            db, user, user.username, f"Código MFA incorreto: {reason}", context
+        )
+        if just_locked:
+            raise account_lockout.locked_error()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código TOTP ou de recuperação inválido.",
+        )
+
+    account_lockout.reset_failures(user)
+    user.last_login_at = utcnow()
+
+    access_token, refresh_token = await _issue_pair(db, user, context)
+    await audit_service.append(
+        db,
+        action=AuditAction.LOGIN,
+        entity_type=AuditEntity.USER.value,
+        entity_id=user.id,
+        actor=user,
+        new_value={"username": user.username, "role": user.role.value, "mfa_verified": True},
+        reason="Autenticação com segundo fator (MFA) concluída com sucesso.",
+        context=context,
+    )
+    await db.commit()
     return user, access_token, refresh_token
 
 
@@ -108,9 +184,7 @@ async def refresh(
         raise ForbiddenError(f"Sessão inválida: {exc}") from exc
 
     jti = claims["jti"]
-    stored = await db.scalar(
-        select(RefreshToken).where(RefreshToken.jti == jti).with_for_update()
-    )
+    stored = await db.scalar(select(RefreshToken).where(RefreshToken.jti == jti).with_for_update())
     if stored is None:
         raise ForbiddenError("Sessão não reconhecida. Autentique-se novamente.")
 
@@ -157,8 +231,7 @@ async def refresh(
         RefreshToken(
             jti=new_jti,
             user_id=user.id,
-            expires_at=utcnow()
-            + timedelta(hours=settings.REFRESH_TOKEN_EXPIRE_HOURS),
+            expires_at=utcnow() + timedelta(hours=settings.REFRESH_TOKEN_EXPIRE_HOURS),
             ip_address=context.ip_address,
             user_agent=context.user_agent,
         )
@@ -278,9 +351,7 @@ async def create_user(
     db.add(user)
     await db.flush()
 
-    await signature_service.bind_record(
-        db, signature, {"user": audit_service.snapshot(user)}
-    )
+    await signature_service.bind_record(db, signature, {"user": audit_service.snapshot(user)})
 
     await audit_service.append(
         db,
@@ -324,9 +395,7 @@ def permissions_for(role: UserRole) -> list[str]:
 # --------------------------------------------------------------------------
 # Internos
 # --------------------------------------------------------------------------
-async def _issue_pair(
-    db: AsyncSession, user: User, context: RequestContext
-) -> tuple[str, str]:
+async def _issue_pair(db: AsyncSession, user: User, context: RequestContext) -> tuple[str, str]:
     access = create_access_token(user.id, user.role.value, user.password_version)
     jti = secrets.token_urlsafe(24)
     refresh = create_refresh_token(user.id, jti)

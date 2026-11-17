@@ -17,7 +17,8 @@ interface AuthContextValue {
   status: AuthStatus;
   idleSecondsLeft: number;
   idleTimeoutMinutes: number;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<TokenPair>;
+  verifyMfa: (mfaToken: string, code: string) => Promise<void>;
   logout: (reason?: "manual" | "idle") => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -180,14 +181,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [status, idleTimeoutMinutes, logout, push]);
 
   const login = React.useCallback(
-    async (username: string, password: string) => {
+    async (username: string, password: string): Promise<TokenPair> => {
       const pair = await api.login<TokenPair>(username.trim(), password);
-      persistSession(pair.access_token, pair.refresh_token);
-      setUser(pair.user);
-      setStatus("authenticated");
-      lastActivity.current = Date.now();
-      warned.current = false;
-      setIdleSecondsLeft(idleTimeoutMinutes * 60);
+      if (!pair.mfa_required && pair.access_token && pair.user) {
+        persistSession(pair.access_token, pair.refresh_token);
+        setUser(pair.user);
+        setStatus("authenticated");
+        lastActivity.current = Date.now();
+        warned.current = false;
+        setIdleSecondsLeft(idleTimeoutMinutes * 60);
+      }
+      return pair;
+    },
+    [idleTimeoutMinutes],
+  );
+
+  const verifyMfa = React.useCallback(
+    async (mfaToken: string, code: string) => {
+      const pair = await api.verifyMfaLogin<TokenPair>(mfaToken, code);
+      if (pair.access_token && pair.user) {
+        persistSession(pair.access_token, pair.refresh_token);
+        setUser(pair.user);
+        setStatus("authenticated");
+        lastActivity.current = Date.now();
+        warned.current = false;
+        setIdleSecondsLeft(idleTimeoutMinutes * 60);
+      }
     },
     [idleTimeoutMinutes],
   );
@@ -204,10 +223,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       idleSecondsLeft,
       idleTimeoutMinutes,
       login,
+      verifyMfa,
       logout,
       refreshProfile,
     }),
-    [user, status, idleSecondsLeft, idleTimeoutMinutes, login, logout, refreshProfile],
+    [user, status, idleSecondsLeft, idleTimeoutMinutes, login, verifyMfa, logout, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -15,6 +15,7 @@ from app.models.enums import (
     AuditAction,
     AuditEntity,
     ExecutionStatus,
+    TestOutcome,
 )
 from app.models.equipment import LaboratoryEquipment
 from app.models.lab_test import LabTest
@@ -43,9 +44,7 @@ async def get_execution(db: AsyncSession, execution_id: UUID) -> TestExecution:
     return execution
 
 
-async def list_executions_for_test(
-    db: AsyncSession, test_id: UUID
-) -> list[TestExecution]:
+async def list_executions_for_test(db: AsyncSession, test_id: UUID) -> list[TestExecution]:
     test = await db.get(LabTest, test_id)
     if test is None:
         raise NotFoundError("Ensaio laboratorial não encontrado.")
@@ -71,9 +70,7 @@ async def start_execution(
     context: RequestContext | None = None,
 ) -> tuple[TestExecution, int]:
     """Inicia uma nova execução/tentativa de ensaio de bancada com validação metrológica rigorosa."""
-    test = await db.scalar(
-        select(LabTest).where(LabTest.id == test_id).with_for_update()
-    )
+    test = await db.scalar(select(LabTest).where(LabTest.id == test_id).with_for_update())
     if test is None:
         raise NotFoundError("Ensaio laboratorial não encontrado.")
 
@@ -277,13 +274,42 @@ async def complete_execution(
             ),
             "result_value": execution.result_value,
             "result_text": execution.result_text,
-            "finished_at": (
-                execution.finished_at.isoformat()
-                if execution.finished_at
-                else None
-            ),
+            "finished_at": (execution.finished_at.isoformat() if execution.finished_at else None),
         },
     )
+
+    # Intertravamento Metrológico ISO 17025 §7.10: Auto-abertura de OOS em caso de reprovação
+    if execution.outcome in (TestOutcome.REPROVADO, "REPROVADO"):
+        from app.models.enums import DeviationType, OOSInvestigationStatus
+        from app.models.oos_investigation import OOSInvestigation
+        from app.schemas.oos_investigation import OOSInvestigationCreate
+        from app.services import oos_service
+
+        open_oos = await db.scalar(
+            select(OOSInvestigation).where(
+                OOSInvestigation.lab_test_id == execution.lab_test_id,
+                OOSInvestigation.status != OOSInvestigationStatus.CLOSED,
+            )
+        )
+        if not open_oos:
+            oos_payload = OOSInvestigationCreate(
+                lab_test_id=execution.lab_test_id,
+                execution_id=execution.id,
+                deviation_type=DeviationType.OOS,
+                initial_result=execution.result_value,
+                initial_result_text=execution.result_text,
+            )
+            await oos_service.create_investigation(
+                db,
+                payload=oos_payload,
+                actor=actor,
+                context=context
+                or RequestContext(
+                    ip_address="127.0.0.1",
+                    user_agent="system/auto-oos",
+                    request_id="auto-oos",
+                ),
+            )
 
     refreshed = await get_execution(db, execution.id)
     return refreshed, audit_entry.sequence

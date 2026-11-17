@@ -190,6 +190,11 @@ export const api = {
       method: "POST",
       form: new URLSearchParams({ username, password }),
     }),
+  verifyMfaLogin: <T>(mfa_token: string, code: string) =>
+    request<T>("/auth/login/mfa-verify", {
+      method: "POST",
+      body: { mfa_token, code },
+    }),
   upload: <T>(path: string, file: File) => {
     const formData = new FormData();
     formData.append("file", file);

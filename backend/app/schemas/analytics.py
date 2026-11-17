@@ -13,12 +13,22 @@ from pydantic import BaseModel, Field
 class TurnaroundTimeMetrics(BaseModel):
     """Métricas de tempos de ciclo (Turnaround Time - TAT) em horas."""
 
-    global_avg_hours: float | None = Field(None, description="Tempo médio global de recebimento até laudo final.")
-    receipt_to_testing_avg_hours: float | None = Field(None, description="Tempo médio de recebimento até primeiro ensaio.")
-    testing_to_review_avg_hours: float | None = Field(None, description="Tempo médio de ensaio até revisão técnica.")
-    review_to_report_avg_hours: float | None = Field(None, description="Tempo médio de revisão até emissão de laudo.")
+    global_avg_hours: float | None = Field(
+        None, description="Tempo médio global de recebimento até laudo final."
+    )
+    receipt_to_testing_avg_hours: float | None = Field(
+        None, description="Tempo médio de recebimento até primeiro ensaio."
+    )
+    testing_to_review_avg_hours: float | None = Field(
+        None, description="Tempo médio de ensaio até revisão técnica."
+    )
+    review_to_report_avg_hours: float | None = Field(
+        None, description="Tempo médio de revisão até emissão de laudo."
+    )
     samples_measured_count: int = Field(0, description="Amostras consideradas no cálculo de TAT.")
-    data_quality: str = Field("insufficient", description="Qualidade dos dados: sufficient ou insufficient.")
+    data_quality: str = Field(
+        "insufficient", description="Qualidade dos dados: sufficient ou insufficient."
+    )
 
 
 class SampleBacklogMetrics(BaseModel):
@@ -26,7 +36,9 @@ class SampleBacklogMetrics(BaseModel):
 
     age_0_to_5_days: int = Field(0, description="Amostras ativas com até 5 dias de chegada.")
     age_6_to_15_days: int = Field(0, description="Amostras ativas com 6 a 15 dias de chegada.")
-    age_above_15_days: int = Field(0, description="Amostras ativas com mais de 15 dias (risco de atraso).")
+    age_above_15_days: int = Field(
+        0, description="Amostras ativas com mais de 15 dias (risco de atraso)."
+    )
     total_active: int = Field(0, description="Total de amostras ativas em aberto.")
 
 
@@ -38,8 +50,12 @@ class TestConformityMetrics(BaseModel):
     non_conforming_count: int = Field(0, description="Ensaios reprovados / não conformes.")
     inconclusive_count: int = Field(0, description="Ensaios na faixa de guarda / inconclusivos.")
     pending_count: int = Field(0, description="Ensaios em execução ou pendentes.")
-    conformity_rate_pct: float | None = Field(None, description="Percentual de conformidade analítica.")
-    data_quality: str = Field("insufficient", description="Qualidade dos dados: sufficient ou insufficient.")
+    conformity_rate_pct: float | None = Field(
+        None, description="Percentual de conformidade analítica."
+    )
+    data_quality: str = Field(
+        "insufficient", description="Qualidade dos dados: sufficient ou insufficient."
+    )
 
 
 class CapaMetrics(BaseModel):
@@ -50,8 +66,12 @@ class CapaMetrics(BaseModel):
     closed_capas: int = Field(0, description="CAPAs concluídas.")
     effective_capas: int = Field(0, description="CAPAs avaliadas como eficazes.")
     ineffective_capas: int = Field(0, description="CAPAs avaliadas como ineficazes.")
-    effectiveness_rate_pct: float | None = Field(None, description="Percentual de eficácia de planos de ação.")
-    data_quality: str = Field("insufficient", description="Qualidade dos dados: sufficient ou insufficient.")
+    effectiveness_rate_pct: float | None = Field(
+        None, description="Percentual de eficácia de planos de ação."
+    )
+    data_quality: str = Field(
+        "insufficient", description="Qualidade dos dados: sufficient ou insufficient."
+    )
 
 
 class AnalystWorkloadItem(BaseModel):
@@ -104,8 +124,10 @@ class QualityControlAnalyticsOut(BaseModel):
     standard_deviation: float | None = None
     warning_limit_upper: float | None = None  # +2s
     warning_limit_lower: float | None = None  # -2s
-    action_limit_upper: float | None = None   # +3s
-    action_limit_lower: float | None = None   # -3s
+    action_limit_upper: float | None = None  # +3s
+    action_limit_lower: float | None = None  # -3s
     data_points: list[QualityControlPoint] = Field(default_factory=list)
     violations: list[WestgardViolation] = Field(default_factory=list)
-    data_quality: str = Field("insufficient", description="Qualidade dos dados: sufficient ou insufficient.")
+    data_quality: str = Field(
+        "insufficient", description="Qualidade dos dados: sufficient ou insufficient."
+    )

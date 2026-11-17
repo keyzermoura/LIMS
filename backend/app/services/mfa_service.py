@@ -16,15 +16,49 @@ import secrets
 
 import pyotp
 import qrcode
+from cryptography.fernet import Fernet
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
+from app.core.config import settings
 from app.core.context import RequestContext
 from app.core.security import verify_password
 from app.models.enums import AuditAction, AuditEntity
 from app.models.user import User
 from app.services import audit_service
+
+
+def _get_fernet() -> Fernet:
+    """Deriva chave de 256 bits para cifra simétrica autenticada do segredo TOTP."""
+    key_src = getattr(settings, "TOTP_ENCRYPTION_KEY", None)
+    if key_src:
+        key_bytes = key_src.get_secret_value().encode("utf-8")
+    else:
+        # Derivação determinística a partir do JWT_SECRET para ambientes dev/test sem chave explícita
+        key_bytes = settings.JWT_SECRET.get_secret_value().encode("utf-8")
+    derived = base64.urlsafe_b64encode(hashlib.sha256(key_bytes).digest())
+    return Fernet(derived)
+
+
+def encrypt_totp_secret(plain_secret: str) -> str:
+    """Cifra segredo TOTP Base32 em repouso com Fernet (AES-128-CBC + HMAC-SHA256)."""
+    if not plain_secret:
+        return ""
+    fernet = _get_fernet()
+    token = fernet.encrypt(plain_secret.encode("utf-8")).decode("utf-8")
+    return f"enc:v1:{token}"
+
+
+def decrypt_totp_secret(stored_secret: str) -> str:
+    """Decifra segredo TOTP do banco. Mantém retrocompatibilidade se já estiver em texto claro."""
+    if not stored_secret:
+        return ""
+    if stored_secret.startswith("enc:v1:"):
+        token = stored_secret[7:]
+        fernet = _get_fernet()
+        return fernet.decrypt(token.encode("utf-8")).decode("utf-8")
+    return stored_secret
 
 
 def generate_totp_secret() -> str:
@@ -114,8 +148,10 @@ def verify_user_mfa(user: User, code_or_recovery: str | None) -> bool:
         return False
 
     # 1. Tentar validação via TOTP
-    if user.mfa_secret and verify_totp_code(user.mfa_secret, code_or_recovery):
-        return True
+    if user.mfa_secret:
+        decrypted = decrypt_totp_secret(user.mfa_secret)
+        if verify_totp_code(decrypted, code_or_recovery):
+            return True
 
     # 2. Tentar validação via Recovery Code (descartável)
     return bool(verify_and_consume_recovery_code(user, code_or_recovery))
@@ -151,7 +187,7 @@ async def enable_mfa(
 
     old_snapshot = audit_service.snapshot(user)
     user.mfa_enabled = True
-    user.mfa_secret = secret
+    user.mfa_secret = encrypt_totp_secret(secret)
     user.mfa_recovery_codes = recovery_hashes
     await db.flush()
 

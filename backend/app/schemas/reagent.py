@@ -11,8 +11,12 @@ from app.models.enums import ReagentBatchStatus, ReagentGrade, ReagentType
 
 
 class ReagentBase(BaseModel):
-    code: str = Field(min_length=2, max_length=32, description="Código único do insumo (ex: REA-001)")
-    name: str = Field(min_length=2, max_length=160, description="Nome químico ou comercial do reagente")
+    code: str = Field(
+        min_length=2, max_length=32, description="Código único do insumo (ex: REA-001)"
+    )
+    name: str = Field(
+        min_length=2, max_length=160, description="Nome químico ou comercial do reagente"
+    )
     chemical_formula: str | None = Field(default=None, max_length=64)
     cas_number: str | None = Field(default=None, max_length=32, description="Número CAS")
     reagent_type: ReagentType
@@ -53,7 +57,9 @@ class ReagentBatchCreate(BaseModel):
     expiration_date: date
     initial_quantity: float = Field(gt=0, description="Quantidade inicial recebida")
     unit: str = Field(default="g", min_length=1, max_length=16)
-    certificate_number: str | None = Field(default=None, max_length=64, description="Número do certificado CRM")
+    certificate_number: str | None = Field(
+        default=None, max_length=64, description="Número do certificado CRM"
+    )
     uncertainty_value: float | None = Field(default=None, ge=0, description="Incerteza U do padrão")
     k_factor: float | None = Field(default=2.0, ge=1.0)
     notes: str | None = None

@@ -99,9 +99,7 @@ async def list_reagents(
 async def get_reagent(db: AsyncSession, reagent_id: UUID) -> Reagent:
     """Busca reagente por ID."""
     reagent = await db.scalar(
-        select(Reagent)
-        .options(selectinload(Reagent.batches))
-        .where(Reagent.id == reagent_id)
+        select(Reagent).options(selectinload(Reagent.batches)).where(Reagent.id == reagent_id)
     )
     if not reagent:
         raise HTTPException(
@@ -124,9 +122,7 @@ async def create_batch(
 
     # Verifica se já está vencido no momento do cadastro
     is_expired = date.today() > payload.expiration_date
-    initial_status = (
-        ReagentBatchStatus.EXPIRED if is_expired else ReagentBatchStatus.AVAILABLE
-    )
+    initial_status = ReagentBatchStatus.EXPIRED if is_expired else ReagentBatchStatus.AVAILABLE
 
     batch = ReagentBatch(
         reagent_id=reagent.id,
@@ -167,7 +163,11 @@ async def list_batches(
     expiring_days: int | None = None,
 ) -> Sequence[ReagentBatch]:
     """Lista lotes de insumos com filtros analíticos de validade e disponibilidade."""
-    stmt = select(ReagentBatch).options(selectinload(ReagentBatch.reagent)).order_by(ReagentBatch.expiration_date)
+    stmt = (
+        select(ReagentBatch)
+        .options(selectinload(ReagentBatch.reagent))
+        .order_by(ReagentBatch.expiration_date)
+    )
 
     if reagent_id:
         stmt = stmt.where(ReagentBatch.reagent_id == reagent_id)
@@ -184,10 +184,7 @@ async def list_batches(
 
     if expiring_days is not None:
         today = date.today()
-        batches = [
-            b for b in batches
-            if 0 <= (b.expiration_date - today).days <= expiring_days
-        ]
+        batches = [b for b in batches if 0 <= (b.expiration_date - today).days <= expiring_days]
 
     return batches
 
@@ -220,6 +217,7 @@ async def consume_reagent_in_execution(
         select(ReagentBatch)
         .options(selectinload(ReagentBatch.reagent))
         .where(ReagentBatch.id == batch_id)
+        .with_for_update()
     )
     if not batch:
         raise HTTPException(
@@ -230,7 +228,7 @@ async def consume_reagent_in_execution(
     # 1. Checagem de Validade (ISO 17025 §6.4)
     if batch.is_expired or batch.status == ReagentBatchStatus.EXPIRED:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=(
                 f"Lote {batch.lot_number} ({batch.reagent.name}) expirou em "
                 f"{batch.expiration_date}. Consumo proibido em ensaios regulamentados (ISO/IEC 17025 §6.4)."
@@ -240,14 +238,14 @@ async def consume_reagent_in_execution(
     # 2. Checagem de Quarentena
     if batch.status == ReagentBatchStatus.QUARANTINE:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"Lote {batch.lot_number} está retido em QUARENTENA.",
         )
 
     # 3. Checagem de Saldo em Estoque
     if batch.current_quantity < quantity_used:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=(
                 f"Saldo insuficiente no lote {batch.lot_number}. "
                 f"Disponível: {batch.current_quantity}{batch.unit}, solicitado: {quantity_used}{unit}."
@@ -310,4 +308,3 @@ async def list_execution_usages(
     )
     result = await db.scalars(stmt)
     return result.all()
-
