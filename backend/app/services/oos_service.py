@@ -40,7 +40,7 @@ from app.schemas.oos_investigation import (
     OOSPhase1Update,
     OOSPhase2Update,
 )
-from app.services import audit_service
+from app.services import audit_service, outbox_service
 
 
 async def create_investigation(
@@ -127,6 +127,22 @@ async def create_investigation(
         ),
         context=context,
     )
+
+    await outbox_service.enqueue_event(
+        db,
+        event_type="oos.opened",
+        aggregate_type="OOSInvestigation",
+        aggregate_id=str(investigation.id),
+        payload={
+            "investigation_id": str(investigation.id),
+            "investigation_number": investigation.investigation_number,
+            "lab_test_id": str(investigation.lab_test_id),
+            "deviation_type": investigation.deviation_type.value,
+            "status": investigation.status.value,
+            "detected_at": investigation.detected_at.isoformat(),
+        },
+    )
+
     await db.commit()
     return await get_investigation(db, investigation.id)
 

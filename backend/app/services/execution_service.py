@@ -26,7 +26,7 @@ from app.schemas.test_execution import (
     TestExecutionRecordData,
     TestExecutionStart,
 )
-from app.services import audit_service, equipment_service, qualification_service
+from app.services import audit_service, equipment_service, outbox_service, qualification_service
 
 
 async def get_execution(db: AsyncSession, execution_id: UUID) -> TestExecution:
@@ -261,6 +261,30 @@ async def complete_execution(
         reason=f"Conclusão de execução de bancada ({execution.attempt_label})",
         context=context,
     )
+
+    await outbox_service.enqueue_event(
+        db,
+        event_type="test.completed",
+        aggregate_type="TestExecution",
+        aggregate_id=str(execution.id),
+        payload={
+            "execution_id": str(execution.id),
+            "lab_test_id": str(execution.lab_test_id),
+            "outcome": (
+                execution.outcome.value
+                if hasattr(execution.outcome, "value")
+                else str(execution.outcome)
+            ),
+            "result_value": execution.result_value,
+            "result_text": execution.result_text,
+            "finished_at": (
+                execution.finished_at.isoformat()
+                if execution.finished_at
+                else None
+            ),
+        },
+    )
+
     refreshed = await get_execution(db, execution.id)
     return refreshed, audit_entry.sequence
 

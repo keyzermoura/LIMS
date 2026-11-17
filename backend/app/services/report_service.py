@@ -36,7 +36,7 @@ from app.models.oos_investigation import OOSInvestigation
 from app.models.uncertainty import UncertaintyBudget
 from app.models.user import User
 from app.schemas.official_report import OfficialReportGenerateIn
-from app.services import audit_service, qc_spc_service, signature_service
+from app.services import audit_service, outbox_service, qc_spc_service, signature_service
 from app.services.audit_service import snapshot
 from app.services.pdf_report_service import generate_official_report_pdf
 
@@ -256,6 +256,25 @@ async def generate_official_report(
         reason=f"Laudo pericial oficial {report_number} emitido com conclusão: {payload.conclusion.value}",
         context=context,
         signature_id=sig_record.id,
+    )
+
+    await outbox_service.enqueue_event(
+        db,
+        event_type="report.issued",
+        aggregate_type="OfficialReport",
+        aggregate_id=str(report.id),
+        payload={
+            "report_id": str(report.id),
+            "report_number": report.report_number,
+            "device_sample_id": str(report.device_sample_id),
+            "conclusion": (
+                report.conclusion.value
+                if hasattr(report.conclusion, "value")
+                else str(report.conclusion)
+            ),
+            "sha256_hash": report.sha256_hash,
+            "issued_at": report.issued_at.isoformat(),
+        },
     )
 
     await db.commit()

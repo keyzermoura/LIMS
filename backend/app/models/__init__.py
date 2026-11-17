@@ -16,6 +16,7 @@ from app.models.lab_test import LabTest, LabTestResult
 from app.models.notification import Notification
 from app.models.official_report import OfficialReport
 from app.models.oos_investigation import OOSInvestigation
+from app.models.outbox import IntegrationOutbox
 from app.models.qc_spc import QCRun
 from app.models.qualification import AnalystQualification, TrainingRecord
 from app.models.reagent import Reagent, ReagentBatch, TestExecutionReagentUsage
@@ -53,6 +54,7 @@ __all__ = [
     "ElectronicSignature",
     "IdempotencyKey",
     "InstrumentDataImport",
+    "IntegrationOutbox",
     "LabTest",
     "LabTestResult",
     "LaboratoryEquipment",

@@ -17,6 +17,7 @@ from app.api.v1.routes import (
     methods,
     notifications,
     oos,
+    outbox,
     public_reports,
     qualifications,
     reagents,
@@ -62,6 +63,7 @@ api_router.include_router(oos.router)
 api_router.include_router(storage.router)
 api_router.include_router(spc.router)
 api_router.include_router(service_clients.router)
+api_router.include_router(outbox.router)
 api_router.include_router(samples.router)
 api_router.include_router(custody.router)
 api_router.include_router(tests.router)
