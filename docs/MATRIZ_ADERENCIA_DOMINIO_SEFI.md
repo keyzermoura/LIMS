@@ -261,4 +261,8 @@ As decisões D05, D08, D11–D13, D19 e outros requisitos cujo ciclo completo n�
 
 **Parecer atualizado:** evoluir a arquitetura existente, sem reconstrução; manter G0 NÃO APROVADO até correção dos bloqueadores, evidência de testes e homologação operacional. Este adendo não autoriza implementação.
 
+### 15.1 Histórico do adendo
+
+| Versão | Data | Descrição |
+|---|---|---|
 | 1.2 | 2026-11-18 | Reavaliação estática contra HEAD e referência à Matriz Mestra; separa ausência histórica de componente, lacuna comportamental e requisito não verificado. |
