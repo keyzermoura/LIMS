@@ -385,4 +385,8 @@ O intertravamento de reagentes/padrões é P1, condicionado aos requisitos do m�
 
 Este adendo não apaga as conclusões históricas da matriz nem autoriza implementação. A Matriz Mestra passa a ser a referência consolidada para o estado estático da baseline de 18/11/2026.
 
+### 16.1 Histórico do adendo
+
+| Versão | Data | Descrição |
+|---|---|---|
 | 1.1 | 2026-11-18 | Reclassificação de lacunas à luz dos modelos/serviços atuais; distinção entre estrutura existente, aderência parcial e evidência não verificada. |
