@@ -265,38 +265,39 @@ export function LoginPage() {
             ) : null}
           </form>
 
-          <div className="mt-8 rounded-lg border border-border bg-muted/40 p-4">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <FlaskConical className="h-3.5 w-3.5" />
-              Contas de demonstração
+          {import.meta.env.DEV ? (
+            <div className="mt-8 rounded-lg border border-border bg-muted/40 p-4">
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <FlaskConical className="h-3.5 w-3.5" />
+                Contas de demonstração
+              </div>
+              <div className="mt-3 space-y-2">
+                {DEMO_ACCOUNTS.map((account) => (
+                  <button
+                    key={account.username}
+                    type="button"
+                    onClick={() => {
+                      setUsername(account.username);
+                      setPassword(account.password);
+                      setError(null);
+                    }}
+                    className="flex w-full items-center justify-between rounded-md border border-transparent px-2 py-1.5 text-left transition-colors hover:border-border hover:bg-card"
+                  >
+                    <span className="text-[13px]">
+                      <span className="font-medium">{account.username}</span>
+                      <span className="text-muted-foreground"> · {account.role}</span>
+                    </span>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      {account.password}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                Uso exclusivo em desenvolvimento local. Contas de demonstração desativadas em ambiente de produção.
+              </p>
             </div>
-            <div className="mt-3 space-y-2">
-              {DEMO_ACCOUNTS.map((account) => (
-                <button
-                  key={account.username}
-                  type="button"
-                  onClick={() => {
-                    setUsername(account.username);
-                    setPassword(account.password);
-                    setError(null);
-                  }}
-                  className="flex w-full items-center justify-between rounded-md border border-transparent px-2 py-1.5 text-left transition-colors hover:border-border hover:bg-card"
-                >
-                  <span className="text-[13px]">
-                    <span className="font-medium">{account.username}</span>
-                    <span className="text-muted-foreground"> · {account.role}</span>
-                  </span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    {account.password}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-              Uso exclusivo em desenvolvimento. Nunca mantenha contas de
-              demonstração em produção.
-            </p>
-          </div>
+          ) : null}
         </div>
       </section>
     </div>

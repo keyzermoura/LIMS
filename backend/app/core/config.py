@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     )
 
     PROJECT_NAME: str = "LIMS — Fiscalização Pós-Mercado de Dispositivos Médicos"
-    VERSION: str = "1.0.0"
+    VERSION: str = "1.1.0"
     ENVIRONMENT: Literal["dev", "test", "prod"] = "dev"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"

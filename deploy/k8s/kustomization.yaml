@@ -11,6 +11,7 @@ resources:
   - deployment-frontend.yaml
   - service-frontend.yaml
   - ingress.yaml
+  - cronjob-backup.yaml
 
 commonLabels:
   app.kubernetes.io/managed-by: kustomize
