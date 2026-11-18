@@ -5,6 +5,7 @@
 **Método:** leitura de código, migrações, testes e execução da suíte em worktree limpo
 **Natureza:** parecer técnico sênior — não é auditoria formal de validação
 **Documento anterior:** `RELATORIO_EXECUTIVO_ANALISE_LIMS.md` (16/11/2026)
+**Adendo:** §9 (18/11/2026) revalida este parecer contra o baseline `6e7354d`. Leia o adendo antes de agir sobre as seções 1–8.
 
 ---
 
@@ -162,7 +163,6 @@ Os 9 testes ignorados localmente são os que exigem PostgreSQL real (`test_postg
 
 | Revisão | Conteúdo |
 |---|---|
-| `a1cd5ac5805f` | Schema inicial |
 | `0002_guards` | Sequences e triggers originais |
 | `0003_audit_export` | Exportação de auditoria |
 | `0004`–`0006` | Fases 1–3 (recebimento, execução, laudos) |
@@ -171,7 +171,14 @@ Os 9 testes ignorados localmente são os que exigem PostgreSQL real (`test_postg
 | `0011`–`0012` | Gate G-A (guardas de integridade, webhooks) |
 | `0013`–`0014` | Gate G-B (emendas de laudo, MFA TOTP) |
 | `0015`–`0018` | Gate G-C (reagentes, OOS, armazenamento/descarte, Westgard) |
-| `0019`–`0020` | Gate G-D (contas de serviço/idempotência, outbox/webhooks) — em branch |
+| `0019`–`0020` | Gate G-D (contas de serviço/idempotência, outbox/webhooks) |
+| `0021` | Alteração de tipo: `users.mfa_secret` de `String(64)` para `Text` (comporta o ciphertext Fernet) |
+| `a1cd5ac5805f` | Schema inicial |
+
+Total no baseline `6e7354d`: **21 revisões** (20 migrações nomeadas + schema inicial).
+
+> `0021` é migração de *tipo*, não de guarda. O segredo TOTP passou a ser cifrado;
+> o campo precisa comportar o ciphertext, que excede os 64 caracteres anteriores.
 
 ## Anexo C — Documentos relacionados
 
@@ -182,3 +189,110 @@ Os 9 testes ignorados localmente são os que exigem PostgreSQL real (`test_postg
 | `PLANO_CORRECAO_RISCOS_1_3_LIMS.md` | Plano técnico que originou `0011`–`0014` |
 | `ESPECIFICACAO_CAMADA_INTEGRACAO_LIMS.md` | Especificação que originou `0019`–`0020` |
 | `DOSSIE_VALIDACAO_SISTEMA_COMPUTADORIZADO_CSV_FASE_5.md` | Dossiê CSV — requer atualização |
+
+---
+
+## 9. Adendo de 18/11/2026 — revalidação no baseline `6e7354d`
+
+Este adendo **não reescreve** o parecer de 17/11. Ele registra o que mudou no
+repositório em 24 horas e o que continua aberto. Onde este adendo contraria as
+seções 1–8, **vale o adendo**.
+
+### 9.1 Baseline
+
+| Item | 17/11 (`d6bbc52`) | 18/11 (`6e7354d`) |
+|---|---|---|
+| `HEAD` | `d6bbc52` em `feature/horizonte-3…` | `6e7354d` em `main`, sincronizado com `origin/main` |
+| Tag mais recente | nenhuma | `v1.0.0` em `cb27468` |
+| Commits desde a tag | — | 72 (`git describe`: `v1.0.0-72-g6e7354d`) |
+| Migrações | 20 | 21 (+`0021_fase8_mfa_secret_text`) |
+| Working tree | quebrado (WIP de BI) | limpo |
+| Suíte local | não coletava | **149 passed, 9 skipped** |
+
+### 9.2 Riscos 1–5 da seção 6.1
+
+| # | Risco original | Situação em 18/11 |
+|---|---|---|
+| 1 | Working tree não compila (WIP de BI) | **Fechado.** O WIP foi concluído em `b9d0f64` e o tree está limpo; a suíte coleta e passa. |
+| 2 | Gate G-B não fechado | **Quase fechado.** MFA deixou de ser fator de assinatura e passou a ser **desafio de login** (`mfa_pending` + `verify_login_mfa`); o segredo TOTP é cifrado com Fernet; `/docs` e `/openapi.json` são desligados quando `ENVIRONMENT=prod`; backup/PITR com restauração testada existe. **Resta** o redirect 80→443 no caminho docker-compose (P0.1) e o agendamento do backup (P0.2b). |
+| 3 | Rastreabilidade de validação quebrada | **Fechado.** O dossiê `V1_0_0` foi reemitido (18,4 KB) cobrindo MFA, emendas, reagentes, OOS, Westgard e descarte, e a referência do CEP aponta para `qc_spc_service.py`. |
+| 4 | Outbox sem worker | **Fechado no núcleo.** Worker no lifespan (`main.py:84-88`), `SKIP LOCKED` na seleção e dead-letter com backoff. **Resta** runbook e alerta de backlog (P1.1b). |
+| 5 | Intertravamentos consultivos | **Parcial.** OOS automático em resultado reprovado e `FOR UPDATE` na baixa de reagente foram entregues; **a conclusão da execução ainda não exige consumo registrado** (P3.1 aberto). |
+
+### 9.3 Itens fechados desde o parecer
+
+| Item | Evidência |
+|---|---|
+| P0.2 Backup/PITR com restore | `scripts/backup_restore_pitr.sh`: `pg_dump -Fc` + SHA-256, WAL, `pg_restore --clean` em banco temporário e validação de contagens |
+| P0.3 MFA de sessão + TOTP cifrado | `auth_service.py:84-98,118-171`; `mfa_service.py:19,32-61,190` |
+| P1.1 Worker do outbox | `main.py:84-88`; `outbox_worker.py:24-63`; `outbox_service.py:109,198-208` |
+| P1.3 `.env.example` | Documenta `TOTP_ENCRYPTION_KEY`, `MFA_REQUIRED_ROLES`, `DOCS_ENABLED`, `OUTBOX_*` |
+| P2.1 Referência do CEP | `DOSSIE_…_FASE_5.md:47` aponta `qc_spc_service.py` |
+| P2.2 Dossiê/RTM H1–H2 | `DOSSIE_VALIDACAO_SISTEMA_COMPUTADORIZADO_CSV_V1_0_0.md` |
+| P3.2 Auto-abertura de OOS | `execution_service.py:281-310` (`user_agent="system/auto-oos"`) |
+| P3.3 `FOR UPDATE` na baixa | `reagent_service.py:220` |
+| P4.2a Código de barras | `routes/samples.py:107-116`; `sample_service.py:132` |
+| P5.3 Deprecação Starlette | Zero ocorrências de `HTTP_422_UNPROCESSABLE_ENTITY` |
+| P6.1 UI de integrações | `Integrations.tsx` cobre clientes, outbox, gateway e BI |
+| P6.2 Roadmap com status | Marcadores de status por item no roadmap |
+
+### 9.4 O que continua aberto
+
+| Item | Sev. | Pendência |
+|---|---|---|
+| P0.1 | Média | `nginx.conf` escuta 80 e 443 no mesmo `server`, sem `return 301`; o compose publica `${WEB_PORT:-8080}:80` |
+| P0.4 | Média | Sem `CHANGELOG.md`; commit diz `v1.1.0`, arquivos de versão seguem em `1.0.0` |
+| P0.5 | Média-Alta | `Login.tsx:21-25` define `DEMO_ACCOUNTS` com senhas literais e renderiza em `:272-296` sem guarda de `import.meta.env` |
+| P1.2 | Média | `_service_scopes` só é lido em `integration_exports.py`; `instrument_data` aceita `SERVICE` sem escopo |
+| P3.1 | Média | `complete_execution` não exige consumo de insumo registrado |
+| P4.1 | Média | `attributes` continua fora da lista imutável em `0011_fase5_guards_integridade.py:92-105` |
+| P4.2b | Média | Sem alíquota: zero ocorrências de `aliquot` no backend |
+| P5.1 | Média | CI sem SAST/SCA (`bandit`, `pip-audit`, `semgrep`, `trivy`) |
+| P5.2 | Média | Sem E2E de navegador; `docker-smoke.sh` valida a stack por HTTP |
+| P0.2b | Baixa | Script de backup sem CronJob/timer/cron versionado |
+| P1.1b | Baixa | Sem runbook dedicado nem alerta de outbox pendente |
+| P6.4 | Baixa | `.opencode/` está no `.gitignore`; a skill de pendências existe só localmente |
+
+### 9.5 Achados novos
+
+1. **Credenciais de demonstração na UI (P0.5).** O parecer de 17/11 não viu isso
+   porque o arquivo mudou depois. O painel preenche usuário e senha com um clique;
+   o aviso textual ("nunca em produção") **não é controle**. Em build de produção
+   isso é entrega de credencial válida junto com o binário.
+2. **Deriva de versão (P0.4).** O commit `6e7354d` se anuncia como `v1.1.0`, mas
+   `backend/pyproject.toml` e `frontend/package.json` continuam em `1.0.0` e não
+   existe `CHANGELOG.md`. O binário validado não é identificável por versão.
+3. **Backup existe, rotina não (P0.2b).** Há script e há restauração testada, mas
+   nada garante que ele rode. Um backup não agendado não é controle operacional.
+4. **Skill de pendências fora do versionamento (P6.4).** `.opencode/` está no
+   `.gitignore`. O backlog e a auditoria só existem na máquina local — outro
+   desenvolvedor não os recebe.
+5. **TLS do k8s já correto.** `deploy/k8s/ingress.yaml:10` tem
+   `ssl-redirect: "true"`. A lacuna de P0.1 é só o caminho docker-compose.
+
+### 9.6 Evidência de execução
+
+```
+Ambiente: Python 3.12 (worktree limpo em 6e7354d)
+Comando:  python -m pytest -q --tb=line
+Resultado: 149 passed, 9 skipped, 14 warnings in 283.04s (0:04:43)
+```
+
+Os 9 ignorados continuam sendo os que exigem PostgreSQL real e rodam no job
+`postgres` do CI.
+
+Auditoria automatizada do backlog (24 checks): **12 PASS · 12 FAIL · 0 UNKNOWN**.
+Os FAIL correspondem exatamente aos 12 itens abertos de 9.4.
+
+### 9.7 Conclusão do adendo
+
+O parecer de 17/11 está **estruturalmente correto e factualmente desatualizado**.
+O sistema fechou os riscos 1, 3 e 4 e quase fechou o 2; o risco 5 encolheu para um
+item (consumo de insumo). O que sobrou é de outra natureza: **disciplina de
+release** (versão, changelog, redirect), **exposição de demo** e **pipelines de
+segurança**. Nenhum exige redesenho.
+
+**Recomendação revisada:** o Horizonte 3 pode avançar assim que P0.5 e P0.1
+fecharem; P0.4 deve entrar no mesmo pacote de release. Os demais itens são
+endurecimento incremental.
+
