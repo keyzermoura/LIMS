@@ -251,7 +251,7 @@ seções 1–8, **vale o adendo**.
 | P5.2 | Média | Sem E2E de navegador; `docker-smoke.sh` valida a stack por HTTP |
 | P0.2b | Baixa | Script de backup sem CronJob/timer/cron versionado |
 | P1.1b | Baixa | Sem runbook dedicado nem alerta de outbox pendente |
-| P6.4 | Baixa | `.opencode/` está no `.gitignore`; a skill de pendências existe só localmente |
+| P6.4 | Baixa | `.opencode/` está no `.gitignore`; a skill de pendências existe só localmente — **fechado em 9.8** |
 
 ### 9.5 Achados novos
 
@@ -281,8 +281,9 @@ Resultado: 149 passed, 9 skipped, 14 warnings in 283.04s (0:04:43)
 Os 9 ignorados continuam sendo os que exigem PostgreSQL real e rodam no job
 `postgres` do CI.
 
-Auditoria automatizada do backlog (24 checks): **12 PASS · 12 FAIL · 0 UNKNOWN**.
-Os FAIL correspondem exatamente aos 12 itens abertos de 9.4.
+Auditoria automatizada do backlog (24 checks): **12 PASS · 12 FAIL · 0 UNKNOWN**
+na revalidação. Após a decisão de 9.8 (skill realocada), passa a
+**13 PASS · 11 FAIL · 0 UNKNOWN**.
 
 ### 9.7 Conclusão do adendo
 
@@ -295,4 +296,35 @@ segurança**. Nenhum exige redesenho.
 **Recomendação revisada:** o Horizonte 3 pode avançar assim que P0.5 e P0.1
 fecharem; P0.4 deve entrar no mesmo pacote de release. Os demais itens são
 endurecimento incremental.
+
+### 9.8 Decisão de processo — P6.4 fechado (18/11/2026)
+
+O item P6.4 era uma pergunta disfarçada de pendência: *a skill de pendências deve
+morar no repositório do LIMS?* A resposta foi **não**.
+
+**Decisão:** a skill saiu de `E:\LIMS\.opencode` (diretório ignorado, nunca
+rastreado) e passou a viver em
+`%USERPROFILE%\.config\opencode\skills\lims-pendencias`, versionada em repositório
+privado próprio. O repositório do LIMS não contém mais `.opencode/`.
+
+**Justificativa:**
+
+1. O backlog é conhecimento de operação, não código do sistema validado. Misturá-lo
+   ao histórico de um artefato sob GAMP 5 / ISO 17025 / 21 CFR Part 11 cria ruído
+   de rastreabilidade sem benefício.
+2. Ignorar sem decidir (o estado anterior) é o pior dos dois mundos: não polui o
+   repo, mas também não chega a ninguém.
+3. Repositório próprio dá versão explícita, permite `pull` em outra máquina e
+   mantém o LIMS limpo.
+
+**Consequência técnica:** como a skill agora roda fora do repositório, o script de
+auditoria não consegue mais descobrir a raiz subindo diretórios. Ele passou a
+aceitar `--repo`, a variável `LIMS_REPO` e o diretório atual, nessa ordem.
+
+**Estado da auditoria:** `13 PASS · 11 FAIL · 0 UNKNOWN` (P6.4 = PASS). Os 11 itens
+abertos são os de 9.4, menos P6.4.
+
+> As seções 9.1–9.7 permanecem como fotografia da revalidação; esta seção registra
+> a única mudança de estado posterior.
+
 
