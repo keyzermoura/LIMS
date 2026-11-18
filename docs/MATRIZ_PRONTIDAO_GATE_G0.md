@@ -349,4 +349,8 @@ A aprovação de G0-P01–P30 significa aprovação das propostas de governança
 
 **Parecer:** GATE G0 NÃO APROVADO. Nenhum GO técnico ou operacional é declarado por este adendo. O Pacote A atualiza documentação e baseline, não autoriza alterações de código.
 
+### 10.1 Histórico do adendo
+
+| Versão | Data | Descrição |
+|---|---|---|
 | 0.4 | 2026-11-18 | Adendo da baseline e reclassificação dos bloqueadores à luz dos agregados implementados e das divergências comportamentais identificadas. |
