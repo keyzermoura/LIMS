@@ -151,12 +151,29 @@ async def test_advisory_lock_serializes_the_hash_chain(
         assert report["checked"] == 8
 
 
+async def _fetch_schema_triggers(db: AsyncSession) -> set[str]:
+    """Retorna nomes de triggers não-internas pertencentes exclusivamente ao schema corrente."""
+    rows = await db.scalars(
+        text(
+            "SELECT t.tgname "
+            "FROM pg_trigger t "
+            "JOIN pg_class c ON c.oid = t.tgrelid "
+            "JOIN pg_namespace n ON n.oid = c.relnamespace "
+            "WHERE n.nspname = current_schema() "
+            "AND NOT t.tgisinternal "
+            "AND t.tgname LIKE 'trg_%'"
+        )
+    )
+    return set(rows.all())
+
+
 async def test_trigger_parity_phase5(
     db_factory: async_sessionmaker[AsyncSession],
 ) -> None:
-    """Valida paridade total de guardas DDL instaladas no banco PostgreSQL (Risco 1 / ALCOA+)."""
+    """Valida paridade total de guardas DDL instaladas no schema isolado de teste."""
     expected_triggers = {
         "trg_audit_logs_append_only",
+        "trg_audit_logs_no_truncate",
         "trg_lab_test_results_append_only",
         "trg_custody_append_only",
         "trg_esignature_guard",
@@ -171,16 +188,65 @@ async def test_trigger_parity_phase5(
         "trg_training_records_append_only",
         "trg_custody_events_append_only",
         "trg_solicitations_no_delete",
+        "trg_solicitation_items_no_delete",
         "trg_receipts_no_delete",
+        "trg_receipt_items_no_delete",
         "trg_custody_objects_no_delete",
         "trg_receipt_decisions_no_delete",
         "trg_coordination_reviews_no_delete",
         "trg_analyst_qualifications_no_delete",
     }
     async with db_factory() as db:
-        triggers = set(
-            (
-                await db.scalars(text("SELECT tgname FROM pg_trigger WHERE tgname LIKE 'trg_%'"))
-            ).all()
-        )
-        assert expected_triggers.issubset(triggers)
+        schema = await db.scalar(text("SELECT current_schema()"))
+        assert isinstance(schema, str) and schema.startswith("lims_test_")
+        triggers = await _fetch_schema_triggers(db)
+        missing = expected_triggers - triggers
+        assert not missing, f"Triggers ausentes no schema {schema}: {sorted(missing)}"
+
+
+async def test_trigger_lookup_ignores_other_schemas_and_detects_missing_trigger(
+    db_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    """Comprova que trigger em outro schema não mascara ausência no schema de teste."""
+    extra_schema = f"lims_other_{uuid4().hex[:12]}"
+    async with db_factory() as db:
+        try:
+            await db.execute(text(f'CREATE SCHEMA "{extra_schema}"'))
+            await db.execute(text(f'CREATE TABLE "{extra_schema}".dummy_reports (id integer)'))
+            await db.execute(
+                text(
+                    f'CREATE OR REPLACE FUNCTION "{extra_schema}".dummy_guard() RETURNS trigger '
+                    "LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END; $$"
+                )
+            )
+            await db.execute(
+                text(
+                    "CREATE TRIGGER trg_official_reports_guard "
+                    f'BEFORE UPDATE ON "{extra_schema}".dummy_reports '
+                    f'FOR EACH ROW EXECUTE FUNCTION "{extra_schema}".dummy_guard()'
+                )
+            )
+            await db.execute(text("DROP TRIGGER trg_official_reports_guard ON official_reports"))
+
+            other_triggers = set(
+                (
+                    await db.scalars(
+                        text(
+                            "SELECT t.tgname "
+                            "FROM pg_trigger t "
+                            "JOIN pg_class c ON c.oid = t.tgrelid "
+                            "JOIN pg_namespace n ON n.oid = c.relnamespace "
+                            "WHERE n.nspname = :schema AND NOT t.tgisinternal"
+                        ),
+                        {"schema": extra_schema},
+                    )
+                ).all()
+            )
+            assert "trg_official_reports_guard" in other_triggers
+
+            triggers = await _fetch_schema_triggers(db)
+            assert "trg_official_reports_guard" not in triggers
+        finally:
+            await db.rollback()
+            await db.execute(text(f'DROP SCHEMA IF EXISTS "{extra_schema}" CASCADE'))
+            await db.commit()
