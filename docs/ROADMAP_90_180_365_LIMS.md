@@ -169,4 +169,8 @@ Ordem de trabalho:
 
 Prazos de 90/180/365 dias não devem ser interpretados como compromisso de entrega até que escopo, capacidade e dependências institucionais sejam estimados. Gate G0 permanece NÃO APROVADO até dossiê de evidências e homologação exigidos.
 
+### 9.1 Histórico do adendo
+
+| Versão | Data | Descrição |
+|---|---|---|
 | 1.1 | 2026-11-18 | Repriorização do roadmap após inspeção dos agregados já implementados e adoção do plano P0–P3. |
