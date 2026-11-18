@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, File, Form, Header, Query, UploadFile, s
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.api.deps import CurrentUser, DbSession, require_roles
+from app.api.deps import CurrentUser, DbSession, require_roles, require_scope
 from app.models.enums import InstrumentFileFormat, InstrumentImportStatus, UserRole
 from app.models.user import User
 from app.schemas.instrument_data import (
@@ -62,6 +62,7 @@ async def upload_instrument_file(
         Header(alias="Idempotency-Key", description="Chave de idempotência (RFC 7231 / H3.1)"),
     ] = None,
     current_user: User = Depends(require_roles(*WRITE_ROLES)),
+    _scoped_user: User = Depends(require_scope("instrument:write", "instruments:write", "*")),
 ):
     """Ingere arquivo bruto multipart, valida calibração, calcula SHA-256 e extrai medições."""
     content_bytes = await file.read()
@@ -131,6 +132,7 @@ async def upload_raw_instrument_data(
         Header(alias="Idempotency-Key", description="Chave de idempotência (RFC 7231 / H3.1)"),
     ] = None,
     current_user: User = Depends(require_roles(*WRITE_ROLES)),
+    _scoped_user: User = Depends(require_scope("instrument:write", "instruments:write", "*")),
 ):
     """Ingere conteúdo bruto de instrumento via corpo JSON estruturado."""
     client_id = (

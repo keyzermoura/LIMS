@@ -76,7 +76,8 @@ BEGIN
        OR OLD.issued_by_id IS DISTINCT FROM NEW.issued_by_id
        OR OLD.issued_at IS DISTINCT FROM NEW.issued_at
        OR OLD.signature_id IS DISTINCT FROM NEW.signature_id
-       OR OLD.auth_token IS DISTINCT FROM NEW.auth_token THEN
+       OR OLD.auth_token IS DISTINCT FROM NEW.auth_token
+       OR OLD.attributes IS DISTINCT FROM NEW.attributes THEN
         RAISE EXCEPTION 'Campos de laudo oficial sao imutaveis (21 CFR Part 11)'
             USING ERRCODE = 'insufficient_privilege';
     END IF;

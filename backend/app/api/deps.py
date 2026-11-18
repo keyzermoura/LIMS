@@ -132,6 +132,25 @@ def require_roles(*roles: UserRole):
     return dependency
 
 
+def require_scope(*scopes: str):
+    """Valida se uma conta de serviço M2M (UserRole.SERVICE) possui os escopos necessários."""
+    async def dependency(user: CurrentUser) -> User:
+        if user.role == UserRole.SERVICE:
+            client_scopes: list[str] = getattr(user, "_service_scopes", [])
+            allowed = set(scopes) | {"*"}
+            if not client_scopes or not any(s in allowed for s in client_scopes):
+                raise ForbiddenError(
+                    f"Acesso negado para conta de serviço. Escopos autorizados: {sorted(scopes)}.",
+                    details={
+                        "required_scopes": list(scopes),
+                        "provided_scopes": client_scopes,
+                    },
+                )
+        return user
+
+    return dependency
+
+
 async def signature_token_header(
     x_signature_token: Annotated[
         str | None,

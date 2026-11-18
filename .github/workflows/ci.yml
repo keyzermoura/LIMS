@@ -96,6 +96,30 @@ jobs:
       - name: Build
         run: npm run build
 
+  security:
+    name: Segurança (SAST e SCA)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Instalar dependências e scanners de segurança
+        run: pip install -r requirements-dev.txt
+
+      - name: SAST - Análise estática de vulnerabilidades (bandit)
+        run: bandit -r app -ll -ii
+
+      - name: SCA - Auditoria de dependências vulneráveis (pip-audit)
+        run: pip-audit -r requirements.txt
+
   docker:
     name: Docker (imagens e smoke test)
     runs-on: ubuntu-latest

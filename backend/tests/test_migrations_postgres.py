@@ -43,8 +43,8 @@ PHASE5_HEAD = "0012_fase5_webhooks"
 PHASE6_1 = "0013_fase6_laudos_emendas"
 PHASE6_HEAD = "0014_fase6_mfa_totp"
 PHASE7_HEAD = "0018_fase7_cep_westgard"
-PHASE8_PREV = "0020_fase8_outbox_webhooks"
-PHASE8_HEAD = "0021_fase8_mfa_secret_text"
+PHASE8_PREV = "0021_fase8_mfa_secret_text"
+PHASE8_HEAD = "0022_official_reports_attributes_immutable"
 
 PHASE1_TABLES = {
     "solicitations",
