@@ -246,3 +246,19 @@ A conclusão de que restariam apenas pendências institucionais/humanas, porém,
 |---|---|---|
 | 1.0 | 2026-11-10 | Matriz inicial de aderência do domínio existente à baseline SEFI. |
 | 1.1 | 2026-11-10 | Auditoria cruzada com o relatório multidisciplinar, inspeção direta do HEAD 7fc72d1 e confirmação dos jobs CI; mantidas as classificações funcionais D01–D20 e a decisão de Gate G0 não aprovado. |
+
+
+## 15. Adendo de reavaliação da baseline — 18/11/2026
+
+**HEAD examinado:** `e5797013cff5b455c3d105a3a8ee2407da5213c5`.  
+**Matriz atualizada:** `docs/MATRIZ_MESTRA_ADERENCIA_MATURIDADE_BASELINE_LIMS_SEFI.md`.
+
+A matriz v1.1 permanece válida como registro histórico da inspeção de 10/11/2026, mas suas classificações de ausência de Solicitação, Recebimento, ItemRecebimento e ObjetoCustodia estão superadas para a baseline atual. A nova inspeção identificou os modelos e serviços desses agregados, incluindo a operação de aceite que cria `DeviceSample` vinculada a `CustodyObject`.
+
+A classificação funcional, contudo, não deve ser elevada automaticamente a aderente: `create_receipt()` inicializa todos os itens como apresentados, iguala quantidade apresentada à declarada e cria objeto de custódia para todos. D03/D04 permanecem parciais e bloqueadoras até correção e teste. D20 possui estrutura de aceite/amostra, mas permanece parcial até prova das pré-condições completas e de idempotência/concorrência.
+
+As decisões D05, D08, D11–D13, D19 e outros requisitos cujo ciclo completo não foi inspecionado são classificados como não verificados na Matriz Mestra; não se deve inferir inexistência nem conformidade a partir da ausência de inspeção.
+
+**Parecer atualizado:** evoluir a arquitetura existente, sem reconstrução; manter G0 NÃO APROVADO até correção dos bloqueadores, evidência de testes e homologação operacional. Este adendo não autoriza implementação.
+
+| 1.2 | 2026-11-18 | Reavaliação estática contra HEAD e referência à Matriz Mestra; separa ausência histórica de componente, lacuna comportamental e requisito não verificado. |
