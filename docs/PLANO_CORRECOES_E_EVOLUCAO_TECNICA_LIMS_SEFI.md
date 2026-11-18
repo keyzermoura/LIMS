@@ -131,3 +131,18 @@ A ordem poderá ser refinada quando a Matriz Mestra do Pacote A demonstrar depen
 | 2026-11-18 | Criação deste plano | Documento de planejamento registrado em branch documental. |
 | 2026-11-18 | Pacote A | Em execução; ver matriz e parecer de baseline associados. |
 
+
+
+## 10. Atualização de execução — Pacote A (18/11/2026)
+
+**Status:** concluído documentalmente nesta branch, sujeito a revisão do pull request.
+
+Entregáveis registrados:
+- `docs/MATRIZ_MESTRA_ADERENCIA_MATURIDADE_BASELINE_LIMS_SEFI.md` — baseline, mapeamento lógico/físico, D01–D20, grupos G0-P01–P30, maturidade, achados e critérios de saída.
+- Adendo de baseline no `docs/MODELO_LOGICO_REVISADO_DOMINIO_SEFI_M0_3.md`.
+- Adendo de reavaliação no `docs/MATRIZ_ADERENCIA_DOMINIO_SEFI.md`.
+- Adendo de evidências e bloqueadores no `docs/MATRIZ_PRONTIDAO_GATE_G0.md`.
+- Adendo de reclassificação no `docs/MATRIZ_LACUNAS_ARQUITETURAIS_LIMS.md`.
+- Adendo de repriorização no `docs/ROADMAP_90_180_365_LIMS.md`.
+
+Nenhum código de aplicação, migration, schema, frontend, CI ou infraestrutura foi alterado. Nenhum teste foi declarado executado nesta etapa. O Gate G0 permanece NÃO APROVADO e o Pacote B (correções de código) não foi iniciado.
