@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -27,7 +28,13 @@ from app.schemas.test_execution import (
     TestExecutionRecordData,
     TestExecutionStart,
 )
-from app.services import audit_service, equipment_service, outbox_service, qualification_service
+from app.services import (
+    audit_service,
+    equipment_service,
+    outbox_service,
+    qualification_service,
+    reagent_service,
+)
 
 
 async def get_execution(db: AsyncSession, execution_id: UUID) -> TestExecution:
@@ -351,3 +358,25 @@ async def interrupt_execution(
     )
     refreshed = await get_execution(db, execution.id)
     return refreshed, audit_entry.sequence
+
+
+async def consume_reagent(
+    db: AsyncSession,
+    *,
+    execution_id: UUID,
+    batch_id: UUID,
+    quantity_used: float,
+    unit: str,
+    actor: User,
+    context: RequestContext,
+) -> Any:
+    """Registra consumo de reagente/padrão certificado vinculado à execução (P3.1 / ISO 17025 §6.4)."""
+    return await reagent_service.consume_reagent_in_execution(
+        db,
+        execution_id=execution_id,
+        batch_id=batch_id,
+        quantity_used=quantity_used,
+        unit=unit,
+        actor=actor,
+        context=context,
+    )

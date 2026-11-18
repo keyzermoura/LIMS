@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,6 +28,7 @@ from app.models.enums import (
 from app.models.lab_test import LabTest
 from app.models.user import User
 from app.schemas.sample import SampleCreate, SampleStatusUpdate
+from app.schemas.sample_aliquot import SampleAliquotCreate, SampleAliquotOut
 from app.services import audit_service, signature_service
 from app.services.workflow import ensure_transition
 
@@ -142,6 +143,83 @@ async def get_sample_by_barcode(db: AsyncSession, barcode: str) -> DeviceSample:
     if sample is None:
         raise NotFoundError(f"Nenhuma amostra encontrada para o código '{code}'.")
     return sample
+
+
+async def create_sample_aliquot(
+    db: AsyncSession,
+    sample_id: UUID,
+    payload: SampleAliquotCreate,
+    actor: User,
+    context: RequestContext | None = None,
+) -> SampleAliquotOut:
+    """Cria uma sub-alíquota fracionada a partir da amostra-mãe (ISO/IEC 17025 §7.4 / P4.2)."""
+    sample = await get_sample(db, sample_id)
+    now = utcnow()
+    aliquot_id = uuid4()
+    aliquot_dict = {
+        "id": str(aliquot_id),
+        "device_sample_id": str(sample.id),
+        "aliquot_code": payload.aliquot_code.strip(),
+        "volume_or_mass": payload.volume_or_mass,
+        "unit": payload.unit.strip(),
+        "storage_location": payload.storage_location,
+        "created_at": now.isoformat(),
+        "created_by_id": str(actor.id),
+        "notes": payload.notes,
+    }
+    attrs = dict(sample.attributes or {})
+    aliquots = list(attrs.get("aliquots", []))
+    if any(a.get("aliquot_code") == payload.aliquot_code.strip() for a in aliquots):
+        raise ConflictError(f"Alíquota com código '{payload.aliquot_code}' já existe para esta amostra.")
+
+    aliquots.append(aliquot_dict)
+    attrs["aliquots"] = aliquots
+    sample.attributes = attrs
+    await db.flush()
+
+    await audit_service.append(
+        db,
+        action=AuditAction.UPDATE,
+        entity_type=AuditEntity.DEVICE_SAMPLE.value,
+        entity_id=sample.id,
+        actor=actor,
+        new_value={"aliquot_created": aliquot_dict},
+        reason=f"Fracionamento de sub-alíquota {payload.aliquot_code}",
+        context=context,
+    )
+    return SampleAliquotOut(
+        id=aliquot_id,
+        device_sample_id=sample.id,
+        aliquot_code=payload.aliquot_code.strip(),
+        volume_or_mass=payload.volume_or_mass,
+        unit=payload.unit.strip(),
+        storage_location=payload.storage_location,
+        created_at=now,
+        created_by_id=actor.id,
+        notes=payload.notes,
+    )
+
+
+async def list_sample_aliquots(db: AsyncSession, sample_id: UUID) -> list[SampleAliquotOut]:
+    """Lista todas as sub-alíquotas registradas para a amostra."""
+    sample = await get_sample(db, sample_id)
+    attrs = sample.attributes or {}
+    raw_aliquots = attrs.get("aliquots", [])
+    return [
+        SampleAliquotOut(
+            id=UUID(a["id"]),
+            device_sample_id=UUID(a["device_sample_id"]),
+            aliquot_code=a["aliquot_code"],
+            volume_or_mass=float(a["volume_or_mass"]),
+            unit=a["unit"],
+            storage_location=a.get("storage_location"),
+            created_at=datetime.fromisoformat(a["created_at"]),
+            created_by_id=UUID(a["created_by_id"]) if a.get("created_by_id") else None,
+            notes=a.get("notes"),
+        )
+        for a in raw_aliquots
+    ]
+
 
 
 async def list_samples(

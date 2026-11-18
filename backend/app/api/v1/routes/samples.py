@@ -37,6 +37,7 @@ from app.schemas.sample import (
     SampleVerifyOut,
     TimelineEvent,
 )
+from app.schemas.sample_aliquot import SampleAliquotCreate, SampleAliquotOut
 from app.services import custody_service, sample_service, signature_service
 
 router = APIRouter(prefix="/samples", tags=["Amostras e Cadeia de Custódia"])
@@ -148,6 +149,38 @@ async def verify_qr(token: str, db: DbSession, user: CurrentUser) -> SampleVerif
 async def get_sample(sample_id: UUID, db: DbSession, user: CurrentUser) -> SampleOut:
     sample = await sample_service.get_sample(db, sample_id)
     return SampleOut.model_validate(sample)
+
+
+@router.post(
+    "/{sample_id}/aliquots",
+    response_model=SampleAliquotOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Criar e registrar sub-alíquota de amostra (ISO 17025 §7.4 / P4.2)",
+)
+async def create_sample_aliquot(
+    sample_id: UUID,
+    payload: SampleAliquotCreate,
+    request: Request,
+    db: DbSession,
+    user: User = Depends(require_roles(*WRITE_ROLES)),
+) -> SampleAliquotOut:
+    context = RequestContext.from_request(request)
+    return await sample_service.create_sample_aliquot(
+        db, sample_id=sample_id, payload=payload, actor=user, context=context
+    )
+
+
+@router.get(
+    "/{sample_id}/aliquots",
+    response_model=list[SampleAliquotOut],
+    summary="Listar sub-alíquotas registradas da amostra",
+)
+async def list_sample_aliquots(
+    sample_id: UUID,
+    db: DbSession,
+    user: CurrentUser,
+) -> list[SampleAliquotOut]:
+    return await sample_service.list_sample_aliquots(db, sample_id=sample_id)
 
 
 @router.get(
