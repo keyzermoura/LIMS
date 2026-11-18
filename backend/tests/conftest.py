@@ -1,4 +1,4 @@
-"""Fixtures dos testes de integração HTTP.
+﻿"""Fixtures dos testes de integração HTTP.
 
 Por padrão cada teste recebe um banco SQLite em arquivo temporário, criado a
 partir do metadata real. Definindo `LIMS_TEST_DATABASE_URL` (ex.:
@@ -59,9 +59,16 @@ DEMO_USERS: list[tuple[str, str, UserRole, str, str | None]] = [
 ]
 
 
+SQL_FILES: tuple[str, ...] = (
+    "001_immutability.sql",
+    "002_indexes.sql",
+    "003_integridade_fase5.sql",
+)
+
+
 async def _install_sql_files(engine: AsyncEngine) -> None:
     """Aplica triggers/indices/sequences no schema corrente da conexão."""
-    for filename in ("001_immutability.sql", "002_indexes.sql"):
+    for filename in SQL_FILES:
         script = (SQL_DIR / filename).read_text(encoding="utf-8")
         async with engine.begin() as conn:
             for statement in split_sql_script(script):

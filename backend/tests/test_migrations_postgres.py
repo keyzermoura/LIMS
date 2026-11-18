@@ -265,10 +265,15 @@ async def test_upgrade_head_creates_schema_without_drift(migration_url: str) -> 
     for enum_name in PHASE1_ENUMS | PHASE2_ENUMS | PHASE4_ENUMS | PHASE5_ENUMS | PHASE7_ENUMS:
         assert counts.get(enum_name) == 1, f"enum {enum_name}: {counts.get(enum_name)}"
 
-    # Guardas de imutabilidade da migração 0002 continuam presentes.
+    # Guardas de imutabilidade da migração 0002 continuam presentes no schema atual.
     triggers = await _scalars(
         migration_url,
-        "SELECT tgname FROM pg_trigger WHERE tgname = 'trg_audit_logs_append_only'",
+        "SELECT t.tgname FROM pg_trigger t "
+        "JOIN pg_class c ON c.oid = t.tgrelid "
+        "JOIN pg_namespace n ON n.oid = c.relnamespace "
+        "WHERE n.nspname = current_schema() "
+        "AND NOT t.tgisinternal "
+        "AND t.tgname = 'trg_audit_logs_append_only'",
     )
     assert triggers
 
