@@ -146,3 +146,18 @@ Entregáveis registrados:
 - Adendo de repriorização no `docs/ROADMAP_90_180_365_LIMS.md`.
 
 Nenhum código de aplicação, migration, schema, frontend, CI ou infraestrutura foi alterado. Nenhum teste foi declarado executado nesta etapa. O Gate G0 permanece NÃO APROVADO e o Pacote B (correções de código) não foi iniciado.
+
+
+## 11. Atualização de execução — Pacote B (18/11/2026)
+
+**Status:** especificação técnica preliminar documentada; não liberada para implementação.
+
+Entregável:
+- `docs/ESPECIFICACAO_TECNICA_PACOTE_B_RECEBIMENTO_CUSTODIA_ACEITE.md` — modelo lógico proposto, fluxo transacional, invariantes, estratégia de migração, contratos conceituais e matriz TB-01 a TB-29.
+
+Achados complementares registrados:
+- O checklist atual está vinculado a `ReceiptItem`; o serviço examinado substitui respostas anteriores ao limpar a coleção antes de gravar novas respostas. O histórico formal precisa ser preservado/versionado.
+- Há entidades de decisão e revisão de coordenação. O trecho de aceite de custódia examinado não consulta checklist, decisão ou revisão da coordenação antes de criar a amostra.
+- O aceite precisa reconciliar a decisão formal e o estado de coordenação, além de impedir amostra duplicada em concorrência.
+
+Nenhum arquivo de aplicação, schema, migration, frontend, CI ou infraestrutura foi alterado. Não foram executados testes nesta etapa. Permanecem pendentes a inspeção das rotas, migrations, testes existentes e frontend; as decisões de domínio DB-01 a DB-07 precisam ser confirmadas antes de implementar. Gate G0 permanece NÃO APROVADO.
