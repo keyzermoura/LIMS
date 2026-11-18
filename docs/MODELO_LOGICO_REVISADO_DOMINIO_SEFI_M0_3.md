@@ -612,3 +612,36 @@ Este documento é uma proposta para revisão, não uma aprovação institucional
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-10 | Primeira versão do modelo lógico revisado: entidades, cardinalidades, estados, transições, eventos, invariantes, D01–D20, compatibilidade com legado e pendências. |
+
+
+## 21. Adendo de baseline e compatibilização com implementação — 18/11/2026
+
+**Baseline de referência:** `e5797013cff5b455c3d105a3a8ee2407da5213c5`.  
+**Documento complementar:** `docs/MATRIZ_MESTRA_ADERENCIA_MATURIDADE_BASELINE_LIMS_SEFI.md`.  
+**Plano de correções:** `docs/PLANO_CORRECOES_E_EVOLUCAO_TECNICA_LIMS_SEFI.md`.
+
+### 21.1 Atualização do diagnóstico
+
+A inspeção estática da baseline atual identificou implementação dos agregados `Solicitation`, `SolicitationItem`, `Receipt`, `ReceiptItem`, `CustodyObject` e `CustodyEvent`, além da operação de aceite que vincula o objeto à `DeviceSample`. Portanto, as afirmações das seções anteriores sobre ausência desses agregados devem ser lidas como diagnóstico histórico da baseline examinada em 10/11/2026, e não como descrição do HEAD de 18/11/2026.
+
+O reconhecimento dos modelos existentes não altera os princípios lógicos, cardinalidades e invariantes deste M0.3. A implementação atual deve ser mapeada para os conceitos existentes, evitando duplicação de entidades sem necessidade demonstrada.
+
+### 21.2 Divergência funcional confirmada
+
+Na função `create_receipt()` de `backend/app/services/receipt_service.py`, a criação inicial define cada `ReceiptItem` como `PRESENTED`, atribui à quantidade apresentada a quantidade declarada e cria `CustodyObject`/evento `INGRESSO` para cada item. Esse comportamento não representa corretamente item não apresentado ou apresentação parcial e conflita com D03/D04 e os invariantes de ausência não ser recusa nem custódia.
+
+A correção deve manter todos os itens declarados representados no recebimento, mas só registrar material apresentado e criar objeto de custódia para a quantidade efetivamente recebida. A especificação detalhada deve compatibilizar D19 sem criar recebimento principal duplicado.
+
+### 21.3 Aceite e amostra
+
+O serviço de aceite de `CustodyObject` contém criação de `DeviceSample` quando a decisão é favorável, com vínculo de origem ao objeto e eventos/auditoria. Trata-se de evolução estrutural em relação à fotografia anterior. Ainda não se declara D20 atendida: devem ser demonstradas as verificações de conferência, quantidades, critérios impeditivos, pendências, validação independente, assinatura quando exigida, unicidade e concorrência.
+
+### 21.4 Estado e autoridade do documento
+
+Este adendo atualiza somente o diagnóstico da implementação. Não altera decisões D01–D20, não aprova refinamentos que dependam de validação funcional, não autoriza alteração de código e não modifica o status do Gate G0.
+
+**M0.3: proposta lógica mantida; diagnóstico de implementação atualizado; validação institucional do documento permanece necessária.**
+**Gate G0: NÃO APROVADO.**
+**Implementação SEFI: sujeita às autorizações e aprovações aplicáveis.**
+
+| 0.2 | 2026-11-18 | Adendo de baseline: reconhece os agregados implementados, registra divergência de apresentação/custódia inicial e atualiza o parecer de aceite sem declarar D20 concluída. |
