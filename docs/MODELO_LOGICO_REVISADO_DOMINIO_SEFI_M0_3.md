@@ -644,4 +644,8 @@ Este adendo atualiza somente o diagnóstico da implementação. Não altera deci
 **Gate G0: NÃO APROVADO.**
 **Implementação SEFI: sujeita às autorizações e aprovações aplicáveis.**
 
+### 21.5 Histórico do adendo
+
+| Versão | Data | Descrição |
+|---|---|---|
 | 0.2 | 2026-11-18 | Adendo de baseline: reconhece os agregados implementados, registra divergência de apresentação/custódia inicial e atualiza o parecer de aceite sem declarar D20 concluída. |
