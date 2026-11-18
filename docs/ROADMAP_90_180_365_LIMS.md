@@ -150,3 +150,23 @@ H0  Integridade ──► H1  Segurança ──► H2  Laboratório ──► H3
 | Restauração de backup testada | ≤ 90 dias de intervalo | Trimestral |
 | Vulnerabilidades altas abertas | 0 | Semanal |
 | Itens de gate reprovados | 0 para promover release | Por release |
+
+
+## 9. Repriorização pela baseline de 18/11/2026
+
+O roadmap anterior deve ser lido em conjunto com `docs/PLANO_CORRECOES_E_EVOLUCAO_TECNICA_LIMS_SEFI.md` e `docs/MATRIZ_MESTRA_ADERENCIA_MATURIDADE_BASELINE_LIMS_SEFI.md`.
+
+A prioridade imediata deixa de ser construir do zero o domínio de solicitação/recebimento/custódia: esses agregados já estão presentes no HEAD `e5797013cff5b455c3d105a3a8ee2407da5213c5`. O foco passa a ser corrigir a semântica de apresentação/quantidades/custódia inicial, comprovar a barreira de aceite D20 e fechar continuidade/backup.
+
+Ordem de trabalho:
+1. Pacote A documental e de arquitetura, sem mudança de código.
+2. P0 recebimento, quantidades, custódia e barreira de amostra, após especificação e autorização.
+3. P0 backup/restauração com teste real e evidência de recuperação.
+4. P1 segurança/autorização, anexos/evidências e integração de consumo de insumos por método.
+5. P1 métodos, equipamentos, revisão técnica, relatórios e E2E.
+6. P2 filas, SLA, analytics e experiência de usuário.
+7. P3 portal externo, workflow configurável, BI avançado e mobile, mediante necessidade institucional.
+
+Prazos de 90/180/365 dias não devem ser interpretados como compromisso de entrega até que escopo, capacidade e dependências institucionais sejam estimados. Gate G0 permanece NÃO APROVADO até dossiê de evidências e homologação exigidos.
+
+| 1.1 | 2026-11-18 | Repriorização do roadmap após inspeção dos agregados já implementados e adoção do plano P0–P3. |
