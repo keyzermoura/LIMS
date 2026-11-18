@@ -326,3 +326,27 @@ Não se corrobora, entretanto, a conclusão de que restariam apenas pendências 
 - Prontidão formal: não atingida.
 
 **Parecer:** manter **GATE G0 NÃO APROVADO** e **IMPLEMENTAÇÃO NÃO AUTORIZADA**. O CI verde atualiza positivamente a evidência de execução da engenharia existente, mas não altera a decisão de NO-GO para implementação SEFI.
+
+
+## 10. Adendo de baseline técnica — 18/11/2026
+
+**Baseline examinada:** `e5797013cff5b455c3d105a3a8ee2407da5213c5`.  
+**Matriz de evidência atual:** `docs/MATRIZ_MESTRA_ADERENCIA_MATURIDADE_BASELINE_LIMS_SEFI.md`.  
+**Plano de correções:** `docs/PLANO_CORRECOES_E_EVOLUCAO_TECNICA_LIMS_SEFI.md`.
+
+A inspeção atual confirma componentes de solicitação, itens declarados, recebimento, itens recebidos, objetos/eventos de custódia e operação de aceite com criação vinculada de amostra. Isso melhora a maturidade estrutural em relação a fotografias anteriores, mas não encerra os bloqueadores funcionais.
+
+**Bloqueadores técnicos atualizados:**
+1. D03/D04: apresentação física e quantidades não estão corretamente inicializadas em `create_receipt()`; todos os itens são tratados como apresentados e recebem objeto de custódia.
+2. D20: a operação de aceite cria amostra a partir de objeto aceito, mas as pré-condições completas, unicidade e concorrência precisam de evidência específica.
+3. D17: restauração operacional e recuperação/PITR continuam sem comprovação suficiente.
+4. D13/G0-P09/G0-P24: ciclo completo de armazenamento, integridade, acesso, retenção e recuperação de anexos/evidências não foi comprovado nesta inspeção.
+5. G0-P11/P12/P13/P15: homologação com usuários, rastreabilidade CA/SIM, revisão de arquitetura/segurança e E2E de navegador exigem evidências próprias.
+
+O serviço de execução também requer avaliação do intertravamento de consumo de reagentes/padrões quando exigidos pelo método; esse item é melhoria P1 e não deve ser generalizado para ensaios sem requisito de insumo.
+
+A aprovação de G0-P01–P30 significa aprovação das propostas de governança, não conclusão dos entregáveis correspondentes. Evidência de software, execução de teste, homologação operacional e decisão formal permanecem categorias distintas.
+
+**Parecer:** GATE G0 NÃO APROVADO. Nenhum GO técnico ou operacional é declarado por este adendo. O Pacote A atualiza documentação e baseline, não autoriza alterações de código.
+
+| 0.4 | 2026-11-18 | Adendo da baseline e reclassificação dos bloqueadores à luz dos agregados implementados e das divergências comportamentais identificadas. |
