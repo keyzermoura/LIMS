@@ -368,3 +368,25 @@ A revisão deve produzir, em conjunto:
 | Versão | Data | Descrição |
 |---|---|---|
 | 1.0 | 09/11/2026 | Criação da matriz consolidada a partir do diagnóstico técnico-funcional, do desenho de solicitação/recebimento e da documentação do repositório. |
+
+
+## 16. Adendo de reclassificação das lacunas — 18/11/2026
+
+**Baseline:** `e5797013cff5b455c3d105a3a8ee2407da5213c5`.  
+**Referência atual:** `docs/MATRIZ_MESTRA_ADERENCIA_MATURIDADE_BASELINE_LIMS_SEFI.md` e `docs/PLANO_CORRECOES_E_EVOLUCAO_TECNICA_LIMS_SEFI.md`.
+
+O diagnóstico de 09/11/2026 antecede a implementação dos agregados de solicitação, recebimento, item recebido e objeto de custódia identificados no HEAD atual. As lacunas A01, A03, A05 e parte de A07/A08/A09 devem ser reavaliadas como componentes existentes com aderência comportamental parcial ou não verificada, e não mantidas como ausência absoluta de estrutura.
+
+A lacuna central atual desloca-se da ausência de entidades para a correta aplicação das regras: apresentação física, reconciliação de quantidades, criação condicional de objetos de custódia, decisões e pré-condições de aceite/amostra. O achado confirmado em `receipt_service.create_receipt()` é classificado P0.
+
+A criação de `DeviceSample` a partir de `CustodyObject` aceito já está representada no serviço de custódia; permanece necessário comprovar a barreira completa D20 e as garantias de unicidade/concorrência.
+
+O intertravamento de reagentes/padrões é P1, condicionado aos requisitos do método. Backup/restore permanece P0. Anexos/evidências, métodos/versionamento, E2E e validação operacional permanecem lacunas a comprovar.
+
+Este adendo não apaga as conclusões históricas da matriz nem autoriza implementação. A Matriz Mestra passa a ser a referência consolidada para o estado estático da baseline de 18/11/2026.
+
+### 16.1 Histórico do adendo
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.1 | 2026-11-18 | Reclassificação de lacunas à luz dos modelos/serviços atuais; distinção entre estrutura existente, aderência parcial e evidência não verificada. |
