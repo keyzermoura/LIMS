@@ -305,3 +305,51 @@ A proposta preferencial é aditiva: introduzir o fato histórico de apresentaç�
 **Pacote A:** documentalmente concluído, PR #5 permanece separado e não mesclado.  
 **Pacote B:** em especificação; nenhuma alteração de backend, frontend, migration ou infraestrutura nesta entrega.  
 **Gate G0:** NÃO APROVADO.
+
+
+---
+
+## 15. Complemento da inspeção — checklist e decisão/coordenação
+
+Após a primeira redação, foram examinados também `models/checklist.py`, `models/decision.py`, `services/checklist_service.py` e `services/decision_service.py`. Esses arquivos refinam os riscos e exigem os seguintes ajustes na especificação de implementação.
+
+### 15.1 Checklist atual
+
+- `ChecklistAnswer` está vinculado a `ReceiptItem`, não diretamente a `CustodyObject` ou a um evento de apresentação.
+- `submit_checklist_answers()` limpa a coleção de respostas anteriores antes de gravar as novas (`receipt_item.checklist_answers.clear()`). Isso significa substituição destrutiva do conjunto de respostas, incompatível com a exigência de histórico imutável se já houve formalização.
+- O serviço calcula conformidade a partir de classes de critério, mas o trecho inspecionado ainda precisa ser lido integralmente e relacionado aos critérios vigentes, inclusive regra de saneamento, para fechar a matriz de bloqueio.
+
+**Consequência:** antes de implementar P0-04, decidir se o checklist é aplicado por item, apresentação ou objeto. Para auditoria, recomenda-se preservar cada submissão como uma revisão/versionamento identificável, sem apagar respostas previamente formalizadas. A revisão deve apontar o template e a versão exatos usados, o ator, o instante e a justificativa de eventual reaplicação.
+
+### 15.2 Decisão e revisão da coordenação atuais
+
+- `ReceiptDecision` já possui vínculo obrigatório com `ReceiptItem` e vínculo opcional com `CustodyObject`.
+- A decisão armazena `decision`, justificativa, decisor e `requires_coordination_review`.
+- `record_receipt_decision()` define revisão obrigatória para decisões PENDING e REJECTED; cria `CoordinationReview` pendente e atualiza o campo-resumo `ReceiptItem.decision`.
+- `review_coordination_decision()` aplica segregação de funções: o revisor não pode ser o mesmo usuário que formalizou a decisão.
+- Quando a coordenação aprova, o serviço limpa `requires_coordination_review`; é necessário verificar no fluxo completo o tratamento de DEVOLVIDO/REJEITADO e se há uma decisão final explícita.
+- O trecho de `accept_custody_object()` não consulta `ReceiptDecision`, `CoordinationReview` nem `ChecklistAnswer` antes de criar `DeviceSample`.
+
+**Consequência:** o intertravamento P0-04 é uma lacuna comportamental concreta no trecho examinado. O aceite não pode confiar somente em `CustodyAcceptanceCreate.decision`; deve reconciliar a decisão formal registrada, checklist vigente, coordenação quando exigida e estado atual do objeto.
+
+### 15.3 Requisitos adicionais de aceite
+
+| ID | Requisito adicional | Critério verificável |
+|---|---|---|
+| TB-23 | Checklist substituído após submissão formal | A versão anterior permanece consultável; nova versão não apaga a anterior. |
+| TB-24 | Decisão PENDING com revisão pendente | `accept_custody_object()` bloqueia criação de amostra. |
+| TB-25 | Decisão REJECTED com coordenação pendente | Nenhuma amostra é criada enquanto a revisão obrigatória não estiver concluída conforme regra aprovada. |
+| TB-26 | Revisor igual ao decisor | Revisão é bloqueada pela segregação de funções. |
+| TB-27 | Decisão formal inexistente | Não se aceita objeto apenas com decisão enviada no payload se o processo exigir registro formal. |
+| TB-28 | Divergência entre decisão no ReceiptItem e histórico ReceiptDecision | Bloqueio e encaminhamento para reconciliação; não escolher silenciosamente um dos valores. |
+| TB-29 | Reaplicação de checklist | Nova revisão versionada preserva template, critérios, respostas e autor da revisão anterior. |
+
+### 15.4 Questões que continuam abertas
+
+1. Confirmar se checklist é por item, por objeto ou por apresentação. O modelo atual aponta para ReceiptItem; não alterar essa semântica sem validação.
+2. Confirmar se decisão de recebimento e aceite de custódia são a mesma decisão em fases diferentes ou decisões distintas. O modelo atual sugere decisões do item/objeto e um comando separado de aceite.
+3. Confirmar quais estados da revisão de coordenação liberam o avanço: APROVADO é o único resultado positivo explícito no enum; DEVOLVIDO e REJEITADO não devem liberar.
+4. Definir se decisão REJECTED, após validação da coordenação, resulta em encerramento/recusa do objeto, devolução ou outra destinação. Não presumir que revisão aprovada signifique aceite do material.
+5. Rever o histórico de respostas do checklist para não apagar evidência de uma decisão já formalizada.
+
+**Status do complemento:** achados de inspeção estática; ainda não foram executados testes nem homologação. Mantêm-se todos os limites e ressalvas das seções anteriores.
