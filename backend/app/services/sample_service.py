@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.core.context import RequestContext
 from app.core.errors import ConflictError, NotFoundError, ValidationDomainError
@@ -175,6 +176,7 @@ async def create_sample_aliquot(
     aliquots.append(aliquot_dict)
     attrs["aliquots"] = aliquots
     sample.attributes = attrs
+    flag_modified(sample, "attributes")
     await db.flush()
 
     await audit_service.append(
@@ -187,6 +189,7 @@ async def create_sample_aliquot(
         reason=f"Fracionamento de sub-alíquota {payload.aliquot_code}",
         context=context,
     )
+    await db.commit()
     return SampleAliquotOut(
         id=aliquot_id,
         device_sample_id=sample.id,
