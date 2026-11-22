@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.3  
+**Versão:** 0.4  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -129,6 +129,7 @@ A rastreabilidade está estruturada em nível de decisão e grupos de invariante
 | 0.1 | 2026-11-21 | Primeira consolidação D01–D20 × entidades/estados/eventos × INV × CA × SIM, com evidência, lacunas, parecer e plano de fechamento. |
 | 0.2 | 2026-11-21 | Segunda camada de rastreabilidade estática: serviços, rotas/API, testes existentes, linhas de código e lacunas entre teste escrito e requisito. |
 | 0.3 | 2026-11-21 | Auditoria estática de autorização contextual, isolamento organizacional, acesso a anexos, usuários e exposição pública de laudos. |
+| 0.4 | 2026-11-21 | Auditoria estática de concorrência, atomicidade, idempotência e consistência transacional dos fluxos de recebimento, decisão, aceite e custódia. |
 ## 12. Rastreabilidade técnica — requisito → serviço → API → teste
 
 **Método:** leitura estática dos arquivos atuais da branch main. As referências identificam código e testes versionados; não representam execução da suíte. A coluna teste descreve o que o teste efetivamente afirma, não o que o nome promete.
@@ -247,3 +248,71 @@ A implementação possui controles positivos de autenticação, RBAC, MFA, sess�
 **Conclusão:** autorização por papel existe; isolamento contextual por recurso/unidade não está comprovado nos fluxos examinados. SEC-01 a SEC-04 são bloqueadores preliminares de segurança para uso institucional com dados reais até que o requisito seja esclarecido, implementado e testado. SEC-09 exige decisão institucional antes de considerar o endpoint público adequado.
 
 **Limite:** parecer estático; não foi realizado teste de intrusão, execução automatizada, revisão completa de todos os endpoints ou avaliação de ambiente implantado. Não afirmar vulnerabilidade explorável em produção sem essas verificações.
+
+## 14. Auditoria de integridade transacional, concorrência e idempotência
+
+**Escopo:** inspeção estática dos serviços, modelos, rotas e testes na branch main. Nenhum teste foi executado nesta rodada. As conclusões distinguem restrições de banco, verificações de versão no serviço e testes que apenas simulam conflito sequencial.
+
+### 14.1 Achados
+
+| ID | Operação | Evidência estática | Parecer | Prioridade preliminar |
+|---|---|---|---|---|
+| TX-01 | Criação concorrente de recebimento | receipt_service.py:45-155 consulta Receipt existente e status da Solicitation, mas não bloqueia a solicitação com SELECT FOR UPDATE. Receipt.solicitation_id é UNIQUE (models/receipt.py:54-59). | A constraint impede dois recebimentos persistidos para a mesma solicitação; a corrida pode terminar em IntegrityError não convertido em conflito de domínio. Não há evidência de tratamento/retry idempotente para reenvio concorrente. | P0 |
+| TX-02 | Aceite concorrente e geração de amostra | receipt_service.py:362-501 carrega CustodyObject sem FOR UPDATE; compara version em memória e cria DeviceSample. | A verificação version não é compare-and-swap SQL. Duas transações podem ler a mesma versão antes de gravar. CustodyObject.linked_device_sample_id é UNIQUE, mas DeviceSample.origin_custody_object_id não é UNIQUE; a restrição existente não demonstra exclusividade da origem no lado da amostra. Risco de amostras duplicadas por objeto. | P0 |
+| TX-03 | Transferência concorrente de objeto de custódia novo | receipt_service.py:299-357 busca objeto sem FOR UPDATE, valida version em memória, altera custodiante/local e grava evento. | Não há bloqueio pessimista nem atualização condicional pela versão no trecho. Duas transferências concorrentes podem produzir eventos e estado final divergentes do fluxo pretendido. | P0 |
+| TX-04 | Transferência de amostra no fluxo legado | custody_service.py:30-138 usa SELECT FOR UPDATE e valida version após adquirir o lock; grava evento, estado, assinatura e auditoria na mesma sessão/transação. | Controle significativamente mais robusto para concorrência do registro principal. Ainda requer teste concorrente real e avaliação de comportamento em falha/timeout de assinatura. | Parcial/positivo |
+| TX-05 | Decisão técnica e revisão da coordenação | decision_service.py:28-84 cria decisão e altera ReceiptItem sem lock/validação de versão; :122-190 altera CoordinationReview sem FOR UPDATE e sem comparar versão. | Requisições concorrentes podem registrar decisões/revisões duplicadas ou sobrescrever estado. Não foi localizada constraint de unicidade que limite uma decisão vigente por objeto/etapa. | P0 |
+| TX-06 | Idempotência de operações SEFI | idempotency_service.py:38-112 implementa chave e hash; instrument_data.py aplica replay em upload de dados de instrumento. | A idempotência está aplicada a integração/upload de instrumento, não aos comandos de recebimento, conferência, decisão, aceite ou transferência SEFI. | P0 |
+| TX-07 | Corrida no registro da chave idempotente | idempotency_service.py:38-112 faz leitura antes de processar e grava a chave depois do efeito de negócio; não há reserva atômica/in-progress nem tratamento de conflito concorrente. | Duas requisições simultâneas com mesma chave podem ambas observar ausência e executar o efeito antes de tentar persistir a chave. A PK composta evita duas linhas, mas não garante que o efeito de negócio não tenha sido duplicado. | P0 |
+| TX-08 | Atomicidade negócio + chave idempotente | instrument_data.py:93-116 chama serviço de ingestão, que persiste o dado, e depois record_idempotency(), que executa commit próprio. | Efeito de negócio e resposta idempotente não estão demonstrados na mesma transação atômica. Falha entre commits pode persistir importação sem cache da resposta; retry pode repetir operação. | P1 |
+| TX-09 | Atomicidade de recebimento/aceite e auditoria | receipt_service.py e decision_service.py fazem flush, audit_service.append e commit ao final; audit_service.append usa advisory transaction lock no PostgreSQL. | Dentro da mesma AsyncSession, operação de negócio e evento de auditoria são agrupados na transação; é um controle positivo. Deve-se verificar comportamento de exceções e rollback integral nos testes de integração. | Parcial/positivo |
+| TX-10 | Cadeia global de auditoria concorrente | audit_service.py:115-180 adquire pg_advisory_xact_lock antes de ler último hash/sequence; test_postgres_guards.py:141-150 contém teste concorrente com 8 eventos. | Controle explícito contra corrida na cadeia de auditoria; o teste está escrito, mas execução atual não foi comprovada nesta auditoria. O lock da cadeia não substitui lock/controle de versão das entidades de negócio. | Positivo, execução não comprovada |
+| TX-11 | Numeração de identificadores | db/dialect.py:39-69 usa sequences nativas no PostgreSQL e UPSERT em contador SQLite; test_postgres_guards.py:129-138 testa monotonicidade. | Estratégia de geração centralizada. Sequences PostgreSQL podem apresentar lacunas em rollback; isso é comportamento esperado e não deve ser confundido com duplicidade. Não prova atomicidade do processo de negócio. | Positivo |
+| TX-12 | Teste de concorrência SIM10 | test_phase1_simulations.py:603-635 testa versão obsoleta e duplicação sequencial de recebimento. | Testa conflito de versão e segundo POST após conclusão, mas não executa requisições simultâneas nem valida concorrência real no aceite, decisão ou transferência. | Lacuna |
+| TX-13 | Teste de carga idempotente M2M | load_test_concurrency.py:165-190 dispara 30 GETs para integration-exports com uma chave compartilhada. | Não é teste de mutação idempotente nem comprova ausência de duplicidade; aceita respostas 200/403/404 como sucesso. | Lacuna |
+| TX-14 | Teste de replay de upload instrumento | test_phase8_service_clients_and_idempotency.py:257-320 cobre reenvio sequencial igual e payload divergente. | Evidencia replay sequencial, não duas requisições concorrentes com a mesma chave, nem crash entre persistência do efeito e persistência da chave. | Parcial |
+
+### 14.2 Pontos técnicos relevantes
+
+**A. Restrições existentes que ajudam**
+- Receipt.solicitation_id possui UNIQUE: impede dois registros de recebimento principal persistidos para a mesma solicitação.
+- CustodyObject.linked_device_sample_id possui UNIQUE: limita repetição do mesmo ID de amostra nesse campo.
+- DeviceSample.accession_number é UNIQUE.
+- DeviceSample possui UNIQUE composto para serial, lote e fabricante.
+- CoordinationReview.decision_id é UNIQUE.
+- A cadeia de auditoria usa advisory lock transacional no PostgreSQL.
+- Transferência legada de amostra usa SELECT FOR UPDATE.
+
+Essas restrições são úteis, mas não substituem proteção de corrida nas operações de domínio.
+
+**B. Controle otimista atual**
+O OptimisticLockMixin apenas declara coluna version; a proteção depende de cada serviço comparar e atualizar corretamente. Nos fluxos de receipt_service.py e decision_service.py examinados, a comparação ocorre em memória após leitura sem bloqueio e a atualização não inclui a versão anterior no predicado SQL. Portanto, não há garantia de compare-and-swap uniforme.
+
+**C. Sequência transacional crítica**
+Para aceite SEFI, o efeito esperado deve permanecer indivisível: validar bloqueios e decisão → reservar/alterar objeto sob controle concorrente → criar uma única amostra vinculada à origem → registrar evento de custódia → registrar auditoria → persistir tudo. O serviço atual agrupa alterações e auditoria em uma sessão, mas a ausência de serialização/controle atômico por objeto deixa a corrida de aceite sem proteção suficiente.
+
+**D. Idempotência de domínio**
+Uma implementação robusta precisa reservar a chave por escopo e operação, associar hash canônico do comando, estado (em processamento/concluído/falhou recuperável), resultado persistido e prazo de retenção. A reserva, o efeito de domínio e o resultado devem ser coordenados transacionalmente; reuso com payload diferente deve resultar em conflito; concorrentes com mesma chave devem aguardar/reproduzir um único resultado. O contrato precisa diferenciar chave repetida, comando duplicado por regra de negócio e conflito de versão.
+
+### 14.3 Recomendações para etapa de correção futura
+
+1. Não corrigir isoladamente cada endpoint: criar padrão transacional de comando para recebimento, decisão, aceite e transferência.
+2. Adquirir lock de linha (SELECT FOR UPDATE) ou aplicar compare-and-swap explícito (UPDATE WHERE id = :id AND version = :expected_version) para entidade agregada antes de validar e alterar estado.
+3. Para aceite, garantir unicidade da origem no lado de DeviceSample.origin_custody_object_id e/ou constraint equivalente de domínio, além da serialização por objeto.
+4. Tratar IntegrityError de constraints esperadas como conflito de domínio 409, com rollback e leitura do estado persistido; não mascarar falhas inesperadas.
+5. Implementar idempotência para comandos SEFI críticos, com escopo por ator/cliente + operação + chave, hash canônico e persistência atômica do resultado.
+6. Eliminar commits internos que separem efeito de negócio e chave idempotente; coordenar transação no limite do comando.
+7. Adicionar testes concorrentes reais no PostgreSQL com sessões independentes e asyncio.gather: recebimento, aceite, transferência, decisão, revisão e reenvio de chave.
+8. Validar invariantes pós-concorrência: um recebimento principal; no máximo uma amostra por objeto; um evento por transferência confirmada; um resultado por chave idempotente; sequência íntegra de auditoria.
+9. Adicionar testes de falha induzida entre etapas e garantir rollback integral, incluindo auditoria e idempotência.
+10. Manter SQLite para testes rápidos, mas exigir PostgreSQL para aprovação dos cenários de concorrência que dependem de locks, sequences e advisory locks.
+
+### 14.4 Parecer
+
+Há bons fundamentos implementados: constraints de unicidade, versionamento, sequences nativas, transações com auditoria e advisory lock para a cadeia de auditoria. O fluxo legado de transferência de amostra também utiliza lock pessimista.
+
+Entretanto, os fluxos centrais novos de recebimento, aceite e transferência de objeto, bem como decisão/revisão, não demonstram proteção concorrente uniforme. A idempotência existente está concentrada na ingestão de instrumentos e não protege os comandos críticos do domínio SEFI. Os testes localizados são predominantemente sequenciais; o teste de carga compartilhando chave executa GET, não mutação.
+
+**Conclusão:** integridade transacional parcial; concorrência de domínio não comprovada e com lacunas concretas nos serviços examinados. TX-01, TX-02, TX-03, TX-05, TX-06 e TX-07 são bloqueadores preliminares para operação institucional concorrente. TX-08 requer correção para garantir replay após falhas. O Gate G0 permanece NÃO APROVADO.
+
+**Limite:** auditoria estática; não foram executados pytest, carga, testes concorrentes PostgreSQL, nem testes de falha induzida nesta rodada. A severidade é triagem técnica preliminar, não classificação institucional aprovada.
