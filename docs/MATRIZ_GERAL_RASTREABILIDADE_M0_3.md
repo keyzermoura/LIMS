@@ -565,3 +565,29 @@ A execução confirma falhas nos três jobs indicados e sucesso apenas no job de
 As causas CI-01 e CI-02 estão confirmadas por logs. O plano acelerado estabelece P2/P3 como auditoria conjunta, P4/P5 em sequência e P6 em trilha paralela. A correção técnica permanece pendente de autorização expressa. A distribuição CA01–CA37 e a situação SIM01–SIM12 não são alteradas por esta atualização.
 
 **Parecer:** CI não verde; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
+
+
+## 20. Auditoria concentrada P2/P3 e persistência dos bloqueadores CI — 2026-11-22
+
+O plano `docs/PLANO_FECHAMENTO_BLOQUEADORES_G0.md` foi atualizado para v1.2, incorporando a auditoria estática aprofundada de admissão/custódia e autorização contextual.
+
+### 20.1 Novas constatações documentadas
+
+- **P2-04:** aceite técnico não verifica explicitamente conferência concluída/apresentação/decisão antes de gerar amostra.
+- **P2-05:** conferência altera apresentação e quantidade, mas não reconcilia os objetos de custódia criados anteriormente.
+- **P2-06:** transferência de objeto não exige confirmação do destinatário; o carregamento examinado não usa bloqueio pessimista.
+- **P2-07:** coexistem duas APIs/modelos de custódia e duas formas de criar amostras.
+- **P3-04:** modelo de usuário examinado não contém vínculo institucional/unidade, e consultas de solicitação/amostra não demonstram escopo contextual.
+- **P3-05:** validação do token QR desabilita verificação de expiração temporal; endpoint exige autenticação, mas retorna dados cadastrais da amostra.
+
+P2-01 a P2-07 devem ser tratados como um redesenho integrado de admissão, conferência, custódia, aceite e criação de amostra. P3-01 a P3-05 devem convergir em política de autorização contextual e governança de QR.
+
+### 20.2 CI reexecutado no commit documental
+
+Run `44973391327`, associado ao commit `80ed9a5ee745d89f1cf78f3f2d2b11565cc1c6a1`: Backend FAILURE; Front-end FAILURE; Docker FAILURE; Segurança SUCCESS. Os logs repetem as causas CI-01/ACH-53 (Alembic version_num varchar(32)) e CI-02/ACH-54 (Playwright ausente do lockfile), e Docker falha no `npm ci`. A publicação documental não alterou os resultados técnicos.
+
+### 20.3 Direção de convergência
+
+A proposta arquitetural consolidada é: registrar chegada sem presumir apresentação integral; conferir por item e quantidade; criar custódia somente para material apresentado; transferir com confirmação do destinatário; condicionar aceite à conferência concluída; gerar amostra somente após aceite favorável; manter histórico imutável. A autorização deverá considerar ator, papel, unidade, recurso, estado e ação, com escopos explícitos para contas de serviço. QR deverá ter validade/revogação e expor apenas dados mínimos, conforme política aprovada.
+
+**Status:** CI não verde; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA. Constatações estáticas não equivalem a teste executado ou homologação.
