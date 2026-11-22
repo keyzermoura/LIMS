@@ -924,16 +924,16 @@ O pseudodiff é conceitual. Antes de implementação, a revisão deve ser ajusta
 
 1. Alembic cria `alembic_version` com a largura padrão 32.
 2. As revisões anteriores são aplicadas até 0021.
-3. Alembic registra a revisão intermediária curta, ainda compatível com 32.
-4. A revisão intermediária amplia `version_num` para 64.
-5. Alembic aplica 0022 e consegue registrar seu identificador longo.
+3. Alembic executa a revisão intermediária enquanto a versão corrente ainda é 0021; a operação amplia `version_num` para 64.
+4. Ao concluir a revisão intermediária, Alembic atualiza a tabela de versão para o ID curto da nova revisão. A alteração de coluna e a atualização do histórico devem permanecer na mesma transação PostgreSQL.
+5. Alembic aplica 0022 e, ao concluir, registra seu identificador longo na coluna já ampliada.
 
 **Banco existente parado em 0021:**
 
 1. A tabela de versão já contém o ID 0021, compatível com 32.
-2. A revisão intermediária curta é registrada sem truncamento.
-3. A coluna é ampliada para 64.
-4. A revisão 0022 é aplicada e registrada.
+2. Alembic executa a revisão intermediária com 0021 ainda registrado e amplia a coluna para 64.
+3. A atualização do histórico para o ID curto da revisão intermediária ocorre após a operação, sem truncamento.
+4. A revisão 0022 é aplicada e seu ID longo é registrado na coluna ampliada.
 
 **Banco que já tenha aplicado 0022 ou revisão posterior:**
 
