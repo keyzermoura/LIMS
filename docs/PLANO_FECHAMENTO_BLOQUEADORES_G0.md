@@ -1,8 +1,8 @@
 # Plano de Fechamento Acelerado dos Bloqueadores do Gate G0
 
-**Versão:** 1.3  
+**Versão:** 1.4  
 **Data:** 2026-11-22  
-**Baseline examinada:** branch `main`, commit `5285e9ed963e8a79c1c99cba91c59b0598509af5`  
+**Baseline examinada:** branch `main`, commit `dabcefbea57278e4b1a774de8b1cc7bc72a50649`  
 **Natureza:** plano de auditoria e preparação de correções; não autoriza implementação.
 
 ## 1. Objetivo e regra de execução
@@ -248,3 +248,70 @@ O código preserva o registro anterior, marca `is_latest=False`, cria novo relat
 Esta rodada foi revisão estática de serviços/modelos/rotas e consulta ao resultado de CI. Não houve execução local de testes, teste de carga/concorrência, chamada dinâmica de API, validação de triggers em banco ativo ou homologação de laudos. Os pontos P4/P5 são achados técnicos preliminares a serem associados formalmente aos CA/SIM/INV aplicáveis, sem inventar correspondências.
 
 **Parecer:** P4/P5 requerem fechamento e evidência antes do Gate G0. CI continua não verde; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
+
+
+## 12. Auditoria P6 — continuidade, backup, restauração, documentos e integrações — 2026-11-22
+
+### 12.1 P6-01 — Rotina de backup declara sucesso mesmo após falha de restauração
+
+O script `scripts/backup_restore_pitr.sh` usa `set -euo pipefail`, mas suprime erros críticos:
+- `createdb ... || true` permite continuar se o banco temporário não for criado.
+- `pg_restore ... || true` permite continuar após falha de restauração.
+- `dropdb ... || true` suprime falha de limpeza.
+- Ao final, imprime “Processo de backup e restauração validado 100% com sucesso” sem verificar que a restauração terminou sem erro.
+
+O script consulta contagens de usuários, laudos e auditoria, mas não compara com contagens/manifesto do banco de origem, não valida cadeia de auditoria, PDFs, constraints, sequences, triggers ou integridade referencial. Portanto, o texto final não é evidência confiável de restauração validada.
+
+### 12.2 P6-02 — PITR/WAL não está implementado pelo script observado
+
+A etapa chamada “Verificando Arquivamento Contínuo WAL (PITR)” apenas verifica se o utilitário `pg_waldump` existe e imprime que o diretório `wal_archive` está ativo. Não há, no script, configuração de `archive_mode`, `archive_command`, transporte/armazenamento de segmentos WAL, manifesto de continuidade ou recuperação para um instante-alvo. A criação do diretório e a presença de `pg_waldump` não comprovam arquivamento contínuo nem PITR.
+
+### 12.3 P6-03 — CronJob Kubernetes referencia recursos ausentes no Kustomize examinado
+
+`deploy/k8s/cronjob-backup.yaml` referencia:
+- ConfigMap `lims-backup-scripts`;
+- PVC `lims-backup-pvc`;
+- caminho `/scripts/backup_restore_pitr.sh`.
+
+Entretanto, `deploy/k8s/kustomization.yaml` inclui apenas `configmap.yaml`, Secret template, deployments/services, ingress e CronJob. O `configmap.yaml` examinado define somente `lims-config`, sem script de backup; não foi localizado manifesto do PVC nem do ConfigMap `lims-backup-scripts` no inventário examinado. Assim, o agendamento declarado não está demonstrado como implantável com os manifests versionados. O script também usa host padrão `db`, enquanto a configuração Kubernetes examinada não demonstra essa resolução DNS nem a configuração de host/porta do banco para o job.
+
+### 12.4 P6-04 — Ausência de evidência de retenção, cópia externa e recuperação institucional
+
+A rotina cria dumps, checksums e diretórios locais no volume montado, mas não estabelece política verificável de retenção/expurgo, cópia imutável/off-site, criptografia em repouso, controle de acesso ao backup, monitoramento de falha, inventário de cópias ou restauração periódica independente. Os manifests examinados não definem tais controles. Não há evidência de RPO/RTO aprovados, restore drill registrado ou recuperação de desastre homologada. A existência de um PVC proposto não prova provisionamento, disponibilidade ou independência física.
+
+### 12.5 P6-05 — PDF do laudo é armazenado no banco; hash é revalidado no caminho de verificação
+
+O modelo `OfficialReport` armazena `pdf_data` como `LargeBinary` e `sha256_hash`; o serviço de verificação recalcula SHA-256 dos bytes armazenados e compara com o hash registrado. Isso é um controle positivo de integridade do artefato recuperado. O `pg_dump -b` inclui large objects no dump, mas não há evidência de cópia independente do PDF, retenção documental fora do banco, teste de recuperação individual ou validação de legibilidade/assinatura após restore. A integridade do hash não prova, isoladamente, disponibilidade e recuperabilidade do documento.
+
+### 12.6 P6-06 — Outbox é at-least-once, com janela de duplicidade e lacunas de operação
+
+O serviço usa `SELECT FOR UPDATE SKIP LOCKED`, retentativa exponencial e dead-letter após 12 tentativas; o worker captura exceções e continua. São controles positivos. Contudo:
+- o POST externo ocorre antes do commit local que registra entrega/publicação; falha do processo após o receptor aceitar e antes do commit pode provocar reenvio;
+- um novo `delivery_id` é gerado em cada tentativa, sem identificador estável de evento/assinatura para deduplicação do receptor;
+- quando não há assinatura correspondente, o evento é marcado publicado, sem fila de descarte ou confirmação de que a ausência de destinatário é intencional;
+- a transação mantém os registros selecionados/locks enquanto aguarda chamadas HTTP;
+- o worker é iniciado no lifespan de cada réplica API; o uso de `SKIP LOCKED` reduz disputa, mas não substitui isolamento operacional, limites de concorrência e observabilidade de backlog/DLQ;
+- o runbook `docs/RUNBOOK_OUTBOX_MESSAGING.md` descreve tabela `outbox_events`, campos `status/retry_count` e estados diferentes do modelo atual `integration_outbox` (`published_at/attempts/dead_lettered_at`). O procedimento SQL documentado não corresponde ao schema observado.
+
+### 12.7 P6-07 — Health/readiness não comprova prontidão completa
+
+A rota `/health` retorna HTTP de sucesso com corpo `status=degraded` quando o banco está indisponível. Os manifests Kubernetes usam a mesma rota para liveness e readiness. Como a resposta degradada não é, por si, falha HTTP, a probe pode considerar pronta uma instância sem banco disponível. A rota verifica apenas conexão SQL; não verifica migrações, worker/outbox, armazenamento de documentos, fila de dead-letter ou dependências externas. Além disso, o `lifespan` captura exceções de inicialização e mantém a API ativa. Isso favorece diagnóstico, mas não assegura fail-fast/readiness coerente com operação.
+
+### 12.8 Direção de convergência P6
+
+1. Tornar backup e restore fail-closed: remover supressões de erro, falhar o Job se qualquer etapa falhar e produzir manifesto verificável.
+2. Validar restore com checksums, contagens de origem/destino, integridade referencial, constraints, sequences, triggers, cadeia de auditoria, laudos/PDFs e consulta de verificação de hash.
+3. Implementar WAL/PITR real: parâmetros PostgreSQL, archive_command funcional, armazenamento externo durável, monitoramento de lacunas e teste de recuperação para timestamp/LSN definido.
+4. Incluir no Kustomize os recursos de script/PVC/credenciais e validar manifests renderizados; definir host/secret/SSL para banco no CronJob.
+5. Aprovar e operacionalizar retenção, cópia off-site/imutável, criptografia, segregação de acesso, alertas e inventário de backup.
+6. Definir RPO/RTO com responsáveis e evidenciar restore drills periódicos.
+7. Estabelecer outbox com chave de evento estável/idempotência do consumidor, política para evento sem assinante, métricas de backlog/DLQ e transações curtas sem chamadas HTTP sob lock.
+8. Atualizar o runbook para o schema real, com consultas e procedimento auditável de retentativa.
+9. Separar liveness de readiness; readiness deve retornar não saudável (status HTTP apropriado) quando dependências obrigatórias não estiverem prontas e considerar estado de migração.
+10. Definir estratégia de disponibilidade/recuperação de PDFs e anexos, mesmo que permaneçam no banco.
+
+### 12.9 Limites e parecer
+
+A análise é estática sobre script, manifests, serviço/modelo de outbox, runbook, modelo de laudo e healthcheck. Não foram executados backups, restores, comandos PostgreSQL, CronJobs, testes de recuperação ou verificações em cluster ativo. Não há acesso a evidências de ambiente institucional, storage provisionado, secrets, logs operacionais ou agendamento efetivo.
+
+**Parecer P6:** continuidade operacional, PITR, recuperação de documentos e entrega de integrações NÃO COMPROVADOS; o script atual não pode ser aceito como prova de restauração bem-sucedida. CI do HEAD anterior continua com falhas independentes. Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
