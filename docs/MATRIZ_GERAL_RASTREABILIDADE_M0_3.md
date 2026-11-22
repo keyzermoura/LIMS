@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.9  
+**Versão:** 1.0  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -623,3 +623,32 @@ A proposta arquitetural consolidada é: registrar chegada sem presumir apresenta
 Unificar fronteiras transacionais, idempotência e versionamento; proteger a cadeia de emendas; congelar snapshot auditável de resultados e dados metrológicos; derivar a conclusão do laudo de regra aprovada; definir atomicidade/retomada de lote. As propostas são recomendações técnicas preliminares, não decisões institucionais aprovadas.
 
 **Parecer:** P4/P5 não encerrados. A matriz não converte evidência de código em comprovação de execução. Gate G0 permanece NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
+
+
+## 22. Auditoria P6 — continuidade operacional, backup, recuperação e integrações (2026-11-22)
+
+**Baseline de código:** branch `main`, commit `dabcefbea57278e4b1a774de8b1cc7bc72a50649`.  
+**Documento complementar:** `docs/PLANO_FECHAMENTO_BLOQUEADORES_G0.md`, versão 1.4.
+
+| Achado | Evidência estática observada | Risco / lacuna | Tratamento proposto |
+|---|---|---|---|
+| P6-01 | Script `scripts/backup_restore_pitr.sh` usa `createdb || true`, `pg_restore || true` e `dropdb || true`; imprime sucesso após essas supressões. | Restauração pode falhar e o script ainda declarar sucesso. Contagens não são comparadas com origem nem verificam integridade completa. | Fail-closed; manifesto; comparação origem/destino; validar constraints, sequences, triggers, cadeia de auditoria e PDFs. |
+| P6-02 | Etapa PITR verifica somente existência de `pg_waldump` e imprime que diretório WAL está ativo. | Não demonstra archive_mode, archive_command, envio contínuo de WAL ou recuperação point-in-time. | Configurar arquivamento real, monitorar continuidade e testar recuperação por timestamp/LSN. |
+| P6-03 | CronJob referencia ConfigMap `lims-backup-scripts` e PVC `lims-backup-pvc`; ambos ausentes dos recursos Kustomize examinados. O ConfigMap atual só contém `lims-config`. | Agendamento não demonstrado como implantável; caminho do script e host do banco não comprovados no cluster. | Declarar recursos, configurar host/credenciais e validar manifests renderizados/implantação. |
+| P6-04 | Dump/checksum em volume proposto, sem política verificável de retenção, off-site/imutabilidade, criptografia, alertas, inventário, RPO/RTO ou restore drill. | Perda/corrupção do volume pode comprometer cópias; continuidade institucional não demonstrada. | Política de backup 3-2-1/imutável conforme risco, retenção, segregação, RPO/RTO e testes periódicos. |
+| P6-05 | `OfficialReport.pdf_data` guarda PDF no banco e `verify_report` recalcula SHA-256. | Integridade do artefato recuperado é controle positivo, mas não comprova cópia independente, disponibilidade ou recuperação individual após desastre. | Testar restauração e legibilidade/verificação dos PDFs e anexos, com manifesto de hashes. |
+| P6-06 | Outbox usa `SKIP LOCKED`, backoff e dead-letter; envia HTTP antes do commit local; cria novo delivery UUID a cada tentativa; evento sem assinante é marcado publicado. | Janela de duplicidade, consumidor sem chave estável de deduplicação, descarte sem destinatário e locks durante I/O externo. Runbook usa schema antigo (`outbox_events/status/retry_count`). | Chave estável, consumidor idempotente, política para ausência de assinante, transação curta, métricas e runbook alinhado ao modelo real. |
+| P6-07 | `/health` responde corpo `degraded` quando banco indisponível; mesma rota usada em liveness/readiness; lifespan absorve falha de init. | Kubernetes pode considerar pronta uma instância que responde HTTP 200 mas não acessa banco; health não verifica migrações, worker, documentos ou integrações. | Separar liveness/readiness e devolver status HTTP não saudável para dependências obrigatórias; validar migrações e componentes críticos. |
+
+### 22.1 Evidência e limitações
+
+- Evidência E2: leitura estática do script, manifests, serviços/modelos, runbook e rota de health.
+- Evidência E4: run CI `44973830188`, associado ao commit `dabcefbea57278e4b1a774de8b1cc7bc72a50649`, concluído com falha: Backend falha em migração Alembic; Front-end falha em `npm ci`; Docker falha no build por `npm ci`; SAST/SCA passa. Testes backend posteriores à migração e smoke test não foram alcançados.
+- Não houve backup/restore executado, PITR, validação em cluster, inspeção de PVC/secret real, nem homologação de RPO/RTO.
+- O sucesso do SAST/SCA não representa aprovação de continuidade, backup ou recuperação.
+
+### 22.2 Conclusão
+
+P6 não está comprovado. O script de backup/restauração tem supressão explícita de erros e não constitui evidência válida de restore; PITR é apenas declarado, não demonstrado. O plano de continuidade precisa ser implementado e testado em ambiente controlado, com evidências operacionais e homologação institucional.
+
+**Parecer:** P6 aberto; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
