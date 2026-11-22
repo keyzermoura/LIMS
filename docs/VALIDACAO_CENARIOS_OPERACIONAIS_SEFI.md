@@ -1,7 +1,7 @@
 # Simulação de Mesa e Validação Operacional — Cenários SEFI no LIMS
 
 **Identificador:** SIM-SEFI-REC-001  
-**Versão:** 2.1  
+**Versão:** 2.2  
 **Data:** 2026-11-12  
 **Base:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; CA01–CA37; M0.3 / M1.1 / M1.2 / M1.3; suíte automatizada `backend/tests/test_phase1_simulations.py`.  
 **Situação:** Cenários SIM01 a SIM12 possuem roteiros documentais e uma suíte automatizada versionada. A existência do arquivo de testes não comprova, isoladamente, que todos os resultados esperados estejam corretamente implementados, que a suíte tenha sido executada no HEAD vigente ou que os cenários tenham sido homologados por usuários SEFI. A auditoria estática identificou divergências entre comportamentos esperados e serviços/rotas; ver seção 7.
