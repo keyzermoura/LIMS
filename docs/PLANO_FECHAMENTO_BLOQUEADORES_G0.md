@@ -1,8 +1,8 @@
 # Plano de Fechamento Acelerado dos Bloqueadores do Gate G0
 
-**Versão:** 1.2  
+**Versão:** 1.3  
 **Data:** 2026-11-22  
-**Baseline examinada:** branch `main`, commit `e276c8739c4726155f4e228f9b5092cff1f0699a`  
+**Baseline examinada:** branch `main`, commit `5285e9ed963e8a79c1c99cba91c59b0598509af5`  
 **Natureza:** plano de auditoria e preparação de correções; não autoriza implementação.
 
 ## 1. Objetivo e regra de execução
@@ -184,3 +184,67 @@ A auditoria deverá levar à validação SEFI, em bloco:
 - Política de compatibilidade e migração dos dois modelos legados de custódia/amostra.
 
 **Limites:** constatações baseadas na leitura estática dos arquivos indicados e logs do run citado. Não houve execução local de testes, exploração dinâmica, alteração de código ou decisão sobre política institucional.
+
+
+## 11. Auditoria estática P4/P5 — integridade transacional, ensaios e laudos — 2026-11-22
+
+### 11.1 Rechecagem do CI no HEAD
+
+O HEAD documental examinado é `5285e9ed963e8a79c1c99cba91c59b0598509af5`, run `44973615657`, concluído com **failure**:
+- Backend: falha na etapa `alembic upgrade head`; lint e tipagem passaram, mas paridade de metadata e testes SQLite/PostgreSQL foram ignorados.
+- Front-end: falha na instalação de dependências; typecheck e build foram ignorados.
+- Docker: falha no build das imagens; subir stack, seed e smoke test foram ignorados.
+- Segurança: SAST/SCA concluiu com sucesso.
+
+A execução não fornece evidência de testes funcionais ou integração aprovados. O diagnóstico de CI-01 (largura de `alembic_version.version_num`) e CI-02 (manifesto/lockfile npm) permanece; nesta execução, o job Docker falhou antes de subir a stack. Não atribuir sucesso global ao pipeline.
+
+### 11.2 P4 — integridade transacional e concorrência
+
+**P4-01 — Controles transacionais positivos no ciclo de ensaio.**  
+`test_service.create_test` bloqueia a amostra com `SELECT ... FOR UPDATE`; `record_result` bloqueia ensaio e amostra, compara versão, cria versão de resultado, vincula assinatura, grava auditoria, recalcula status e trata CAPA antes do commit. `LabTestResult` possui unicidade por (`lab_test_id`, `version`). Esses controles devem ser preservados. A leitura estática não prova comportamento concorrente real nem que os testes correspondentes passaram.
+
+**P4-02 — Operações de amostra e subalíquota têm fronteiras transacionais locais, mas não há idempotência explícita demonstrada.**  
+`create_sample` verifica UUID e duplicidade fabricante/série/lote antes de gerar accession e gravar amostra, custódia, assinatura e auditoria na mesma unidade de trabalho. A constraint única protege a identidade composta, mas não foi identificado contrato de chave de idempotência para repetição de requisição. Em corrida, a constraint é a última barreira; o comportamento de resposta/reconciliação após conflito precisa ser validado. A criação de subalíquotas persiste a lista em `attributes` JSON e verifica duplicidade de código em leitura prévia, sem constraint relacional/única observada; concorrência pode permitir colisão lógica.
+
+**P4-03 — Auditoria encadeada e assinatura são evidências estruturais, não prova isolada de imutabilidade operacional.**  
+O modelo `AuditLog` contém sequência única, hash, HMAC e hash anterior; `LabTestResult` declara proteção UPDATE/DELETE por trigger PostgreSQL e unicidade de versão. É necessário comprovar a instalação/estado dos triggers em cada banco e a verificação da cadeia, incluindo restauração/backup. A imutabilidade declarada no comentário do modelo não substitui evidência de trigger efetivamente aplicado.
+
+**P4-04 — Emenda de laudo sem bloqueio pessimista explícito do laudo vigente.**  
+`amend_official_report` lê o laudo vigente sem `SELECT FOR UPDATE` e altera `is_latest` antes de inserir a nova versão. A unicidade do número do laudo pode impedir duplicação de número, mas não constitui protocolo explícito de concorrência/serialização da emenda. Duas emendas simultâneas podem disputar a mesma versão; é necessário bloquear a raiz/laudo vigente e validar a versão esperada dentro da transação.
+
+**P4-05 — Emissão individual do laudo grava laudo, auditoria e outbox na mesma transação, mas não há chave idempotente do comando demonstrada.**  
+`generate_official_report` cria número sequencial, consome assinatura, grava laudo, auditoria e evento outbox antes de um único `commit`. A constraint única de `report_number` e `auth_token` protege colisões de identificadores, mas não impede emissão duplicada por repetição do mesmo pedido com novo token/assinatura. Definir idempotência por operação/escopo e política para reenvio após timeout.
+
+### 11.3 P5 — ensaios, resultados e laudos
+
+**P5-01 — Lançamento de resultado versionado e auditado; emenda do ensaio preserva versões anteriores.**  
+`record_result` bloqueia ensaio e amostra, exige versão atual, exige justificativa quando o ensaio já está concluído, cria nova linha `LabTestResult`, vincula assinatura e auditoria, recalcula amostra e abre CAPA automática em reprovação. A constraint única (`lab_test_id`, `version`) é um controle positivo. A cobertura/execução desses cenários permanece não comprovada nesta auditoria.
+
+**P5-02 — Emissão do laudo não exige explicitamente que todos os resultados incluídos sejam APROVADOS.**  
+`generate_official_report` exige ensaio concluído e revisão de coordenação aprovada, além de bloquear OOS aberto e violação CEP/Westgard. Entretanto, no trecho examinado, não valida `t.outcome == APROVADO` para cada ensaio e recebe `payload.conclusion` como entrada. Assim, a conclusão declarada no laudo pode não estar vinculada a uma regra demonstrada de agregação dos desfechos individuais. É bloqueador de integridade decisória: definir matriz de conclusão (inclusive resultados reprovados/inconclusivos), validar consistência e impedir emissão contraditória.
+
+**P5-03 — Laudo consolidado não bloqueia os ensaios/amostra durante a validação e captura do manifesto.**  
+A emissão lê amostra e ensaios sem `SELECT FOR UPDATE` no caminho examinado. Resultado, revisão, orçamento de incerteza ou estado relacionado podem mudar entre a leitura e o commit do laudo. É necessário congelar snapshot coerente, bloquear/validar versões dos agregados e registrar no manifesto as versões efetivamente utilizadas.
+
+**P5-04 — Emissão em lote não é atomicamente indivisível no serviço examinado.**  
+`generate_batch_official_reports` percorre itens e chama `generate_official_report`; o serviço individual executa `db.commit()` para cada laudo. Se um item posterior falhar, os laudos anteriores já podem estar persistidos, embora a resposta do lote não seja concluída. Definir contrato explícito: tudo-ou-nada com uma única transação, ou lote parcial com resultado por item, estado do lote e retomada idempotente. Não apresentar como transação atômica no estado atual.
+
+**P5-05 — Emenda formal mantém o documento anterior e cria nova versão, mas precisa de serialização e verificação de integridade do encadeamento.**  
+O código preserva o registro anterior, marca `is_latest=False`, cria novo relatório com `root_report_id`, `supersedes_id`, justificativa, assinatura e hash PDF. O controle de concorrência não está explícito no carregamento do laudo anterior; além disso, deve ser demonstrada constraint que garanta no máximo uma versão latest por cadeia. A leitura do modelo mostra unicidade de número e token, mas não uma constraint parcial para `root_report_id/is_latest`.
+
+### 11.4 Direção arquitetural convergente P4/P5
+
+1. Definir unidade transacional por comando de negócio; retirar commits internos de serviços que compõem um lote ou fluxo maior.
+2. Adotar idempotency key persistida para criação de amostra, programação/lançamento, emissão individual, lote e emenda, com resposta recuperável após timeout.
+3. Usar bloqueio/controle de versão consistente nos agregados amostra, ensaio e laudo; validar versões do snapshot incorporado ao PDF.
+4. Tornar resultado assinado e sua versão imutáveis por mecanismo efetivamente implantado e testado em PostgreSQL; preservar emendas como novos registros.
+5. Definir tabela de decisão para conclusão do laudo, vinculando conclusão global aos desfechos individuais, critérios e revisão aprovada.
+6. Definir semântica do lote (tudo-ou-nada ou parcial), persistência do estado do lote e recuperação/reprocessamento.
+7. Garantir encadeamento de emendas com apenas uma versão vigente por cadeia e impedir concorrência que produza versões divergentes.
+8. Demonstrar por testes concorrentes, repetição de requisição, falha intermediária, rollback, recuperação e auditoria da cadeia.
+
+### 11.5 Limites e situação
+
+Esta rodada foi revisão estática de serviços/modelos/rotas e consulta ao resultado de CI. Não houve execução local de testes, teste de carga/concorrência, chamada dinâmica de API, validação de triggers em banco ativo ou homologação de laudos. Os pontos P4/P5 são achados técnicos preliminares a serem associados formalmente aos CA/SIM/INV aplicáveis, sem inventar correspondências.
+
+**Parecer:** P4/P5 requerem fechamento e evidência antes do Gate G0. CI continua não verde; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
