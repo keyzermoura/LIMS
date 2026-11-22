@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.4  
+**Versão:** 0.5  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -316,3 +316,72 @@ Entretanto, os fluxos centrais novos de recebimento, aceite e transferência de 
 **Conclusão:** integridade transacional parcial; concorrência de domínio não comprovada e com lacunas concretas nos serviços examinados. TX-01, TX-02, TX-03, TX-05, TX-06 e TX-07 são bloqueadores preliminares para operação institucional concorrente. TX-08 requer correção para garantir replay após falhas. O Gate G0 permanece NÃO APROVADO.
 
 **Limite:** auditoria estática; não foram executados pytest, carga, testes concorrentes PostgreSQL, nem testes de falha induzida nesta rodada. A severidade é triagem técnica preliminar, não classificação institucional aprovada.
+
+
+## 15. Auditoria de integridade do ciclo de vida e rastreabilidade ponta a ponta
+
+**Escopo:** inspeção estática dos modelos, serviços, rotas e testes existentes na branch `main`, do vínculo Solicitação → Recebimento → Objeto de Custódia → Amostra → Ensaio → Execução → Resultado → Revisão → Laudo → Emenda. Foram examinados relacionamentos ORM, chaves estrangeiras e regras `ondelete` dos modelos selecionados. Nenhum código foi alterado e nenhum teste foi executado.
+
+### 15.1 Mapa do ciclo efetivamente materializado
+
+| Etapa | Vínculo encontrado | Evidência examinada | Limite |
+|---|---|---|---|
+| Solicitação → itens | `SolicitationItem.solicitation_id` FK; relacionamento `items` | `models/solicitation.py` | Itens podem ser excluídos em cascata enquanto não houver bloqueio referencial posterior; política de retenção deve ser explícita. |
+| Solicitação → recebimento principal | `Receipt.solicitation_id` FK UNIQUE, NOT NULL, ON DELETE RESTRICT | `models/receipt.py` | Unicidade relacional positiva; não materializa por si só apresentações complementares D19. |
+| Recebimento → item → objeto | `ReceiptItem.receipt_id`; `CustodyObject.receipt_item_id` | `models/receipt.py`, `receipt_service.py` | Vínculo estrutural existe; permanecem as lacunas já registradas sobre objeto criado antes da confirmação de apresentação e reconciliação de quantidades. |
+| Objeto → amostra | `DeviceSample.origin_custody_object_id` e `CustodyObject.linked_device_sample_id` | `models/device_sample.py`, `models/receipt.py`, `receipt_service.py` | Há referências em ambos os sentidos, mas a FK de origem na amostra não é UNIQUE; risco concorrente já descrito em TX-02. |
+| Amostra → ensaio | `LabTest.device_sample_id` FK NOT NULL, ON DELETE RESTRICT | `models/lab_test.py` | Vínculo direto e obrigatório. |
+| Ensaio → execuções | `TestExecution.lab_test_id` FK ON DELETE CASCADE; relação ORM `executions` com `all, delete-orphan` | `models/test_execution.py`, `models/lab_test.py` | Tentativas são separadas e numeradas, mas o resultado assinado não aponta para uma execução específica. |
+| Ensaio → resultados assinados | `LabTestResult.lab_test_id` FK ON DELETE RESTRICT; unicidade `(lab_test_id, version)` | `models/lab_test.py`, `test_service.py` | Histórico de versões do resultado existe; não há FK para `TestExecution`. |
+| Ensaio → revisões | `TestReview.lab_test_id` FK ON DELETE CASCADE; unicidade `(lab_test_id, review_number)` | `models/test_review.py`, `models/lab_test.py` | Revisão não fixa a versão do resultado que foi analisada. |
+| Ensaio → anexos | `TestAttachment.lab_test_id` FK ON DELETE CASCADE; `execution_id` opcional ON DELETE SET NULL | `models/test_attachment.py`, `attachment_service.py` | Serviço de upload examinado recebe apenas `test_id` e não preenche `execution_id`; anexo não fica associado a uma tentativa específica. |
+| Amostra/ensaios → laudo | `OfficialReport.device_sample_id` FK NOT NULL; `solicitation_id` opcional | `models/official_report.py`, `report_service.py` | Laudo aponta para amostra e manifesto, mas a emissão inicial não preenche `solicitation_id`, embora a amostra tenha esse vínculo. |
+| Laudo → emendas | `root_report_id` e `supersedes_id` autorreferenciais; versão, hash, assinatura e PDF próprios | `models/official_report.py`, `report_service.py` | Cadeia de versões é materializada; a emenda reaproveita o manifesto anterior, sem reconstruir a base técnica atual. |
+| Atos → auditoria | `AuditLog.entity_type/entity_id` polimórficos, sem FK para a entidade auditada | `models/audit_log.py`, `audit_service.py` | A trilha é encadeada e protegida por hash/HMAC/guards PostgreSQL; integridade referencial direta com cada entidade não existe por desenho polimórfico. |
+
+### 15.2 Achados de ciclo de vida
+
+| ID | Achado | Evidência estática | Impacto na rastreabilidade | Parecer / prioridade preliminar |
+|---|---|---|---|---|
+| ACH-42 | Resultado assinado pode ser criado sem execução de bancada vinculada | `test_service.record_result()` cria `LabTestResult` usando somente `lab_test_id`; `TestExecution` não é consultada. O helper de `test_phase3_reviews.py` conclui o ensaio via `PATCH /tests/{id}/result` sem criar execução. | Não é possível demonstrar, a partir do resultado assinado, qual tentativa, leituras brutas, condições ambientais e equipamento o sustentam. | Lacuna concreta; P0 preliminar para rastreabilidade do resultado. |
+| ACH-43 | Conclusão de execução e resultado assinado são dois fluxos sem associação transacional/relacional | `execution_service.complete_execution()` conclui `TestExecution`, registra auditoria e evento outbox `test.completed`; não cria nem vincula `LabTestResult`. O caminho de resultado é separado em `test_service.record_result()`. | O evento de execução concluída não é prova de que o resultado foi revisado/assinado; o resultado assinado também não prova qual execução foi usada. | Lacuna estrutural; P0 preliminar. |
+| ACH-44 | Revisão técnica não identifica a versão exata do resultado revisado | `TestReview` contém `lab_test_id`, status, revisor, data, justificativa e assinatura opcional, mas não `result_version_id`/versão. `record_test_review()` consulta o estado corrente do `LabTest`; o token de assinatura é opcional no serviço e na rota. | Após retificação do resultado, a trilha não demonstra de forma inequívoca qual versão foi objeto de cada parecer anterior. | Lacuna concreta; P0/P1 preliminar conforme política institucional de assinatura. |
+| ACH-45 | Manifesto do laudo não fixa execução, versão assinada, revisão, método e condição metrológica histórica | `generate_official_report()` monta o manifesto a partir dos campos correntes de `LabTest` (resultado, limites, analista e data) e do orçamento de incerteza mais recente. Não inclui ID/versão de `TestExecution`, ID/versão de `LabTestResult`, ID da revisão, versão do método ou snapshot histórico da situação metrológica do equipamento. | Hash comprova integridade do PDF gerado, mas não supre a ausência de referências técnicas versionadas que permitam reconstruir a origem do resultado. | Lacuna de snapshot/rastreabilidade; P0 preliminar para fechamento documental do laudo. |
+| ACH-46 | Laudo emitido não recebe o vínculo da solicitação de origem na emissão inicial | `OfficialReport.solicitation_id` é nullable; o construtor em `generate_official_report()` preenche `device_sample_id`, mas não atribui `solicitation_id`, embora `DeviceSample.solicitation_id` exista. A rotina de emenda apenas replica `prev_report.solicitation_id`. | A consulta do laudo pode não percorrer diretamente a cadeia Laudo → Solicitação; depende de navegar pela amostra e o vínculo direto permanece nulo. | Lacuna de vínculo; P1 preliminar. |
+| ACH-47 | Emenda de laudo preserva manifesto anterior, mas não avalia impacto de alterações posteriores no resultado | `amend_official_report()` lê `prev_report.attributes['manifest']`, copia os ensaios desse manifesto e altera campos documentais (razão, conclusão/resumo/título); não reconsulta versões atuais de `LabTestResult`, execuções ou revisões, nem registra avaliação de impacto sobre resultados posteriores. | Uma emenda pode manter a fotografia técnica anterior mesmo quando o resultado do ensaio foi retificado depois da emissão original; não há demonstração de reconciliação ou justificativa de não impacto. | Lacuna concreta; P0 preliminar quando houver retificação técnica posterior. |
+| ACH-48 | Anexos não são associados a uma tentativa de execução pelo fluxo de upload examinado | `TestAttachment.execution_id` é opcional; `upload_attachment()` recebe `test_id` e grava `lab_test_id`, deixando `execution_id` nulo. | Curvas, fotos e arquivos brutos podem ficar associados apenas ao ensaio geral, sem identificar a tentativa a que pertencem, especialmente quando há repetição/interrupção. | Lacuna concreta; P1 preliminar. |
+| ACH-49 | Exclusão em cascata pode remover registros históricos subordinados antes de haver resultado assinado que bloqueie a exclusão | `Solicitation.items`, `Receipt.items`, `ReceiptItem.custody_objects`, `CustodyObject.custody_events` e `LabTest.executions/reviews/attachments` possuem cascades ORM/delete-orphan; várias FKs usam ON DELETE CASCADE. `LabTestResult.lab_test_id` usa RESTRICT e protege ensaios que já tenham resultado assinado. | A proteção é desigual por etapa: execuções, revisões e anexos podem estar sujeitos à exclusão pelo pai em cenários sem resultado assinado. A leitura estática não demonstra se rotas de exclusão estão expostas ou se há bloqueios adicionais. | Risco de retenção a validar; P1 preliminar, não declarar exclusão explorável sem auditar todos os comandos/rotas. |
+
+### 15.3 Cobertura de testes localizada — sem execução
+
+| Arquivo/caso | O que demonstra por inspeção | O que não demonstra |
+|---|---|---|
+| `backend/tests/test_phase2_executions.py` | Início, bloqueio de segunda tentativa em andamento, leituras, interrupção e repetição de execução. | Associação obrigatória entre execução concluída e resultado assinado; concorrência real; vínculo de anexos à tentativa. |
+| `backend/tests/test_phase3_reviews.py` | Revisão por pares, bloqueio de auto-revisão em cenário coberto, histórico de revisões, emissão de laudo e anexo; helper de conclusão usa endpoint direto de resultado. | Fixação da versão do resultado revisado; assinatura obrigatória em todas as decisões; execução formal como pré-requisito do resultado/laudo. |
+| `backend/tests/test_phase6_report_amendments.py` | PDF binário, hash, versionamento V1/V2, supersedes/root e justificativa de emenda. | Impacto de resultado retificado após laudo; manifesto técnico versionado; vínculo direto com solicitação e execução. |
+| `backend/tests/test_phase1_api.py` e `test_phase1_simulations.py` | Fluxos de recebimento/aceite e cenários de custódia já descritos nas seções anteriores. | Reconciliação ponta a ponta de IDs, retenção e não órfãos após exclusões/retificações. |
+
+**Não houve execução de pytest, testes de integração, testes de exclusão, testes de concorrência ou testes de falha nesta etapa.** A cobertura acima é leitura estática dos casos existentes.
+
+### 15.4 Relação com decisões e invariantes M0.3
+
+| Decisão/invariante | Relação com os achados | Situação |
+|---|---|---|
+| D09 / INV-26 | ACH-44 e ACH-47: preservar versão original, motivo, autorização, evidência e impacto em retificações; o histórico de resultado e de laudo existe, mas a ligação entre versões e avaliação de impacto não está completa. | Parcial; validação institucional e evidência adicional necessárias. |
+| D13 / INV-31 | ACH-48 e ACH-49: evidência deve ter vínculo contextual e histórico preservado; cascades e anexos sem tentativa específica precisam ser avaliados. | Parcial/não comprovado. |
+| D14 / INV-31 | ACH-42 a ACH-49: eventos de execução, resultado, revisão, emissão e emenda devem permitir reconstrução cronológica com ator, alvo e evidência. | Parcial; trilha genérica existe, mas os vínculos entre objetos de domínio são incompletos. |
+| D16 / INV-19 e INV-31 | ACH-44: parecer e assinatura precisam apontar para o conteúdo/versão efetivamente revisados; assinatura opcional no fluxo examinado não prova política uniforme. | Parcial; decisão de política de assinatura pendente. |
+| D18 / INV-27 e INV-28 | ACH-46: manter identificadores distintos e percorrer a origem Solicitação → Amostra → Ensaio → Laudo sem depender de associação presumida. | Parcial; vínculo via amostra existe, vínculo direto do laudo não é preenchido. |
+| D20 / INV-21 a INV-24 | ACH-42 e ACH-43: resultado e laudo devem derivar de amostra operacional validamente aceita, com linhagem técnica das execuções. | Parcial; cadeia de recebimento/amostra existe, mas linhagem execução→resultado não. |
+
+A relação com CA01–CA37 e SIM01–SIM12 permanece a já consolidada nas seções 3 e 5. **Não foi criada equivalência automática entre estes novos achados e critérios/cenários**: a validação requisito-a-requisito depende da leitura integral dos textos normativos e da confirmação institucional, especialmente para os cenários de retificação (SIM09), execução/resultado e emissão do laudo.
+
+### 15.5 Parecer de integridade ponta a ponta
+
+A arquitetura possui vínculos úteis e componentes de preservação: solicitação e itens declarados, recebimento principal único, objetos de custódia, amostra com referência ao objeto de origem, ensaios vinculados à amostra, tentativas numeradas, resultados assinados versionados, revisões históricas, PDFs com hash e emendas encadeadas, além de trilha de auditoria com hash/HMAC e guards PostgreSQL.
+
+Entretanto, a cadeia não é plenamente reconstruível em nível de evidência técnica: resultado assinado não referencia execução; execução concluída não gera/vincula resultado; revisão não fixa a versão revisada; anexo não aponta para tentativa; manifesto do laudo não captura as referências históricas necessárias; a emissão inicial não preenche o vínculo direto da solicitação; e a emenda não reavalia alterações técnicas posteriores.
+
+**Conclusão:** rastreabilidade ponta a ponta parcial. ACH-42, ACH-43, ACH-44, ACH-45 e ACH-47 são bloqueadores técnicos preliminares para afirmar reconstrução completa do ciclo resultado–revisão–laudo. ACH-46 e ACH-48 são lacunas de vínculo relevantes. ACH-49 exige auditoria específica de rotas de exclusão e política de retenção antes de classificar risco efetivo. O Gate G0 permanece NÃO APROVADO e a implementação permanece NÃO AUTORIZADA.
+
+**Limites desta etapa:** inspeção estática dos arquivos e trechos indicados; não foi feita execução de testes, teste de intrusão, inspeção de banco implantado, validação de retenção institucional nem confirmação de todos os endpoints de exclusão. Prioridades P0/P1 são triagem técnica preliminar, não severidade institucional aprovada.
