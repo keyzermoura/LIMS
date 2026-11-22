@@ -292,3 +292,38 @@ Antes de encerrar E1.1, a análise estática deve ser complementada, quando disp
 
 Não há evidência suficiente para atribuir a largura 32 a uma revisão específica, a um schema alternativo, a uma tabela preexistente ou a um defeito do Alembic. Essas hipóteses permanecem abertas até a coleta discriminante.
 
+
+
+### 9.8 Inspeção das revisões iniciais, bootstrap e workflow
+
+A inspeção integral da revisão inicial `a1cd5ac5805f_schema_inicial.py` e da revisão seguinte `0002_guards.py`, além da busca no repositório por referências explícitas a `alembic_version`, `version_num_length`, `version_table` e `Base.metadata.create_all`, não identificou comando de aplicação que crie ou altere manualmente a tabela de controle de versão do Alembic.
+
+A revisão inicial cria as tabelas de domínio da aplicação (usuários, amostras, assinaturas, auditoria, custódia, ensaios, CAPA e resultados). Não cria `alembic_version`. A revisão 0002 também não contém referência explícita à tabela de versão. A busca textual no repositório não retornou outras ocorrências explícitas desses identificadores.
+
+O workflow confirma a seguinte sequência relevante:
+1. checkout do repositório;
+2. instalação das dependências de desenvolvimento;
+3. lint e mypy;
+4. execução de `alembic upgrade head` com `DATABASE_URL=postgresql+asyncpg://lims:lims@localhost:5432/lims_test`;
+5. somente após sucesso, execução de `alembic check` e dos testes.
+
+O `alembic.ini` define `script_location = %(here)s/alembic`; o workflow usa `working-directory: backend`. O `env.py` inspecionado lê a URL de `DATABASE_URL`, importa `Base.metadata` e chama `context.configure` por meio de `_configure`, incluindo explicitamente `version_num_length=64`.
+
+**Conclusão adicional:** não há evidência no código de migração inspecionado de que uma revisão do projeto crie a tabela Alembic com largura 32. Em condições normais, a tabela de versão é gerenciada pelo próprio Alembic a partir das opções efetivas do contexto. Assim, o foco discriminante passa a ser demonstrar qual valor de `version_num_length` chega ao contexto em execução e qual objeto/tabela recebe o UPDATE. A hipótese de criação manual por uma revisão do projeto perde sustentação, mas não é possível excluir bootstrap externo ou configuração/runtime divergente sem log/DDL.
+
+**Ponto ainda não resolvido:** o workflow cria um serviço PostgreSQL novo, mas não captura no log o DDL da tabela de versão nem consulta o catálogo antes da falha. A URL aponta para o banco `lims_test`; a conexão e o `search_path` efetivos ainda precisam ser comprovados no instante da migração. Não foi realizada reprodução local nem execução SQL.
+
+### 9.9 Diagnóstico de maior poder discriminante
+
+Na próxima execução diagnóstica autorizada, instrumentar somente um ambiente descartável para registrar, sem segredos:
+
+- caminho absoluto do `env.py` efetivamente carregado;
+- versão do Alembic e SQLAlchemy no mesmo interpretador/processo;
+- valor efetivo de `version_num_length` entregue ao `context.configure`;
+- dialect, database, current_schema e search_path da conexão;
+- existência, schema e DDL da tabela `alembic_version` antes do primeiro upgrade e imediatamente antes da revisão 0022;
+- SQL de criação da tabela e SQL de atualização da revisão, com parâmetros sensíveis omitidos.
+
+A instrumentação deve permitir distinguir três cenários: (a) contexto efetivo configurado com 32; (b) contexto com 64, mas atualização direcionada a outra tabela/schema com 32; (c) tabela criada antes do contexto esperado por bootstrap externo. Não se deve aplicar alteração corretiva antes de separar esses cenários.
+
+A coleta de diagnóstico, instrumentação, reprodução ou execução de comandos contra PostgreSQL continua condicionada à autorização específica e ao ambiente descartável. Esta atualização é exclusivamente documental.
