@@ -559,3 +559,173 @@ A matriz separa:
 - **lacunas de execução:** E2E não é executado no CI; build/runtime Docker, smoke e testes posteriores às falhas não foram alcançados.
 
 Nenhuma correção técnica foi iniciada ou executada. Esta matriz é instrumento de planejamento e controle de mudanças, não autorização para implementação. Gate G0 continua NÃO APROVADO.
+
+
+---
+
+## 11. Protocolo de execução controlada — E1.1 e sequência das demais frentes
+
+**Identificador:** RUN-E1-001  
+**Versão:** 0.1  
+**Status:** PROCEDIMENTO PREPARATÓRIO — NÃO EXECUTADO / NÃO AUTORIZADO  
+**Finalidade:** transformar a matriz da Seção 10 em roteiro verificável de trabalho, começando pelo diagnóstico discriminante Alembic/PostgreSQL.
+
+> Este protocolo não é autorização para executar comandos, acessar bancos, iniciar containers, modificar arquivos técnicos ou disparar workflows. A primeira reprodução de migração deve ocorrer exclusivamente em ambiente descartável e somente após autorização específica. Consultas SQL abaixo são modelos de coleta; não foram executadas.
+
+### 11.1 Pré-condições obrigatórias antes de qualquer execução
+
+A equipe técnica deverá registrar e confirmar:
+
+1. autorização explícita para a atividade e identificação do responsável pela execução;
+2. repositório, branch, commit e estado limpo do checkout;
+3. ambiente descartável isolado, sem credenciais, dados ou conectividade de produção;
+4. versão de PostgreSQL, Alembic, SQLAlchemy, Python e dependências;
+5. URL de conexão sanitizada, sem usuário, senha, token ou host sensível;
+6. estratégia para destruir/recriar o ambiente de teste sem tocar em dados persistentes;
+7. diretório seguro para logs, DDL, resultados e hashes dos artefatos;
+8. critérios de interrupção e pessoa autorizada a decidir sobre continuidade.
+
+**Interromper** se a conexão não puder ser comprovadamente identificada como descartável, se houver dúvida sobre o alvo, se o log expuser segredo ou se o checkout diferir da baseline aprovada.
+
+### 11.2 E1.1-A — reprodução observacional do contexto Alembic
+
+Objetivo: descobrir o contexto efetivamente carregado e o objeto que recebe a atualização da revisão 0022, sem antecipar a correção.
+
+Coletar no mesmo processo que executaria a migração:
+
+| Dado | Evidência a registrar | Pergunta respondida |
+|---|---|---|
+| Diretório corrente | Caminho absoluto | O comando parte do diretório esperado? |
+| Arquivo de configuração | Caminho absoluto do `alembic.ini` | Qual configuração foi carregada? |
+| Script de migração | Caminho absoluto do `env.py` | O arquivo inspecionado é o efetivamente executado? |
+| Revisões | Diretório e head(s) identificados | O conjunto de revisões corresponde à baseline? |
+| Runtime | Python, Alembic e SQLAlchemy efetivos | A execução usa as versões esperadas? |
+| Contexto | Valor de `version_num_length` entregue a `context.configure` | A opção 64 chega ao contexto efetivo? |
+| Dialect | Dialect e driver | A conexão é PostgreSQL e usa o driver esperado? |
+| Banco/schema | database, current_schema e search_path | A tabela está no schema esperado? |
+| SQL emitido | DDL de criação e UPDATE, com parâmetros sensíveis omitidos | Qual tabela/coluna recebe a operação? |
+
+A instrumentação deve ser temporária, revisada e limitada ao ambiente descartável. Não imprimir `DATABASE_URL`, senhas, tokens ou variáveis completas. A instrumentação não deve alterar a lógica da migração nem corrigir a largura durante a coleta.
+
+### 11.3 E1.1-B — coleta read-only do catálogo PostgreSQL
+
+Depois que a conexão descartável estiver identificada, coletar o catálogo antes do upgrade e, se a reprodução alcançar esse ponto, imediatamente antes da tentativa de aplicar a revisão 0022.
+
+Consultas indicativas:
+
+```sql
+SELECT current_database(), current_schema(), current_user;
+SHOW search_path;
+
+SELECT
+    table_schema,
+    table_name,
+    column_name,
+    data_type,
+    character_maximum_length,
+    is_nullable
+FROM information_schema.columns
+WHERE table_name = 'alembic_version'
+  AND column_name = 'version_num'
+ORDER BY table_schema;
+
+SELECT table_schema, table_name
+FROM information_schema.tables
+WHERE table_name = 'alembic_version'
+ORDER BY table_schema;
+
+SELECT version_num FROM alembic_version;
+```
+
+A última consulta deverá ser qualificada pelo schema caso haja mais de uma tabela homônima ou search_path ambíguo. Se a tabela ainda não existir, registrar explicitamente essa condição em vez de adaptar silenciosamente a consulta.
+
+Para preservar o valor probatório:
+- salvar saída integral e timestamp;
+- registrar versão do servidor PostgreSQL;
+- registrar schema e conexão usados;
+- associar cada coleta ao commit e ao momento da reprodução;
+- não executar DDL corretivo durante a coleta;
+- não substituir evidência de catálogo por inferência a partir de `env.py`.
+
+### 11.4 E1.1-C — árvore de decisão após a coleta
+
+| Resultado observado | Interpretação permitida | Próxima ação de análise | O que não fazer |
+|---|---|---|---|
+| Contexto efetivo recebe comprimento 32 | A configuração executada diverge do arquivo esperado ou foi sobrescrita | Rastrear origem do valor, caminho de execução e ordem de configuração | Não ampliar coluna antes de explicar a configuração |
+| Contexto recebe 64, mas tabela atual tem varchar(32) | Tabela pode ter sido criada anteriormente, por outro contexto ou em outro schema | Identificar DDL, schema, momento e origem da tabela | Não assumir defeito do Alembic nem renomear revision |
+| Há múltiplas tabelas `alembic_version` em schemas diferentes | Possível divergência de search_path/qualificação | Determinar qual tabela recebe o UPDATE e por que | Não alterar todas as tabelas sem identificar a tabela autoritativa |
+| Tabela é criada com 64 e posteriormente aparece com 32 | Existe operação posterior ou objeto diferente do inicialmente observado | Localizar DDL/alteração posterior e origem | Não atribuir a revisão sem evidência de autoria |
+| Tabela é criada com 32 apesar do contexto efetivo 64 | Divergência entre configuração declarada e mecanismo efetivo de criação | Preparar reprodução mínima e revisar versão/API efetiva do Alembic | Não aplicar workaround de produção |
+| Evidência não discrimina os cenários | Diagnóstico inconclusivo | Melhorar instrumentação e repetir somente com autorização | Não escolher correção por tentativa e erro |
+
+O encerramento de E1.1 exige parecer técnico que identifique o cenário sustentado por evidência, as hipóteses descartadas e as incertezas remanescentes. “Aumentar para 64” não é conclusão suficiente sem saber por que a configuração existente não produziu o efeito esperado.
+
+### 11.5 E1.1-D — avaliação de solução, somente depois do diagnóstico
+
+Após a árvore de decisão, elaborar uma nota de decisão técnica comparando pelo menos:
+
+- correção da configuração efetiva de criação da tabela;
+- bootstrap seguro para bancos já existentes com coluna curta;
+- estratégia idempotente para banco vazio e banco que já aplicou até 0021;
+- compatibilidade com PostgreSQL e limites reais de suporte SQLite;
+- impacto sobre upgrades, downgrades, restauração e histórico;
+- comportamento em falha parcial e reexecução.
+
+A nota deve apresentar diff proposto, ordem de operações, compatibilidade, rollback e testes. Nenhuma alternativa será implementada antes de revisão técnica e autorização específica.
+
+### 11.6 Sequência de trabalho das frentes E1-C03 a E1-C12
+
+A execução futura deverá seguir esta ordem, com paralelismo apenas quando não houver dependência:
+
+| Passo | Frente | Atividade futura | Saída que habilita o próximo passo |
+|---|---|---|---|
+| 1 | E1-C01 | Diagnóstico discriminante Alembic | Causa-raiz sustentada por DDL/contexto/log |
+| 2 | E1-C04 | Decidir e fixar Node/npm | Versões aprovadas e alinhamento CI/Docker |
+| 3 | E1-C03 | Sincronizar manifesto/lockfile mantendo Playwright | Instalação limpa comprovada |
+| 4 | E1-C07 | Confirmar requisito e comportamento esperado da verificação pública | Decisão funcional rastreável |
+| 5 | E1-C06 | Definir topologia HTTP/HTTPS, porta e certificado de teste | Contrato de acesso local/CI validado |
+| 6 | E1-C05 | Configurar execução E2E com servidor saudável | E2E executável no ambiente isolado |
+| 7 | E1-C10 | Revisar e ampliar cobertura baseada em requisitos aprovados | Matriz requisito-cenário e relatórios |
+| 8 | E1-C02 / E1-C11 | Aprovar solução Alembic e matriz de dialetos | Estratégia de migração revisada |
+| 9 | E1-C08 | Build Docker, saúde da stack e smoke | Evidência de build e smoke |
+| 10 | E1-C09 | Executar CI integral | Run completo no commit candidato |
+| 11 | E1-C12 | Consolidar diff, logs, artefatos, rollback e revisão | Pacote de evidência E1 completo |
+
+Os passos 2–7 podem ter análise documental paralela ao diagnóstico Alembic, mas nenhuma mudança técnica deve ser introduzida fora de autorização. E1-C02 depende da causa-raiz de E1-C01. E1-C08 depende da instalação npm e da topologia de acesso. E1-C09 depende das frentes aplicáveis anteriores.
+
+### 11.7 Pacote de evidência obrigatório por execução
+
+Cada atividade executada deverá gerar registro com:
+
+- ID E1-Cxx e atividade RUN-E1-001 correspondente;
+- autorização e responsável;
+- commit e branch;
+- ambiente, versões e configuração sanitizada;
+- comandos efetivamente executados;
+- início/fim e resultado;
+- logs integrais e artefatos;
+- testes previstos versus executados, incluindo skipped e justificativas;
+- divergências, incidentes e decisões;
+- hash dos artefatos relevantes;
+- revisão independente e parecer;
+- plano de rollback e confirmação de limpeza do ambiente descartável.
+
+Não registrar “aprovado” quando houver apenas inspeção estática. Usar os estados: **inspecionado**, **reproduzido**, **corrigido**, **testado**, **evidenciado**, **revisado** e **aprovado**, cada um com seu suporte documental.
+
+### 11.8 Estado desta etapa
+
+| Atividade | Estado |
+|---|---|
+| Protocolo de diagnóstico Alembic documentado | Concluído documentalmente |
+| Ambiente descartável provisionado | Não |
+| Autorização para reprodução | Não concedida |
+| Instrumentação executada | Não |
+| SQL de catálogo executado | Não |
+| Causa-raiz Alembic encerrada | Não |
+| Solução técnica aprovada | Não |
+| Correções npm/E2E/Docker/CI executadas | Não |
+| CI integral reexecutado | Não |
+
+**Parecer:** o roteiro agora define quais evidências devem ser coletadas, como distinguir as hipóteses e qual saída é necessária antes de selecionar uma correção. O próximo avanço técnico não é executar um upgrade por tentativa; é obter autorização específica para reproduzir o cenário em ambiente descartável e capturar contexto/DDL. As análises documentais das demais frentes podem prosseguir sem tocar no código.
+
+**Governança:** Gate G0 permanece NÃO APROVADO. Este protocolo não autoriza implementação, execução de comandos mutáveis, alteração de banco, instalação de dependências, Docker, E2E ou workflow.
