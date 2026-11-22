@@ -1,8 +1,8 @@
 # Matriz de Aderência — Domínio Existente × Domínio SEFI Aprovado
 
 **Identificador:** MAT-ADER-SEFI-001  
-**Versão:** 1.1  
-**Data:** 2026-11-10  
+**Versão:** 1.2  
+**Data:** 2026-11-21  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch examinada:** `main`  
 **Natureza:** diagnóstico documental de aderência; não constitui especificação de implementação, homologação ou aprovação do Gate G0.
@@ -246,3 +246,86 @@ A conclusão de que restariam apenas pendências institucionais/humanas, porém,
 |---|---|---|
 | 1.0 | 2026-11-10 | Matriz inicial de aderência do domínio existente à baseline SEFI. |
 | 1.1 | 2026-11-10 | Auditoria cruzada com o relatório multidisciplinar, inspeção direta do HEAD 7fc72d1 e confirmação dos jobs CI; mantidas as classificações funcionais D01–D20 e a decisão de Gate G0 não aprovado. |
+
+## 10. Atualização da aderência após auditoria funcional e de segurança — 2026-11-21
+
+### 10.1 Baseline e natureza da revisão
+
+Esta atualização complementa a análise anterior com auditoria estática de recebimento, conferência, decisão, custódia, aceite, evidências e autorização. A revisão usa arquivos versionados em main e não representa execução independente de testes, pentest ou homologação operacional. A classificação descreve evidência encontrada; “não comprovado” não significa prova de inexistência em todo o sistema.
+
+### 10.2 Síntese dos achados técnicos ACH-01–ACH-41
+
+| ID | Área | Constatação da auditoria | Prioridade preliminar |
+|---|---|---|---|
+| ACH-01 | Resultado × execução | Resultado assinado sem vínculo obrigatório a execução concluída específica; existe caminho direto e caminho por execução. | P0 |
+| ACH-02 | Revisão/assinatura | Token de assinatura da revisão técnica opcional nos trechos examinados. | P0 |
+| ACH-03 | Independência/papéis | Exceção ADMIN em regras de autoria/revisão; matriz institucional de competências incompleta. | P0 |
+| ACH-04 | Snapshot do laudo | Manifesto não demonstra reconstrução completa de execução, versão do método, equipamento e situação metrológica histórica. | P0 |
+| ACH-05 | Concorrência de revisões | Numeração de revisões exige comprovação de serialização e recuperação de conflito concorrente. | P1 |
+| ACH-06 | Isolamento organizacional | Filtro obrigatório por unidade/laboratório não comprovado transversalmente. | P0 |
+| ACH-07 | Solicitante externo | Identidade externa autenticável e vínculo próprio de autorização não comprovados. | P0 |
+| ACH-08 | Aceite/amostra | Aceite cria amostra sem integrar completamente decisão formal e revisão exigida. | P0 |
+| ACH-09 | Dados provisórios | Fallback de série/lote/fabricante sem marcação explícita suficiente como provisório/declarado/conferido. | P1 |
+| ACH-10 | Cadeia de custódia | Transferência atualiza custodiante/local imediatamente; confirmação do destinatário não demonstrada. | P0 |
+| ACH-11 | Decisão de recebimento | Vínculo objeto-item, conferência física e contexto da decisão não validados integralmente. | P0 |
+| ACH-12 | Escopo de recebimentos | Isolamento organizacional de recebimentos/anexos não demonstrado em todas as rotas. | P0 |
+| ACH-13 | Anexos/evidências | Hash/metadados parciais; autorização contextual, versionamento e retenção incompletos/não comprovados. | P1 |
+| ACH-14 | Caminhos de conclusão | Caminho direto de resultado assinado coexistindo com fluxo formal de execução. | P0 |
+| ACH-15 | Checklist/aceite | Critérios E/S, pendências e validações não integrados integralmente à barreira final. | P0 |
+| ACH-16 | Item não apresentado | Objeto de custódia criado antes de conferência que pode marcar item como não apresentado. | P0 |
+| ACH-17 | Recusa/custódia | Recusa registra encerramento sem comprovação de devolução/destinação física efetiva. | P0 |
+| ACH-18 | Transferência | Mudança de custodiante efetivada sem confirmação autônoma do destinatário. | P0 |
+| ACH-19 | Reavaliação | Fluxo de reavaliação após saneamento antes de encerrar pendência não comprovado. | P1 |
+| ACH-20 | Revisão coordenação | Integração obrigatória da revisão ao resultado/aceite não demonstrada em todos os caminhos. | P0 |
+| ACH-21 | Critério eliminatório | Barreira absoluta contra dispensa de critério E não demonstrada. | P0 |
+| ACH-22 | Concorrência do aceite | Serialização uniforme para aceite/criação de amostra não comprovada. | P0 |
+| ACH-23 | Barreira formal de aceite | Decisão, checklist, pendências e revisão exigível não são pré-condições uniformes comprovadas. | P0 |
+| ACH-24 | Granularidade | Decisão por item e por objeto insuficientemente separada em todos os fluxos. | P0 |
+| ACH-25 | Retificação | Fluxo transversal de retificação de solicitação/recebimento/objeto não comprovado. | P1 |
+| ACH-26 | Impacto da retificação | Avaliação de impacto após início de ensaio/laudo não comprovada. | P0 |
+| ACH-27 | Privilégios | Teste específico contra autoelevação de privilégios não localizado. | P1 |
+| ACH-28 | Imutabilidade | Hash/HMAC e guardas existem; proteção contra administrador privilegiado não demonstrada. | P1 |
+| ACH-29 | Chegada complementar | Evento próprio sem retroagir recebimento concluído não comprovado. | P0 |
+| ACH-30 | Histórico checklist | Respostas substituídas sem snapshot imutável da versão aplicada. | P0 |
+| ACH-31 | Acesso a evidências | Autenticação existe, mas escopo contextual do solicitante/recurso não demonstrado no serviço examinado. | P0 |
+| ACH-32 | Quantidades | Dimensões declarada/apresentada/representada parciais; reconciliação e unidade incompletas. | P1 |
+| ACH-33 | Registro tardio | Instantes efetivo/registro existem; justificativa obrigatória de lançamento tardio não comprovada. | P1 |
+| ACH-34 | Localização | Evento de transferência usado sem evento independente de mudança de localização. | P1 |
+| ACH-35 | Confirmação destinatário | Fluxo independente de confirmação não identificado; reforça ACH-18. | P0 |
+| ACH-36 | Idempotência | Testes/mecanismo em upload não comprovam recebimento, transferência e aceite. | P0 |
+| ACH-37 | Concorrência/versão | Verificação de versão em trechos sem serialização uniforme demonstrada nas operações críticas. | P0 |
+| ACH-38 | Histórico paginado | Histórico ordenado, mas endpoint de custódia examinado sem paginação estável. | P1 |
+| ACH-39 | Ciclo de evidências | Hash/metadados e vínculo opcional à execução; autorização, versionamento e retenção incompletos. | P1 |
+| ACH-40 | Legado | Reconciliação e vínculo legado por evidência confiável não comprovados. | P1 |
+| ACH-41 | Identificadores | QR e accession acoplados; protocolo SEFI, accession e QR precisam semânticas distintas. | P1 |
+
+**Nota:** prioridades P0/P1 são triagem técnica preliminar, não severidade institucional aprovada. Achados correlatos devem ser tratados em conjunto, evitando contagem artificial de defeitos independentes.
+
+### 10.3 Confronto indicativo com invariantes M0.3
+
+| Invariantes | Tema | Situação da auditoria |
+|---|---|---|
+| INV-04 a INV-06 | Item não apresentado não gera objeto/evento; custódia começa na apresentação física | Divergência identificada em ACH-16. |
+| INV-07 e INV-08 | Quantidades reconciliáveis e objeto homogêneo | Parcial; ACH-32. |
+| INV-11 a INV-13 | Confirmação de transferência, localização independente e encerramento físico | Divergências em ACH-17, ACH-18/35 e ACH-34. |
+| INV-14, INV-15 e INV-17 | Checklist versionado, critérios E/S/I e reavaliação | Divergências em ACH-15, ACH-19, ACH-21 e ACH-30. |
+| INV-18 a INV-20 | Granularidade, independência e autoridade técnica | Lacunas em ACH-03, ACH-20 e ACH-24. |
+| INV-21 a INV-24 | Amostra após aceite válido, unicidade, atomicidade/idempotência e não duplicação da chegada | Divergências em ACH-08, ACH-22, ACH-23, ACH-29, ACH-36 e ACH-37. |
+| INV-25 e INV-26 | Tempo efetivo/registro e retificação íntegra | Parcial; ACH-25, ACH-26 e ACH-33. |
+| INV-27 a INV-29 | Identificadores independentes e vínculos legados comprovados | Lacunas em ACH-40 e ACH-41. |
+| INV-30 e INV-31 | Autorização contextual e evento crítico auditável | Lacunas em ACH-06, ACH-12 e ACH-31. |
+| INV-32 a INV-34 | Recebimento agregado, chegada complementar e linhagem de agrupamento/fracionamento | Lacunas em ACH-29, ACH-32 e ACH-40. |
+
+O mapeamento é indicativo por tema; não declara que cada achado viole isoladamente todos os invariantes listados. A matriz detalhada deverá apontar evidência e teste por invariante.
+
+### 10.4 Parecer atualizado
+
+A fundação existente de autenticação, assinatura, auditoria, ensaios e persistência permanece candidata a reutilização. A auditoria, porém, identifica lacunas de domínio e barreiras de controle no fluxo de admissão SEFI. A recomendação é corrigir integração e consistência preservando componentes válidos, sem reconstrução indiscriminada.
+
+**Parecer:** aderência global **PARCIAL/INSUFICIENTE para operação do fluxo de admissão SEFI**. Manter **GATE G0 NÃO APROVADO** e **IMPLEMENTAÇÃO SEFI NÃO AUTORIZADA** até conclusão da rastreabilidade, correção/reavaliação dos bloqueadores e validação institucional.
+
+### 10.5 Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.2 | 2026-11-21 | Inclusão da auditoria ACH-01–ACH-41, confronto indicativo com invariantes M0.3 e parecer atualizado; preservadas as análises anteriores. |
