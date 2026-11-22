@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.1  
+**Versão:** 0.2  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -127,3 +127,53 @@ A rastreabilidade está estruturada em nível de decisão e grupos de invariante
 | Versão | Data | Descrição |
 |---|---|---|
 | 0.1 | 2026-11-21 | Primeira consolidação D01–D20 × entidades/estados/eventos × INV × CA × SIM, com evidência, lacunas, parecer e plano de fechamento. |
+| 0.2 | 2026-11-21 | Segunda camada de rastreabilidade estática: serviços, rotas/API, testes existentes, linhas de código e lacunas entre teste escrito e requisito. |
+## 12. Rastreabilidade técnica — requisito → serviço → API → teste
+
+**Método:** leitura estática dos arquivos atuais da branch main. As referências identificam código e testes versionados; não representam execução da suíte. A coluna teste descreve o que o teste efetivamente afirma, não o que o nome promete.
+
+| Fluxo/requisito | Serviço e trecho | Rota/API | Teste versionado | Constatação estática e lacuna |
+|---|---|---|---|---|
+| Criar recebimento e objetos iniciais | receipt_service.py:45-160 — create_receipt | POST de recebimento por solicitação | test_phase1_simulations.py:39-167 SIM01; :168-218 SIM02 | Cria ReceiptItem e CustodyObject para cada item declarado, com status PRESENTED e evento INGRESSO, antes da conferência física. SIM02 apenas muda depois o item para NOT_PRESENTED; não testa ausência de objeto/evento inicial. Divergência direta com INV-04/05. |
+| Conferir item apresentado/não apresentado | receipt_service.py:196-260 — conference_item | POST /api/v1/receipts/{receipt_id}/items/{item_id}/conference; routes/receipts.py:43-69 | SIM02, test_phase1_simulations.py:168-218 | Atualiza status/quantidade/conferência, mas não desfaz ou impede CustodyObject criado anteriormente. SIM02 verifica status e quantidade, não ausência de objeto/custódia. |
+| Decisão técnica por item | decision_service.py:28-82 — record_receipt_decision | POST /api/v1/receipts/{receipt_id}/items/{item_id}/decisions; routes/decisions.py:27-52 | test_phase1_checklist_decisions.py:191 em diante; SIM06 e SIM12 | Registra ReceiptDecision e abre CoordinationReview para PENDING/REJECTED. No trecho examinado não valida se custody_object_id pertence ao ReceiptItem nem bloqueia decisão antes da conferência física. |
+| Revisão independente da coordenação | decision_service.py — review_coordination_decision | POST /api/v1/coordination/reviews/{review_id}/action; routes/decisions.py:75-100 | test_phase1_checklist_decisions.py:191 em diante; SIM12 test_phase1_simulations.py:669 em diante | Serviço compara autor da decisão com revisor; teste cobre auto-revisão e revisão por outro usuário. Não demonstra matriz completa de competência/unidade nem autoridade ADMIN. |
+| Checklist e classes E/S/I | checklist_service.py:132-220 — submit_checklist_answers | POST /api/v1/receipts/{receipt_id}/items/{item_id}/checklist; routes/checklists.py | test_phase1_checklist_decisions.py:66-189 | Teste demonstra E não conforme → NAO_CONFORME; S não conforme → COM_RESSALVA; conforme → CONFORME. Serviço limpa respostas anteriores com checklist_answers.clear(); teste inclusive reenvia respostas e verifica apenas o conjunto final. Não preserva snapshot/histórico da versão aplicada e não testa barreira de aceite. |
+| Transferência de custódia | receipt_service.py:299-360 — transfer_custody | POST /api/v1/custody/objects/{id}/transfers; routes/receipts.py:95-125 | SIM07, test_phase1_simulations.py:461-520 | Serviço cria evento TRANSFERENCIA e atualiza custodiante/local imediatamente. SIM07 exige esse resultado e não contém etapa de confirmação do destinatário. Divergência direta com INV-11. |
+| Aceite e geração de amostra | receipt_service.py:362 em diante — accept_custody_object | POST /api/v1/custody/objects/{id}/acceptance; routes/receipts.py:127-160 | SIM01, test_phase1_simulations.py:39-167 | Serviço valida status SOB_GUARDA e versão, depois cria DeviceSample; no trecho examinado não consulta checklist, ReceiptDecision, CoordinationReview, pendências ou confirmação de apresentação. Amostra e evento são criados na mesma sessão/transação, mas não há prova suficiente de barreira formal completa, idempotência sob concorrência ou lock do objeto. |
+| Recusa e permanência física | receipt_service.py — ramo REJECTED de accept_custody_object | Mesmo endpoint de acceptance | SIM06, test_phase1_simulations.py:412-460 | Ramo de recusa marca RECUSADO e cria evento ENCERRAMENTO com destinatário/local nulos. SIM06 apenas verifica ausência de amostra e consulta do objeto; não demonstra permanência sob custódia nem destinação física posterior. |
+| Evidências anexadas a ensaio | attachment_service.py:20-100 | routes/attachments.py: POST upload; GET list/download | Não localizado SIM dedicado; testes específicos de anexos ainda precisam ser inventariados | Upload valida tamanho, calcula SHA-256, grava arquivo/autor e auditoria. GET/list/download recebem CurrentUser, mas serviço consulta por ID/test_id sem autorização contextual demonstrada. Hash prova integridade do conteúdo recebido, não autorização nem imutabilidade do ciclo de vida. |
+| Resultado assinado versus execução | execution_service.py:220 em diante — complete_execution; test_service.py:148 em diante — record_result | POST /api/v1/executions/{id}/complete; PATCH /api/v1/tests/{id}/result em routes/tests.py:119 em diante | test_phase2_executions.py:272 em diante; test_phase3_reviews.py | Existe fluxo formal TestExecution e endpoint separado para assinar resultado. record_result bloqueia por amostra/versão e exige assinatura, mas não exige vínculo com TestExecution concluída. Testes de execução não provam que todo resultado assinado depende de execução válida. |
+
+### 12.1 Testes escritos que não demonstram o requisito integral
+
+| Teste | O que efetivamente verifica | O que não verifica |
+|---|---|---|
+| SIM02 | Item atualizado para NOT_PRESENTED e quantidade 0 | Ausência de CustodyObject, evento INGRESSO ou custódia para esse item. |
+| SIM06 | Decisão REJECTED abre revisão; objeto consultável e sem amostra | Objeto continua SOB_GUARDA, ENCERRAMENTO não ocorre ou devolução/destinação é comprovada. |
+| SIM07 | Transferência muda imediatamente custodiante/local e cria evento | Confirmação expressa do destinatário antes da mudança. |
+| SIM08 | Localização muda sem alterar custodiante | Evento de domínio independente LOCATION_CHANGE e trilha distinta de transferência. |
+| SIM09 | Atualização de solicitação em rascunho gera sequência de auditoria crescente | Retificação formal após submissão/recebimento/ensaio, autorização, evidência e avaliação de impacto. |
+| SIM10 | Versão obsoleta conflita e segundo recebimento para mesma solicitação retorna 409 | Idempotência por chave/conteúdo e concorrência real de aceite/amostra/transferência. |
+| SIM11 | Perfil auditor não cria solicitação (403) | Isolamento entre unidades, escopo de solicitação, anexos e objetos. |
+| SIM12 | Autor da decisão não pode aprovar sua própria revisão | Todas as combinações de papel/competência e exceção administrativa. |
+
+### 12.2 Evidência de código versus evidência de execução
+
+- **Código/serviço:** os arquivos listados existem na branch consultada e seus trechos foram lidos.
+- **API:** rotas e dependências foram inspecionadas estaticamente; isso não prova comportamento runtime.
+- **Teste escrito:** os testes SIM e de fases existem e contêm as asserções resumidas.
+- **Teste executado:** não executado nesta rodada; nenhum resultado de pytest ou relatório CI foi obtido.
+- **Homologação institucional:** não demonstrada por estes artefatos.
+- **Conformidade:** parecer estático e limitado aos trechos citados; não equivale a decisão formal de Qualidade/Validação Institucional.
+
+### 12.3 Prioridades de auditoria subsequente
+
+1. **P0 — Aceite:** rastrear rota de criação de recebimento, serviço, decisão, checklist e aceite em uma sequência; definir e testar pré-condições e atomicidade.
+2. **P0 — Custódia:** corrigir o contrato funcional de transferência, recusa, localização e não apresentação; desenhar testes negativos que afirmem os invariantes, não apenas os estados atuais do código.
+3. **P0 — Segurança contextual:** percorrer todas as rotas de leitura/download e serviços, relacionando usuário, competência, unidade e vínculo com o recurso.
+4. **P0 — Execução/resultado:** tornar explícito o vínculo LabTestResult → TestExecution → versão de método, com exceções formalmente governadas.
+5. **P1 — Histórico:** preservar versões de checklist/respostas e retificações sem sobrescrever o registro anterior.
+6. **P1 — Testes:** revisar SIM01–SIM12 para que cada um tenha asserções positivas e negativas alinhadas aos INV e CA correspondentes; depois executar suíte em ambiente controlado e registrar artefatos.
+
+**Conclusão da v0.2:** foi possível ligar os principais fluxos de recebimento, conferência, decisão, checklist, custódia, aceite e execução a serviços, rotas e testes versionados. A auditoria confirma que parte dos testes valida o comportamento atualmente implementado, mas não os invariantes institucionais pretendidos. Não houve execução de testes nem alteração de código.
