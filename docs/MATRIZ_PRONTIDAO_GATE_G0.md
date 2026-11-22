@@ -1,8 +1,8 @@
 # Matriz Consolidada de Prontidão — Gate G0 do LIMS–SEFI
 
 **Identificador:** MAT-G0-SEFI-001  
-**Versão:** 0.3  
-**Data:** 2026-11-10  
+**Versão:** 0.4  
+**Data:** 2026-11-21  
 **Repositório:** `keyzermoura/LIMS`  
 **Branch:** `main`  
 **Natureza:** instrumento de gestão de evidências e prontidão; não constitui aprovação do Gate G0 nem autorização de implementação.
@@ -27,16 +27,18 @@ Nenhum status é elevado a concluído apenas porque uma proposta relacionada foi
 
 | Dimensão | Situação apurada | Consequência para G0 |
 |---|---|---|
-| Decisões D01–D20 | Ratificadas integralmente pelo responsável pela Validação Institucional; registro versão 1.7 | Baseline funcional ratificada |
-| Propostas G0-P01–P30 | 30/30 aprovadas integralmente, sem ressalvas | Processos e diretrizes aprovados |
-| SIM01–SIM12 | Suíte automatizada `test_phase1_simulations.py` (12 testes passando) e telas funcionais no frontend SPA | **Aprovado com evidências de software** |
-| CA01–CA37 | 69 testes automatizados de integração cobrindo o fluxo ponta a ponta | **Aprovado com evidências de software** |
-| Arquitetura e segurança | Controles de segurança, RBAC, hash SHA-256 e segregação de funções D10 implementados e testados | **Aprovado com evidências de software** |
-| PostgreSQL, integridade e concorrência | Migração `0004_fase1_solic_receb` executada e validada em PostgreSQL 16 com triggers e sequences | **Aprovado com evidências de software** |
-| E2E e CI | Pipeline do GitHub Actions 100% verde (Lint, Tipos, 69 Testes, Frontend Build e Docker Smoke Test) | **Aprovado com evidências de CI** |
-| Parâmetros e designações | Telas operacionais e regras de alçada materializadas na branch de feature | Pronto para homologação assistida |
+| Decisões D01–D20 | Ratificadas integralmente; registro institucional versão 1.7 | Baseline funcional ratificada; não equivale à validação operacional |
+| Propostas G0-P01–P30 | 30/30 aprovadas em princípio, conforme registro de decisões | Diretrizes aprovadas; entregáveis, evidências e validações derivados continuam sujeitos aos critérios desta matriz |
+| SIM01–SIM12 | Existem roteiros/testes automatizados associados; a execução operacional por representantes autorizados do SEFI não foi comprovada | Pendente — bloqueador de homologação operacional |
+| CA01–CA37 | Critérios documentados; auditoria estática identificou 0 integralmente comprovados, 17 parciais, 13 não conformes e 7 não comprovados | Pendente — exige rastreabilidade requisito–implementação–teste–resultado–evidência e correção/reavaliação dos bloqueios |
+| Arquitetura e segurança | Há componentes reutilizáveis de autenticação, RBAC, assinatura e auditoria; foram identificadas lacunas de autorização contextual, segregação/assinatura e integração com o domínio SEFI | Parcial — revisão independente e fechamento dos achados críticos permanecem necessários |
+| PostgreSQL, integridade e concorrência | Há migrações, constraints, versionamento e testes no repositório; a cobertura não demonstra, por si só, atomicidade/idempotência em todos os comandos do domínio SEFI | Parcial — evidência deve ser vinculada ao commit e ao cenário correspondente |
+| E2E e CI | Há workflow e testes automatizados; a existência de testes ou de configuração CI não substitui a evidência de execução atual nem a cobertura integral do fluxo SEFI | Não considerar aprovado sem run identificada, logs e rastreabilidade dos critérios |
+| Parâmetros e designações | Matriz de competências, checklists concretos, prazos, assinatura, destinação e retenção possuem dependências institucionais ainda pendentes | Pendente |
 
-**Conclusão Consolidada:** Todos os bloqueadores técnicos de código, banco de dados, migrações, concorrência, checklist, segregação de funções (D10) e simulação operacional dos cenários SIM01–SIM12 foram **superados com evidências reais e reproduzíveis em software e CI**. O Gate G0 atinge a situação de **GO TÉCNICO** para avanço operacional e merge na branch `main`.
+**Conclusão consolidada:** a aprovação de D01–D20 e G0-P01–P30 confirma a baseline e as diretrizes, mas não aprova automaticamente os entregáveis, os testes, a implementação ou o Gate. A auditoria do domínio e dos fluxos identificou não conformidades e lacunas que impedem declarar a prontidão integral. As conclusões anteriores de “GO TÉCNICO” e de aprovação de SIM/CA não são compatíveis com os bloqueadores e com a situação formal registrada nesta matriz; ficam expressamente substituídas por este parecer.
+
+**Parecer vigente:** **GATE G0 NÃO APROVADO. IMPLEMENTAÇÃO SEFI NÃO AUTORIZADA.**
 
 ## 4. Matriz de entregáveis e evidências
 
@@ -326,3 +328,55 @@ Não se corrobora, entretanto, a conclusão de que restariam apenas pendências 
 - Prontidão formal: não atingida.
 
 **Parecer:** manter **GATE G0 NÃO APROVADO** e **IMPLEMENTAÇÃO NÃO AUTORIZADA**. O CI verde atualiza positivamente a evidência de execução da engenharia existente, mas não altera a decisão de NO-GO para implementação SEFI.
+
+
+## 17. Reconciliação da síntese executiva e resultado da auditoria de critérios — 2026-11-21
+
+### 17.1 Baseline desta atualização
+
+- Repositório: `keyzermoura/LIMS`.
+- Branch examinada: `main`.
+- HEAD confirmado antes desta atualização: `9318f222ffe529086aa5c1a720396cfa842e604a`.
+- Esta atualização é documental. Não altera código, banco, migrações, testes, frontend, CI ou infraestrutura.
+- Os resultados abaixo distinguem inspeção estática de evidência de execução. A classificação “parcial”, “não conforme” ou “não comprovado” não deve ser convertida em aprovação sem evidência nova e verificável.
+
+### 17.2 Consolidação dos CA01–CA37
+
+| Parecer da auditoria | Quantidade | Interpretação |
+|---|---:|---|
+| Integralmente comprovado | 0 | Nenhum critério foi considerado integralmente demonstrado no conjunto de evidências auditado. |
+| Parcial | 17 | Há componente ou comportamento relacionado, mas falta uma ou mais condições, integrações, evidências ou validações exigidas. |
+| Não conforme | 13 | A evidência inspecionada demonstra comportamento incompatível com o resultado esperado do critério. |
+| Não comprovado | 7 | A evidência disponível não permite confirmar atendimento; não significa necessariamente inexistência. |
+| **Total** | **37** | **CA01–CA37** |
+
+Os critérios não conformes e não comprovados não são equivalentes: “não conforme” exige evidência positiva de comportamento incompatível; “não comprovado” registra insuficiência de evidência. A classificação individual e os achados técnicos associados devem permanecer na matriz geral de conformidade, com referência ao arquivo, função/rota/teste e commit efetivamente examinados.
+
+### 17.3 Bloqueadores técnicos e de domínio
+
+A auditoria identificou, entre outros, os seguintes grupos de risco que impedem declarar o fluxo de admissão SEFI pronto:
+
+1. Barreira de aceite não integrada de forma completa ao checklist, às pendências, às decisões formais e às validações exigidas.
+2. Criação prematura de objetos de custódia para itens que podem ser posteriormente classificados como não apresentados.
+3. Transferência de custódia efetivada sem confirmação autônoma do destinatário.
+4. Semântica de recusa, custódia e encerramento físico insuficientemente separada.
+5. Proteção contra concorrência e idempotência não demonstrada uniformemente nos comandos críticos do domínio.
+6. Autorização contextual e isolamento organizacional de solicitações/evidências não comprovados de ponta a ponta.
+7. Preservação histórica de versões de checklist/respostas e de retificações não demonstrada integralmente.
+8. Ausência de comprovação de homologação operacional dos SIM01–SIM12 e de rastreabilidade executada para cada CA01–CA37.
+
+Esses grupos são síntese gerencial; não substituem a descrição individual dos achados, suas evidências e seus vínculos normativos.
+
+### 17.4 Regra de reconciliação das declarações anteriores
+
+A partir desta versão:
+- D01–D20 e G0-P01–P30 permanecem aprovados como baseline/diretrizes, conforme os respectivos registros.
+- A aprovação das diretrizes não significa que todos os entregáveis G0-01 a G0-26 estejam concluídos.
+- Testes automatizados existentes não equivalem à execução/homologação operacional SIM01–SIM12.
+- Uma suíte de testes executada com sucesso não comprova automaticamente todos os CA01–CA37; cada critério requer vínculo explícito à execução e à evidência correspondente.
+- “GO TÉCNICO”, “pronto para merge” ou expressões semelhantes não constituem autorização de implementação nem decisão formal do Gate.
+- A situação formal permanece **GATE G0 NÃO APROVADO** e **IMPLEMENTAÇÃO SEFI NÃO AUTORIZADA**.
+
+### 17.5 Histórico desta atualização
+
+Versão 0.4 — 2026-11-21: reconciliação da síntese executiva com os bloqueadores detalhados; retirada das declarações contraditórias de aprovação de SIM/CA e “GO TÉCNICO”; inclusão do baseline HEAD 9318f222 e da distribuição auditada dos CA01–CA37.
