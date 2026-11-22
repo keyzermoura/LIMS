@@ -811,3 +811,36 @@ Para encerrar E1-C01 como reproduzido, a próxima atividade técnica deverá usa
 | Gate G0 | NÃO APROVADO |
 
 **Parecer E1.1:** a evidência agora aponta para o comportamento padrão do Alembic, que mantém version_num em 32 caracteres; o parâmetro version_num_length=64 atualmente presente no projeto não altera esse tipo. A hipótese de configuração ineficaz é a explicação técnica mais consistente e deve orientar a reprodução controlada e a futura proposta de correção. O bloqueador continua aberto até que a reprodução e a solução sejam testadas.
+
+
+### 12.6 Reavaliação da estratégia — ampliar a tabela antes da revisão longa
+
+A documentação oficial do Alembic 1.20.1 confirma que `version_table_impl` é um hook de implementação de dialeto, adicionado na versão 1.14, e não uma opção de configuração comum do projeto. A implementação padrão cria `version_num` como `String(32)`. Portanto, a proposta de sobrescrever esse método diretamente em `env.py` não deve ser tratada como solução preferencial: exigiria customização da implementação/dialeto e aumentaria o acoplamento a detalhes internos do Alembic. Referências: API DDL oficial e implementação de `DefaultImpl.version_table_impl`.
+
+**Estratégia preferencial a validar:** inserir uma revisão intermediária com identificador curto (até 32 caracteres), entre `0021_fase8_mfa_secret_text` e `0022_official_reports_attributes_immutable`, cuja única responsabilidade seja ampliar `alembic_version.version_num` de `VARCHAR(32)` para `VARCHAR(64)`. A revisão existente 0022, com identificador longo, permaneceria depois dela e só seria registrada quando a coluna já comportar o valor.
+
+Fluxo esperado em banco novo ou existente em 0021:
+1. Alembic cria/usa `alembic_version` com o padrão `VARCHAR(32)` e registra a revisão 0021;
+2. executa a revisão intermediária, cujo revision ID cabe em 32 caracteres;
+3. a revisão intermediária altera a coluna para `VARCHAR(64)` dentro da transação de migração;
+4. Alembic registra o ID curto da revisão intermediária, que continua cabendo em 32;
+5. executa a revisão 0022 longa e registra seu identificador, agora comportado pela coluna ampliada.
+
+Esta sequência evita customizar a implementação interna do Alembic e resolve, em princípio, tanto banco novo quanto banco já parado em 0021 com coluna 32. Não é ainda uma correção aprovada ou implementada. A proposta depende de confirmar a semântica transacional no PostgreSQL utilizado, o schema efetivo da tabela de versão e a ausência de bancos que já tenham aplicado a revisão longa por meio de uma coluna previamente ampliada.
+
+**Risco de histórico:** antes de inserir a revisão intermediária, inventariar ambientes persistentes e confirmar que nenhum deles está em 0022 ou em revisão posterior, e que nenhum histórico foi alterado manualmente. Se algum ambiente já registrou o ID longo, a cadeia proposta exige tratamento específico e não se deve reescrever o histórico sem plano de compatibilidade. A busca de código no índice GitHub não retornou referências textuais ao ID longo, mas isso não comprova ausência em bancos externos, backups ou deployments.
+
+**Critérios de aceite da proposta:**
+- revision ID intermediário comprovadamente <= 32 caracteres;
+- `down_revision` aponta exatamente para `0021_fase8_mfa_secret_text`;
+- migração altera somente `alembic_version.version_num`, preservando linha/valor, PK, nome e schema;
+- execução em banco vazio e em banco existente atualizado até 0021;
+- após a revisão intermediária, o catálogo PostgreSQL confirma `character_maximum_length = 64`;
+- upgrade até 0022 conclui e `alembic_version` registra exatamente o head esperado;
+- repetição após rollback/falha mantém estado consistente;
+- downgrade é avaliado com cautela: não reduzir para 32 se a revisão atualmente registrada exceder 32; preferir downgrade não destrutivo ou declarar explicitamente a irreversibilidade operacional da ampliação;
+- `alembic check`, testes de migração e CI integral executados e evidenciados em ambiente isolado.
+
+**Ponto de decisão técnica:** adotar a revisão intermediária de expansão como primeira alternativa, condicionada ao inventário de ambientes e à revisão do diff. Não implementar antes da autorização específica para alteração de migrações. O parâmetro `version_num_length=64` no `env.py` deve ser tratado como ineficaz para esse propósito e sua remoção/ajuste será incluída no diff apenas se a revisão técnica confirmar que não tem outro uso.
+
+Referências técnicas oficiais: [Alembic 1.20.1 — DDL Internals](https://alembic.sqlalchemy.org/en/latest/api/ddl.html) e [implementação DefaultImpl.version_table_impl](https://github.com/sqlalchemy/alembic/blob/main/alembic/ddl/impl.py).
