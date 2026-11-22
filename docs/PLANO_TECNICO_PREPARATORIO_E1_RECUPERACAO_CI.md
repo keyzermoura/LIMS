@@ -729,3 +729,85 @@ Não registrar “aprovado” quando houver apenas inspeção estática. Usar os
 **Parecer:** o roteiro agora define quais evidências devem ser coletadas, como distinguir as hipóteses e qual saída é necessária antes de selecionar uma correção. O próximo avanço técnico não é executar um upgrade por tentativa; é obter autorização específica para reproduzir o cenário em ambiente descartável e capturar contexto/DDL. As análises documentais das demais frentes podem prosseguir sem tocar no código.
 
 **Governança:** Gate G0 permanece NÃO APROVADO. Este protocolo não autoriza implementação, execução de comandos mutáveis, alteração de banco, instalação de dependências, Docker, E2E ou workflow.
+
+
+---
+
+## 12. Resultado do diagnóstico documental aprofundado Alembic — RUN-E1-001 (22/11/2026)
+
+**Estado:** diagnóstico documental aprofundado concluído; hipótese causal principal identificada; reprodução em runtime e inspeção direta do catálogo PostgreSQL ainda pendentes.  
+**Autorização recebida:** o usuário autorizou especificamente o diagnóstico Alembic. Essa autorização não inclui correção, alteração de código/migração/workflow, execução de upgrade em banco persistente ou aprovação do Gate G0.
+
+### 12.1 Evidência direta do processo que falhou
+
+Foi recuperado o log integral do job Backend da execução GitHub Actions 44974653168 (job 137061709212), no commit 7940598cde763f15ba08d0b7f011df620f69aeae.
+
+O log confirma:
+- Python 3.12.16;
+- Alembic 1.20.1 instalado no ambiente;
+- execução de alembic upgrade head a partir de backend;
+- DATABASE_URL apontando para o banco efêmero lims_test;
+- caminho de execução do arquivo carregado: /home/runner/work/LIMS/LIMS/backend/alembic/env.py;
+- falha ao atualizar a revisão 0021 para 0022, com PostgreSQL reportando value too long for type character varying(32);
+- serviço PostgreSQL 16.16 inicializado em container novo e pronto para aceitar conexões;
+- Ruff e mypy concluídos; alembic check e testes posteriores foram skipped.
+
+O arquivo backend/alembic/env.py no próprio commit que falhou tem SHA fa4f243ca7093d4dc788d34250316e78db40abf8 e contém version_num_length=64 dentro de context.configure, tanto para o caminho online quanto offline. Portanto, não se trata de diferença entre o arquivo atual e o arquivo executado.
+
+### 12.2 Causa técnica provável identificada na API do Alembic
+
+A implementação padrão oficial de DefaultImpl.version_table_impl recebe argumentos adicionais por **kw, mas constrói a coluna da tabela de versão com Column("version_num", String(32), nullable=False). O código padrão não usa o valor version_num_length para substituir esse comprimento. version_table_impl é o ponto de extensão indicado pelo próprio Alembic para alterar a estrutura da tabela de versão; foi introduzido na versão 1.14.
+
+Consequentemente, a hipótese causal principal passa a ser:
+
+> version_num_length=64 não é um parâmetro efetivo para ampliar a coluna padrão alembic_version.version_num na implementação instalada. O argumento é aceito no conjunto de opções do contexto, mas a implementação padrão de version_table_impl mantém String(32).
+
+Essa explicação é coerente com todos os fatos observados: o processo carregou o env.py esperado, a versão do Alembic era 1.20.1, a tabela foi criada no banco efêmero e a atualização da revisão longa falhou exatamente no limite 32.
+
+**Grau de confiança:** alto para a explicação da largura padrão de 32 caracteres; ainda falta reprodução controlada no ambiente do projeto para classificar a causa como reproduzida e encerrar formalmente E1-C01. O DDL do banco do run original não foi preservado no log e não foi possível consultar retrospectivamente o container já encerrado.
+
+### 12.3 Consequência para a hipótese de banco preexistente
+
+A evidência do serviço PostgreSQL recém-inicializado e o fato de o job usar banco de teste efêmero reduzem fortemente a hipótese de uma tabela herdada de execução anterior. A causa não deve mais ser tratada primariamente como schema antigo ou divergência de banco preexistente: a própria criação padrão do Alembic é compatível com o limite 32 observado.
+
+Ainda assim, bancos preexistentes continuam sendo um cenário de compatibilidade separado: mesmo após corrigir a criação da tabela para instalações novas, instalações que já possuam alembic_version.version_num VARCHAR(32) precisarão de estratégia explícita e segura para ampliação.
+
+### 12.4 Alternativa técnica a avaliar — sem implementação
+
+A próxima nota de decisão técnica deverá comparar:
+1. sobrescrever/customizar version_table_impl de forma compatível com a API do Alembic instalada, definindo comprimento suficiente para os revision IDs atuais e futuros;
+2. garantir que a personalização seja aplicada nos modos online e offline;
+3. estratégia de bootstrap/upgrade para bancos existentes cuja coluna já seja VARCHAR(32), sem depender de gravar a revisão 0022 antes de ampliar a coluna;
+4. preservação de PK, schema, nome da tabela, histórico e comportamento em instalações novas;
+5. compatibilidade de dialects, reconhecendo que as migrações atuais incluem SQL PostgreSQL específico;
+6. testes em banco vazio, banco atualizado até 0021 com coluna 32, banco já atualizado e reexecução após falha.
+
+Não se recomenda, neste momento, renomear a revisão 0022, apagar/recriar alembic_version, usar stamp head ou editar retrospectivamente o histórico.
+
+### 12.5 Limites e próximos passos
+
+O diagnóstico atual foi realizado por leitura do código no commit exato, recuperação dos logs reais do job e confronto com a implementação oficial do Alembic. Não foi criado ambiente de execução novo, não foi executado SQL de catálogo, não foi repetido alembic upgrade e não foi alterado nenhum arquivo de código, migração, banco ou workflow.
+
+Para encerrar E1-C01 como reproduzido, a próxima atividade técnica deverá usar ambiente descartável isolado e autorizado, registrando:
+- versão e caminho efetivo do Alembic;
+- configuração efetiva do contexto;
+- DDL de alembic_version logo após sua criação;
+- resultado de upgrade até 0021 e tentativa até 0022;
+- comportamento de uma implementação candidata de version_table_impl, somente após revisão e autorização de correção;
+- teste independente de banco existente com coluna 32.
+
+| Item | Estado atualizado |
+|---|---|
+| Leitura do env.py no commit que falhou | Concluída |
+| Recuperação do log integral do job Backend | Concluída |
+| Confirmação da versão Alembic 1.20.1 | Concluída |
+| Inspeção da implementação padrão version_table_impl | Concluída documentalmente |
+| Hipótese causal principal | Identificada, confiança alta |
+| Reprodução em ambiente descartável | Pendente |
+| DDL real de alembic_version coletado | Pendente |
+| Estratégia para bancos existentes | Pendente de decisão técnica |
+| Correção implementada | Não autorizada/não executada |
+| Testes pós-correção | Não executados |
+| Gate G0 | NÃO APROVADO |
+
+**Parecer E1.1:** a evidência agora aponta para o comportamento padrão do Alembic, que mantém version_num em 32 caracteres; o parâmetro version_num_length=64 atualmente presente no projeto não altera esse tipo. A hipótese de configuração ineficaz é a explicação técnica mais consistente e deve orientar a reprodução controlada e a futura proposta de correção. O bloqueador continua aberto até que a reprodução e a solução sejam testadas.
