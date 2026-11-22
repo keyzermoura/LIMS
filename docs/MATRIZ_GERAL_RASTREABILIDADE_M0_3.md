@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 1.0  
+**Versão:** 1.1  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -652,3 +652,18 @@ Unificar fronteiras transacionais, idempotência e versionamento; proteger a cad
 P6 não está comprovado. O script de backup/restauração tem supressão explícita de erros e não constitui evidência válida de restore; PITR é apenas declarado, não demonstrado. O plano de continuidade precisa ser implementado e testado em ambiente controlado, com evidências operacionais e homologação institucional.
 
 **Parecer:** P6 aberto; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
+
+
+## 23. Parecer consolidado de prontidão P1–P7 — 2026-11-22
+
+A consolidação final desta rodada está registrada em `docs/PARECER_CONSOLIDADO_PRONTIDAO_GATE_G0.md` (PCR-G0-001 v1.0). O documento relaciona os pacotes P1–P7 a causas-raiz, impactos, dependências, critérios de saída e evidências de fechamento; define critérios de entrada para o Gate e um plano de validação técnica e homologação operacional.
+
+A revalidação do run `44974199006`, no commit `343c3905f50e695048cb527b5e60f765d1d9b98e`, confirmou: Segurança = sucesso; Backend = falha em `alembic upgrade head` por `version_num varchar(32)`; Front-end = falha em `npm ci` por pacotes Playwright ausentes no lockfile; Docker = falha no build web pelo mesmo problema de lockfile. Typecheck, build frontend, testes backend e smoke Docker não foram alcançados.
+
+P7 registra que a existência de roteiros/testes versionados não comprova execução válida nem homologação. CA01–CA37 permanecem com a distribuição consolidada de 0 integrais, 17 parciais, 13 não conformes e 7 não comprovados; SIM01–SIM12 permanecem sem homologação operacional comprovada. A rastreabilidade deve evoluir até evidência por critério, execução, resultado, reteste e aceite.
+
+**Parecer:** P1–P7 não encerrados; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA. Esta seção não altera decisões D01–D20, G0-P01–P30 nem aprova M0.3.
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.1 | 2026-11-22 | Inclusão da consolidação P7 e referência ao parecer PCR-G0-001 v1.0; atualização da evidência CI do commit-base. |
