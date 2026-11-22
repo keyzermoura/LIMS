@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.5  
+**Versão:** 0.6  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -385,3 +385,64 @@ Entretanto, a cadeia não é plenamente reconstruível em nível de evidência t
 **Conclusão:** rastreabilidade ponta a ponta parcial. ACH-42, ACH-43, ACH-44, ACH-45 e ACH-47 são bloqueadores técnicos preliminares para afirmar reconstrução completa do ciclo resultado–revisão–laudo. ACH-46 e ACH-48 são lacunas de vínculo relevantes. ACH-49 exige auditoria específica de rotas de exclusão e política de retenção antes de classificar risco efetivo. O Gate G0 permanece NÃO APROVADO e a implementação permanece NÃO AUTORIZADA.
 
 **Limites desta etapa:** inspeção estática dos arquivos e trechos indicados; não foi feita execução de testes, teste de intrusão, inspeção de banco implantado, validação de retenção institucional nem confirmação de todos os endpoints de exclusão. Prioridades P0/P1 são triagem técnica preliminar, não severidade institucional aprovada.
+
+
+## 16. Auditoria de integridade do banco de dados e migrações
+
+**Escopo:** inspeção estática da cadeia Alembic, dos scripts SQL executados pelo modo de inicialização automática, dos modelos SQLAlchemy e dos testes PostgreSQL. HEAD consultado: `fe209a713bed6cd267c15e5390ff41b0d3c9084e` (`main`). Não houve conexão a banco implantado, execução de migrações, `alembic check`, inspeção de schema real ou execução de testes nesta etapa.
+
+### 16.1 Arquitetura de persistência e fontes de DDL
+
+| Componente | Evidência | Constatação |
+|---|---|---|
+| Metadados ORM | `backend/app/models/base.py`; `backend/alembic/env.py` | Alembic usa `Base.metadata`, compara tipos e defaults de servidor (`compare_type=True`, `compare_server_default=True`). |
+| Caminho de produção | `backend/app/db/database.py:init_db()` | Com `AUTO_CREATE_SCHEMA=false`, startup não cria schema nem aplica SQL; comentário operacional indica `alembic upgrade head` antes da API. |
+| Caminho automático de desenvolvimento/teste | `database.py:init_db()`, `app/db/sql/001_immutability.sql`, `002_indexes.sql`, `003_integridade_fase5.sql` | Executa `Base.metadata.create_all` e scripts SQL específicos de PostgreSQL; SQLite não recebe triggers/sequences PL/pgSQL. |
+| Histórico versionado | `backend/alembic/versions/a1cd5ac5805f_schema_inicial.py` e revisões `0002` a `0022` | Há cadeia incremental, com snapshots de guardas e revisões posteriores que atualizam funções/triggers. |
+| Paridade do schema | `backend/tests/test_migrations_postgres.py::test_upgrade_head_creates_schema_without_drift` | O teste prevê `alembic check` após upgrade em PostgreSQL descartável; o código do teste não prova que foi executado no ambiente atual. |
+
+A coexistência de dois caminhos de DDL (Alembic em produção e `create_all` + SQL no modo automático) é intencional segundo os comentários do projeto, mas cria duas superfícies que precisam permanecer sincronizadas. A inspeção identificou funções de guarda replicadas em snapshots Alembic e scripts SQL; a paridade nominal de triggers é parcialmente testada, mas não substitui comparação semântica dos corpos das funções.
+
+### 16.2 Proteções e integridade identificadas
+
+| Área | Proteção encontrada | Limite da comprovação |
+|---|---|---|
+| Chaves e cardinalidades | PKs UUID, FKs, UNIQUEs e índices nos modelos e migrações; exemplo: um recebimento principal por solicitação (`receipts.solicitation_id UNIQUE`). | Não houve introspecção de banco implantado nem verificação real de constraints em produção. |
+| Registros de auditoria | Trigger append-only para UPDATE/DELETE e bloqueio de TRUNCATE; teste dedicado tenta as três operações e verifica a cadeia. | Teste escrito, não executado nesta auditoria. |
+| Resultados assinados | Trigger append-only em `lab_test_results`; assinatura eletrônica com guarda de manifesto e consumo write-once. | Cobertura comportamental localizada não prova todas as combinações de UPDATE/DELETE nem permissões do papel de banco. |
+| Execuções e revisões | Trigger de congelamento após estados terminais; delete é bloqueado pela função. | Há divergência concreta no conjunto de estados terminais da revisão, detalhada em ACH-50. |
+| Laudos oficiais | Trigger no-delete/write-once; migração 0013 acrescenta proteção de versionamento e migração 0022 acrescenta `attributes`. | O downgrade 0022 não restaura integralmente a proteção da revisão 0013 (ACH-51). |
+| Registros de recebimento/custódia | Triggers no-delete em solicitações, itens, recebimentos, objetos, decisões e revisões de coordenação; eventos de custódia append-only. | Teste de paridade verifica nomes dos triggers, mas não testa semanticamente cada um. |
+| Numeração e auditoria concorrente | Sequences PostgreSQL e advisory lock na cadeia de auditoria; testes específicos existem. | Testes não executados nesta etapa; sequences não substituem idempotência/concorrência dos comandos de domínio (ver TX-01 a TX-14). |
+| Dados legados | Migrações aditivas; teste cria amostra pré-Fase 1 e verifica preservação após upgrade/downgrade. | Cenário cobre amostra legada simples; não demonstra reconciliação de toda a cadeia histórica ou dos anexos/laudos associados. |
+
+### 16.3 Achados novos de banco/migração
+
+| ID | Achado | Evidência | Impacto | Parecer / prioridade preliminar |
+|---|---|---|---|---|
+| ACH-50 | Estado `DEVOLVIDO` não está incluído na lista de congelamento de revisões técnicas | `CoordinationReviewStatus` em `models/enums.py` define `PENDENTE`, `APROVADO`, `DEVOLVIDO`, `REJEITADO`. A migração `0011_fase5_guards_integridade.py` cria `trg_test_reviews_freeze` com argumentos `{APROVADO,REJEITADO,RESSALVAS}`; o script `003_integridade_fase5.sql` replica a mesma lista. | Uma revisão cujo status anterior seja `DEVOLVIDO` não satisfaz a condição de congelamento por estado terminal. UPDATE direto pode alterar registro devolvido, embora DELETE continue bloqueado pela função. | Divergência código/DDL confirmada; P1 preliminar. Confirmar a semântica institucional de terminalidade de DEVOLVIDO antes de definir correção. |
+| ACH-51 | Downgrade da migração 0022 enfraquece a guarda de laudos introduzida em 0013 | `0022_official_reports_attributes_immutable.py::downgrade()` recria `lims_official_reports_guard()` sem as comparações de `version`, `root_report_id`, `supersedes_id` e `amendment_reason`, que estavam protegidas desde `0013_fase6_laudos_emendas.py`. | Um rollback somente de 0022 para 0021 mantém 0013 aplicada, mas substitui sua função por uma versão que deixa esses campos fora da proteção; pode permitir mutação direta desses metadados no banco. | Defeito de reversão DDL demonstrável por leitura; P1 preliminar. O teste de downgrade integral até PRE_PHASE1 não cobre o rollback isolado 0022→0021. |
+| ACH-52 | Guarda de laudos permite desativar o indicador `is_latest` sem exigir sucessor na mesma operação | A função criada em `0013` impede reativar `is_latest=false` para `true`, mas permite a transição `true→false`; a aplicação usa essa transição ao emitir emenda, porém o trigger não exige que exista versão sucessora vinculada. | Uma atualização direta pode deixar uma família de laudos sem versão vigente, se não houver controle transacional de serviço/rotina que a acompanhe. | Lacuna de integridade referencial/estado no nível DDL; P1 preliminar. Não foi demonstrado que uma rota pública permita essa mutação isolada. |
+
+### 16.4 Cobertura dos testes de migração e guardas — leitura estática
+
+| Teste | Cobertura declarada no código | Limitação |
+|---|---|---|
+| `test_upgrade_head_creates_schema_without_drift` | Upgrade completo em banco PostgreSQL descartável; presença de tabelas/enums; trigger de auditoria; `alembic current`; `alembic check`. | Não foi executado nesta auditoria; verificação nominal de um trigger não garante comportamento de todas as guardas. |
+| `test_downgrade_is_reversible` | Downgrade de head para `0003_audit_export`, preservação de tabelas legadas e reaplicação de head. | Não cobre downgrade individual de cada revisão, em especial `0022→0021`. |
+| `test_additive_migration_preserves_legacy_rows` | Preserva uma amostra legada com série/lote durante upgrade e downgrade. | Não cobre todos os tipos de registros, relações e evidências legadas. |
+| `test_downgrade_refuses_when_it_would_lose_data` | Impede downgrade que descartaria amostra legada sem série/lote e verifica falha sem reversão parcial. | Cenário de perda coberto é específico; não constitui prova de ausência de perda para todos os dados e revisões. |
+| `test_trigger_parity_phase5` | Compara nomes esperados de 23 triggers no schema de teste. | Não compara corpo das funções, argumentos de triggers ou comportamento de cada regra. |
+| Demais testes de `test_postgres_guards.py` | Exercitam append-only da auditoria, imutabilidade de assinatura, sequences, advisory lock e isolamento da busca de triggers por schema. | Não há, nos trechos examinados, teste comportamental específico para a lista de estados de `trg_test_reviews_freeze`, rollback isolado da revisão 0022 ou consistência de `is_latest` com sucessor. |
+
+**Condição de execução:** `test_migrations_postgres.py` e `test_postgres_guards.py` usam `pytest.mark.skipif` quando `LIMS_TEST_DATABASE_URL` não está definido; exigem PostgreSQL real e, para migrações, usuário capaz de criar bancos. Não foi consultado o resultado de uma execução CI nesta etapa. Portanto, a existência desses testes não será apresentada como aprovação operacional.
+
+### 16.5 Parecer e implicações para o Gate G0
+
+A estrutura de banco apresenta uma base relevante de integridade: migrações versionadas, constraints relacionais, guardas PostgreSQL, append-only seletivo, no-delete de registros regulados, sequences, testes de upgrade/downgrade e verificação prevista de drift entre metadata e migrações.
+
+Ainda assim, a auditoria identificou três pontos que impedem considerar a camada DDL integralmente fechada: divergência do estado terminal `DEVOLVIDO` na guarda de revisões; downgrade isolado de 0022 que remove proteções de campos introduzidas em 0013; e ausência de garantia DDL de que um laudo marcado como superado tenha sucessor correspondente.
+
+**Conclusão:** integridade do banco/migrações parcialmente demonstrada por desenho e testes escritos; execução atual, paridade de ambiente implantado e cobertura semântica completa das guardas não comprovadas. ACH-50 a ACH-52 devem ser incorporados ao plano de saneamento técnico e à rastreabilidade G0, após confirmação das regras institucionais aplicáveis.
+
+**Gate G0 permanece NÃO APROVADO. Implementação permanece NÃO AUTORIZADA.** Nenhuma migração, script SQL, modelo, trigger ou teste foi alterado nesta atividade.
