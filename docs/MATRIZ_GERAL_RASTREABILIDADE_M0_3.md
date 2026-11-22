@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.7  
+**Versão:** 0.8  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -510,3 +510,30 @@ A existência de workflow e scripts não comprova deploy institucional, agendame
 **Conclusão:** ambiente operacional NÃO demonstrado como pronto. ACH-53 e ACH-54 são bloqueadores objetivos de CI/build; ACH-55 bloqueia a aceitação da alegação de PITR/restauração; ACH-56 e ACH-57 exigem endurecimento e validação de operação. Gate G0 permanece NÃO APROVADO e implementação SEFI permanece NÃO AUTORIZADA.
 
 **Limites:** a consulta do Actions cobre a execução vinculada ao commit auditado e seus jobs/logs; não substitui inventário de todos os ambientes, configuração real de secrets, branch protection, firewall, storage, scheduler, RPO/RTO ou evidência de backup institucional. Nenhuma correção foi aplicada.
+
+
+## 18. Governança, qualidade e evidências do Gate G0 — 2026-11-22
+
+Foi criada a matriz complementar `docs/MATRIZ_EVIDENCIAS_GOVERNANCA_QUALIDADE_G0.md` v1.0, que organiza a hierarquia E0–E6 e a rastreabilidade D01–D20, G0-P01–P30, CA01–CA37, SIM01–SIM12, evidências CI e pacotes GOV-01–GOV-20.
+
+### 18.1 Resultado consolidado
+
+- D01–D20: ratificadas integralmente em 2026-11-10; não equivalem a homologação ou autorização.
+- G0-P01–P30: 30 diretrizes aprovadas em seis blocos; entregáveis, parâmetros e evidências permanecem condicionados conforme os registros.
+- CA01–CA37: distribuição auditada registrada na Matriz de Prontidão v0.4: 0 integralmente comprovados, 17 parciais, 13 não conformes e 7 não comprovados.
+- SIM01–SIM12: testes versionados parcialmente; execução atual e homologação operacional não comprovadas.
+- CI no commit `47133479685a9f1bbfbd12aa508cc46eaa3e913f`, run `44972383967`: Backend falhou na migração, Frontend falhou na instalação, Docker falhou no build; SAST/SCA passou. Smoke test e testes posteriores não foram alcançados.
+- GOV-01: rótulos GREEN históricos da tabela SIM foram ajustados em VALIDACAO_CENARIOS_OPERACIONAIS_SEFI.md v2.2 para evitar interpretação como resultado vigente.
+
+### 18.2 Novo achado documental
+
+**GOV-01 — Rótulos históricos GREEN mantidos na tabela SIM após suspensão da conclusão.** A tabela histórica da seção 5 do documento SIM v2.1 mantinha “APROVADO (GREEN)” em SIM02–SIM12, embora a seção 7.3 suspendesse a conclusão e declarasse a execução atual não revalidada. A coexistência poderia induzir leitura seletiva. Ação documental realizada: atualização para v2.2, preservando a declaração histórica da v2.0 e identificando-a como não revalidada no commit atual. Este achado não é defeito de código nem evidência de falha dos testes; é risco de governança documental.
+
+### 18.3 Parecer
+
+A baseline institucional está ratificada, mas a comprovação dos entregáveis, a execução válida de CA/SIM e a homologação operacional continuam incompletas. O novo documento de governança complementa, mas não substitui, a Matriz de Prontidão G0 e as evidências técnicas individuais.
+
+**GATE G0: NÃO APROVADO. IMPLEMENTAÇÃO SEFI: NÃO AUTORIZADA.**
+
+
+| 0.8 | 2026-11-22 | Integração da auditoria de governança, qualidade e evidências G0; referência à matriz complementar e correção documental dos rótulos históricos SIM. |
