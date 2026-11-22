@@ -1,6 +1,6 @@
 # Plano de Fechamento Acelerado dos Bloqueadores do Gate G0
 
-**Versão:** 1.0  
+**Versão:** 1.1  
 **Data:** 2026-11-22  
 **Baseline examinada:** branch `main`, commit `e276c8739c4726155f4e228f9b5092cff1f0699a`  
 **Natureza:** plano de auditoria e preparação de correções; não autoriza implementação.
@@ -81,3 +81,45 @@ Esta versão confirma duas causas-raiz de CI por logs e leitura estática: largu
 
 **Gate G0: NÃO APROVADO. Implementação SEFI: NÃO AUTORIZADA.**  
 Este plano organiza o fechamento; não representa aceite, homologação nem autorização de mudança técnica.
+
+
+## 9. Auditoria estática inicial P2/P3 — 2026-11-22
+
+Leitura estática dos arquivos no mesmo HEAD `e276c8739c4726155f4e228f9b5092cff1f0699a`. Os achados abaixo são constatações do código inspecionado; não substituem teste de exploração, execução automatizada ou análise de todas as rotas.
+
+### 9.1 P2 — Admissão e custódia
+
+**P2-01 — Modelo implementado de recebimento diverge do fluxo aprovado para item não apresentado.**  
+Em `backend/app/services/receipt_service.py`, `create_receipt` cria cada `ReceiptItem` com `PresentationStatus.PRESENTED`, usa a quantidade declarada como apresentada e cria imediatamente `CustodyObject` em `SOB_GUARDA` com evento de ingresso. Não há, nesse trecho, captura individual da quantidade realmente apresentada nem alternativa para `NAO_APRESENTADO`. Isso conflita com EST-REC-001, que separa apresentação de decisão e proíbe iniciar custódia para item não apresentado. Correlaciona-se com SIM02 e achados anteriores sobre criação prematura de custódia. Requer redesign do comando de recebimento, não apenas ajuste de tela.
+
+**P2-02 — Transferência de custódia é efetivada pelo ato de quem entrega, sem aceite do destinatário.**  
+Em `backend/app/services/custody_service.py`, `transfer` registra evento, atualiza imediatamente `current_custodian_id` e localização para o destino, e confirma a transação. A rota exige assinatura do usuário autenticado que solicita a transferência, mas não há etapa de confirmação/assinatura do destinatário nesse fluxo. O estado passa a refletir nova guarda antes de evidência de recebimento pelo destino. Diverge da proposta EST-REC-001 e SIM07, que exigem transferência pendente até confirmação. A correção deve modelar solicitação e confirmação como eventos/estados distintos.
+
+**P2-03 — API legada de amostras mantém trilha paralela ao novo recebimento.**  
+As rotas `/samples` e `/solicitations/{id}/receipt` expõem fluxos distintos para registrar amostras/entrada e formalizar recebimento. A rota de criação de amostra exige assinatura, mas a trilha de recebimento cria objetos de custódia e ainda não demonstra a integração de aceite/checklist com o accession institucional da amostra. Necessário definir uma única fronteira de criação da amostra operacional após decisão favorável, evitando que rotas paralelas contornem o fluxo de admissão.
+
+### 9.2 P3 — Segurança contextual
+
+**P3-01 — Autorização observada é predominantemente por papel, sem escopo por recurso/organização nos caminhos examinados.**  
+As rotas de solicitações usam `CurrentUser` ou `require_roles`; as rotas de amostras e histórico de custódia também autenticam o usuário. Entretanto, `solicitation_service.get_solicitation` consulta somente pelo UUID e `list_solicitations` não aplica filtro por criador, organização ou vínculo. `sample_service.get_sample/list_samples` igualmente consulta sem filtro contextual. Isso permite, para qualquer conta autenticada com acesso à rota, que a autorização por papel seja insuficiente para separar solicitações/amostras por escopo institucional. O impacto efetivo depende da política de acesso aprovada e dos perfis habilitados, mas a defesa contextual não está demonstrada nesses caminhos.
+
+**P3-02 — Conta externa/solicitante declarado não está separada por autorização contextual na API examinada.**  
+O modelo `Solicitation` armazena dados declarados do solicitante e `created_by_id` do usuário autenticado, mas os caminhos de leitura não demonstram vínculo entre a identidade autenticada e a solicitação. Isso não prova que exista uma conta externa habilitada; demonstra que a API examinada não aplica esse vínculo nas consultas citadas. A separação conceitual entre solicitante declarado e usuário autenticado precisa ser refletida em política e consultas.
+
+**P3-03 — QR de verificação expõe dados cadastrais e não tem expiração temporal.**  
+A rota `/samples/verify` exige usuário autenticado, mas o token QR é validado com `verify_exp=False` e a resposta retorna número de série, lote, fabricante, nome comercial e status. A decisão de tornar esse conteúdo acessível por QR e sua retenção temporal precisa ser alinhada à política institucional de confidencialidade e rastreabilidade. O achado é de exposição/escopo e governança de dados; não se conclui exploração externa, pois a rota requer autenticação.
+
+### 9.3 Sinais positivos que devem ser preservados
+
+- Transferência usa `SELECT ... FOR UPDATE` e versão otimista da amostra.
+- Eventos de custódia e registros de auditoria são persistidos na mesma transação do comando examinado.
+- A criação da amostra exige token de assinatura vinculado à entidade e ação.
+- A API aplica autenticação nas rotas de leitura examinadas.
+
+Esses controles são positivos, mas não corrigem a ausência de confirmação do destinatário nem substituem autorização contextual por recurso.
+
+### 9.4 Encaminhamento
+
+P2-01/P2-02 devem ser tratados como um único redesenho de admissão e custódia; P2-03 depende desse desenho para consolidar a criação de amostra. P3-01/P3-02 formam uma única camada de autorização contextual (ator × organização/vínculo × recurso × estado × ação). P3-03 requer decisão de política de exposição do QR e revisão técnica separada.
+
+**Limites:** não foram executados testes, chamadas exploratórias ou alterações técnicas. A análise abrange os caminhos e arquivos explicitamente citados, não todas as rotas do sistema.
