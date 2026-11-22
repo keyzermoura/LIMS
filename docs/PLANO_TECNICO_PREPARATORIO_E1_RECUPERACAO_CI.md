@@ -265,3 +265,30 @@ A solução final deve cobrir banco limpo e banco existente, com PostgreSQL como
 | Testes de correção | Não executados |
 
 **Parecer E1.1:** a falha está isolada ao comprimento efetivo da coluna de controle de versão durante a atualização para a revisão 0022. A evidência exclui explicações simplistas como “Alembic antigo” e torna obrigatória a inspeção do DDL real. A investigação está suficientemente delimitada para preparar uma reprodução controlada, mas não autoriza ainda uma alteração de migração ou de infraestrutura.
+
+
+### 9.6 Revisão estática da cadeia de revisões
+
+Foi feita leitura dos metadados de todas as 23 revisões presentes em `backend/alembic/versions/` na branch `main`:
+
+- revisão inicial: `a1cd5ac5805f`;
+- sequência numerada: `0002_guards` até `0022_official_reports_attributes_immutable`;
+- cada revisão numerada referencia como `down_revision` a revisão imediatamente anterior;
+- a revisão 0022 referencia `0021_fase8_mfa_secret_text`;
+- não foram identificados, nos metadados de revisão inspecionados, múltiplos heads, ramificações ou revisões concorrentes.
+
+O workflow inspecionado executa o comando a partir de `backend`, com `backend/alembic.ini`; esse arquivo define `script_location = %(here)s/alembic`. O `env.py` desse diretório contém a configuração de comprimento 64 já registrada acima.
+
+**Limite da conclusão:** esta verificação confirma a linearidade da cadeia declarada nos metadados e a correspondência dos caminhos de configuração visíveis. Ela não demonstra qual DDL foi efetivamente emitido pelo Alembic nem o estado real da tabela no PostgreSQL. Também não equivale à execução de `alembic history`, `alembic heads` ou à reprodução do pipeline. A causa-raiz permanece aberta.
+
+### 9.7 Próxima investigação read-only
+
+Antes de encerrar E1.1, a análise estática deve ser complementada, quando disponível, por:
+
+1. inspeção integral das revisões iniciais e de eventuais utilitários/bootstrap para localizar qualquer criação, alteração ou referência explícita a `alembic_version`;
+2. inspeção do log bruto desde o início do job, para confirmar o comando efetivo, diretório, variáveis não sigilosas e ordem das etapas;
+3. identificação do ponto em que a tabela é criada pelo contexto Alembic e do DDL gerado, por reprodução em banco descartável somente após autorização específica;
+4. coleta de `information_schema.columns`, `SHOW search_path` e identificação do schema da tabela no instante imediatamente anterior à gravação da revisão 0022.
+
+Não há evidência suficiente para atribuir a largura 32 a uma revisão específica, a um schema alternativo, a uma tabela preexistente ou a um defeito do Alembic. Essas hipóteses permanecem abertas até a coleta discriminante.
+
