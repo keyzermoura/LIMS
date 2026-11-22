@@ -186,3 +186,82 @@ Um único job verde ou uma execução parcial não satisfaz o aceite.
 - Build web: `frontend/Dockerfile`.
 
 **Conclusão:** E1 está diagnosticado em nível suficiente para preparar uma correção controlada, mas ainda não está corrigido nem validado. Os dois bloqueadores primários são Alembic/PostgreSQL e sincronização npm/lockfile; o build Docker é atualmente bloqueado pelo segundo. A recuperação deve preservar o histórico de migrações e a reprodutibilidade do ambiente.
+
+
+---
+
+## 9. Aprofundamento E1.1 — evidências adicionais sobre Alembic (22/11/2026)
+
+**Status desta investigação:** leitura de código e logs concluída; causa-raiz ainda não fechada; nenhuma execução experimental ou alteração técnica realizada.
+
+### 9.1 Evidências adicionais confirmadas
+
+1. O workflow cria um serviço PostgreSQL 16.16 em container e o log registra que o serviço ficou saudável antes da execução do Alembic.
+2. O job instala Alembic **1.20.1**. Portanto, a falha não pode ser atribuída, com a evidência disponível, à ausência da versão mínima que suporta a opção `version_num_length`.
+3. O job executa `alembic upgrade head` a partir do diretório `backend`, e o workflow aponta para `backend/alembic.ini`.
+4. `backend/alembic/env.py` chama `context.configure` com `version_num_length=64` tanto no caminho online quanto no offline, por meio de `_configure`.
+5. A cadeia atual possui uma revisão inicial `a1cd5ac5805f_schema_inicial.py`, seguida pelas revisões 0002 até 0022. O ID inicial é curto; a revisão 0021 também é menor que 32 caracteres; a revisão 0022 é `0022_official_reports_attributes_immutable` e ultrapassa 32 caracteres.
+6. O erro ocorre especificamente ao atualizar a linha de versão de 0021 para 0022:
+   `UPDATE alembic_version SET version_num='0022_official_reports_attributes_immutable' WHERE alembic_version.version_num = '0021_fase8_mfa_secret_text'`.
+7. O log mostra que a instalação de dependências, Ruff e mypy foram concluídos antes da falha. Os passos seguintes — `alembic check`, testes SQLite e PostgreSQL — foram skipped.
+
+### 9.2 Reavaliação da hipótese inicial
+
+A hipótese genérica de que o CI estaria usando uma instalação antiga do Alembic fica **afastada**: o log identifica Alembic 1.20.1.
+
+Também não há evidência de banco persistente herdado de uma execução anterior: o workflow inicia um serviço PostgreSQL novo para o job, e o log registra a inicialização do banco. Isso reduz a probabilidade de uma tabela antiga ter sido reutilizada, mas não substitui a inspeção do catálogo PostgreSQL no momento da falha.
+
+Há uma inconsistência objetiva a explicar: o ambiente de migração declara comprimento 64, mas a coluna efetivamente usada pelo PostgreSQL comporta somente 32 caracteres. A causa pode estar no caminho efetivo de criação/uso da tabela de versão ou em uma diferença entre o contexto configurado e a tabela que recebe o UPDATE. **Não é tecnicamente correto escolher uma dessas causas sem observar o DDL efetivo.**
+
+### 9.3 Diagnóstico discriminante obrigatório
+
+Em ambiente descartável, antes de qualquer correção, coletar:
+
+- versão efetiva do Alembic no mesmo processo que executa a migração;
+- configuração efetiva do contexto de migração, sem expor credenciais;
+- schema, tipo e comprimento real da coluna `alembic_version.version_num` no PostgreSQL;
+- localização da tabela no catálogo (`table_schema`) e `search_path` da conexão;
+- momento em que `alembic_version` é criada e DDL emitido para sua criação;
+- comprimento do identificador da revisão que está sendo aplicado;
+- resultado da mesma inspeção imediatamente após a criação da tabela de versão e antes da migração 0022.
+
+Consultas de diagnóstico indicativas (somente leitura):
+
+```sql
+SELECT table_schema, table_name, column_name, data_type, character_maximum_length
+FROM information_schema.columns
+WHERE table_name = 'alembic_version'
+  AND column_name = 'version_num';
+
+SHOW search_path;
+
+SELECT version_num FROM alembic_version;
+```
+
+Também registrar a sequência de revisões aplicada até 0021. A coleta precisa demonstrar se a tabela é criada com largura 32 desde o início ou se sofre alteração posterior.
+
+### 9.4 Decisão técnica provisória
+
+A correção ainda não deve ser escolhida. Primeiro, a reprodução precisa identificar a origem exata da largura 32. Depois, comparar no mínimo:
+
+- garantir que a tabela de versão seja criada com largura 64 no contexto efetivamente executado;
+- ampliar a coluna de forma controlada para bancos preexistentes que já tenham largura 32, sem apagar nem carimbar o histórico;
+- assegurar que o processo de upgrade consiga corrigir a coluna antes de tentar gravar um identificador maior que 32.
+
+A solução final deve cobrir banco limpo e banco existente, com PostgreSQL como banco de migração real do CI. SQLite não substitui esse teste, pois a falha observada é específica do PostgreSQL e o conjunto de revisões contém DDL PostgreSQL.
+
+### 9.5 Estado atualizado E1.1
+
+| Verificação | Estado |
+|---|---|
+| Run e commit de referência identificados | Confirmado |
+| PostgreSQL do CI identificado como serviço recém-inicializado | Confirmado |
+| Versão real Alembic identificada (1.20.1) | Confirmado |
+| Configuração `version_num_length=64` identificada nos caminhos online/offline | Confirmado por leitura |
+| ID de revisão 0022 excede 32 caracteres | Confirmado |
+| DDL efetivo da tabela no instante da falha | Não coletado |
+| Causa-raiz final | Em aberto |
+| Correção técnica | Não iniciada |
+| Testes de correção | Não executados |
+
+**Parecer E1.1:** a falha está isolada ao comprimento efetivo da coluna de controle de versão durante a atualização para a revisão 0022. A evidência exclui explicações simplistas como “Alembic antigo” e torna obrigatória a inspeção do DDL real. A investigação está suficientemente delimitada para preparar uma reprodução controlada, mas não autoriza ainda uma alteração de migração ou de infraestrutura.
