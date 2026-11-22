@@ -385,3 +385,27 @@ Não usar `npm install` no CI como substituto de lockfile sincronizado, nem `--f
 | Typecheck/build/E2E após correção | Não executados |
 
 **Parecer E1.2:** o bloqueador npm está confirmado por inspeção estática e sua causa imediata é a falta de sincronismo entre `frontend/package.json` e `frontend/package-lock.json`. O Docker web herda o mesmo bloqueio. A correção está especificada em nível preparatório, mas não executada nem aprovada. Gate G0 permanece não aprovado e as alterações técnicas continuam bloqueadas.
+
+
+### 9.11 Verificação do uso efetivo de Playwright/E2E
+
+A inspeção complementar de `frontend/playwright.config.ts` e do diretório `frontend/e2e` identificou:
+
+- existe configuração Playwright ativa, com `testDir: ./e2e`;
+- existem dois projetos de navegador configurados: Chromium e Firefox;
+- existem dois casos E2E no arquivo `lims-e2e-flow.spec.ts`: exibição da tela de login com três verificações de conteúdo e navegação para a rota pública de verificação de laudo;
+- o script `test:e2e` está declarado no manifesto;
+- o workflow CI atual executa `npm ci`, typecheck e build, mas não contém etapa `npm run test:e2e`;
+- o Dockerfile instala dependências e faz build, mas não executa testes E2E.
+
+**Conclusão:** Playwright não é uma dependência meramente órfã: há configuração e testes versionados que o importam diretamente. Remover a dependência quebraria a capacidade de executar esses testes. Entretanto, a existência dos testes não comprova que eles são suficientes, atualizados, executáveis ou que cobrem os fluxos críticos; tampouco existe evidência de execução E2E no CI observado.
+
+**Pendências para o plano de validação:**
+1. confirmar se as rotas e textos assertados ainda correspondem ao frontend atual;
+2. verificar se o backend/API e os dados necessários são inicializados para o cenário E2E;
+3. definir se Chromium e Firefox são ambos requisitos de homologação ou se a matriz de navegadores deve ser reduzida/ampliada por decisão técnica;
+4. definir instalação/cache dos browsers e dependências de sistema no runner;
+5. decidir quando inserir execução E2E no CI, preferencialmente após ambiente de integração estar disponível e saudável;
+6. ampliar os cenários para autenticação, permissões, recebimento/conferência, custódia, resultados e laudos, conforme requisitos aprovados e antes de considerar cobertura institucional.
+
+**Estado:** existência e conteúdo dos dois testes confirmados por leitura; execução, cobertura funcional e validade das asserções não verificadas. Nenhum teste foi executado e nenhuma configuração foi alterada.
