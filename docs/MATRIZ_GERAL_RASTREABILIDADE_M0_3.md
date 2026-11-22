@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.6  
+**Versão:** 0.7  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -446,3 +446,67 @@ Ainda assim, a auditoria identificou três pontos que impedem considerar a camad
 **Conclusão:** integridade do banco/migrações parcialmente demonstrada por desenho e testes escritos; execução atual, paridade de ambiente implantado e cobertura semântica completa das guardas não comprovadas. ACH-50 a ACH-52 devem ser incorporados ao plano de saneamento técnico e à rastreabilidade G0, após confirmação das regras institucionais aplicáveis.
 
 **Gate G0 permanece NÃO APROVADO. Implementação permanece NÃO AUTORIZADA.** Nenhuma migração, script SQL, modelo, trigger ou teste foi alterado nesta atividade.
+
+
+## 17. Auditoria de implantação, configuração, CI e recuperação operacional
+
+**Escopo:** inspeção estática dos arquivos de configuração e implantação e consulta dos resultados reais mais recentes do GitHub Actions. Branch `main`, commit auditado `bf6ec23c2ed14795d25b5b081296f6c4a7bbbb60`. Foram consultados workflow `CI`, jobs e logs da execução associada ao commit. Não houve deploy, acesso a ambiente institucional, rotação de segredos, execução manual de backup/restauração ou alteração de infraestrutura.
+
+### 17.1 Configuração e inicialização
+
+| Área | Evidência | Constatação | Limite |
+|---|---|---|---|
+| Segredos de exemplo | `.env.example`, `backend/.env.example` | Os arquivos de exemplo contêm credenciais PostgreSQL e chaves JWT/HMAC/QR/MFA com valores explícitos de desenvolvimento. | São exemplos, não prova de segredo real implantado. |
+| Defaults no Compose | `docker-compose.yml` | Variáveis críticas usam fallback para valores `dev-insecure-...`; PostgreSQL também usa usuário/senha padrão `lims`. | Em `ENVIRONMENT=prod`, o validator rejeita três chaves padrão (JWT, auditoria e QR), mas não se deve depender de falha tardia para governar configuração. |
+| Validação de produção | `backend/app/core/config.py` | Bloqueia segredos padrão JWT/AUDIT/QR e DEBUG em produção; força docs/OpenAPI desligadas via propriedade `docs_enabled`. | TOTP_ENCRYPTION_KEY não participa dessa validação; política de obrigatoriedade e armazenamento de todos os segredos não comprovada. |
+| Migração antes da API | `docker-compose.yml` | Serviço `migrate` executa `alembic upgrade head`; API depende de `service_completed_successfully`; `AUTO_CREATE_SCHEMA=false`. | Bom desenho fail-before-start; depende de migrações concluírem sem erro, o que falha atualmente no CI. |
+| Falha de banco no startup | `backend/app/main.py::lifespan` | Exceção em `init_db()` é capturada e logada; processo da API segue para `yield`, enquanto `/health` retorna `degraded` se banco estiver indisponível. | Em Compose, a dependência migrate reduz o risco; fora dele, API pode iniciar sem banco. Não há prova de política operacional de readiness/retentativa. |
+| Portas e rede | `docker-compose.yml` | DB e API publicam portas no host por padrão, além do frontend; não há redes internas segregadas explicitamente no arquivo. | Exposição efetiva depende do host/firewall; não se conclui exposição pública sem ambiente real. |
+
+### 17.2 Evidência real de GitHub Actions
+
+A execução mais recente consultada para o commit `bf6ec23c2ed14795d25b5b081296f6c4a7bbbb60` foi concluída com **failure**. O workflow é disparado em push para qualquer branch e pull request, incluindo alterações somente em documentação.
+
+| Job | Resultado observado | Evidência no log |
+|---|---|---|
+| Backend (lint, tipos e testes) | **Falha** em `alembic upgrade head`; lint e mypy passaram; paridade e testes foram pulados. | PostgreSQL rejeitou atualização de `alembic_version.version_num`: valor `0022_official_reports_attributes_immutable` excede `varchar(32)`. |
+| Front-end (typecheck e build) | **Falha** na instalação; typecheck/build pulados. | `npm ci` informa `package.json` e `package-lock.json` fora de sincronia; faltam `@playwright/test@1.65.1`, `playwright@1.65.1` e `playwright-core@1.65.1` no lockfile. |
+| Docker (imagens e smoke test) | **Falha** no build da imagem web; stack e smoke test pulados. | Mesmo erro de sincronização package/lockfile no `npm ci` do Dockerfile frontend. |
+| Segurança (SAST/SCA) | **Sucesso**. | Bandit e pip-audit concluíram sem erro no job consultado. |
+
+Execução: `https://github.com/keyzermoura/LIMS/actions/runs/44972207054`.
+
+**ACH-53 — Identificador de revisão Alembic excede a coluna padrão de versão.** A tabela `alembic_version.version_num` foi criada com largura 32 (padrão Alembic), mas a revisão `0022_official_reports_attributes_immutable` tem identificador maior. O upgrade falha ao atualizar a versão corrente; impede migração limpa e bloqueia a sequência CI antes de `alembic check` e testes. Evidência: log do job Backend acima. Prioridade preliminar P0 — bloqueador operacional demonstrado.
+
+**ACH-54 — package-lock.json não acompanha dependências declaradas.** `npm ci` falha porque três pacotes Playwright declarados no package.json não estão no lockfile. O mesmo defeito bloqueia o job frontend e o build Docker; smoke test não é alcançado. Evidência: logs dos jobs Front-end e Docker acima. Prioridade preliminar P0 — bloqueador de build/deploy demonstrado.
+
+### 17.3 Backup, WAL e restauração
+
+Inspecionado `scripts/backup_restore_pitr.sh`.
+
+**ACH-55 — Script de backup não comprova PITR nem restauração íntegra e pode reportar sucesso falso.**
+
+- Executa `pg_dump -Fc` e gera SHA-256 do arquivo: evidência positiva de backup lógico e checksum.
+- Cria diretório `wal_archive`, mas não configura nem verifica `archive_mode`, `archive_command`, retenção de WAL, continuidade de segmentos ou base backup; a criação do diretório não implementa arquivamento WAL/PITR.
+- A verificação de `pg_waldump` limita-se a testar existência do utilitário.
+- `createdb ... || true`, `pg_restore ... || true` e `dropdb ... || true` suprimem falhas.
+- Após `pg_restore` falhar, o script continua, consulta contagens e imprime “restauração validada 100% com sucesso” sem comparar com origem, validar constraints, migrações, hashes de laudos, cadeia de auditoria ou amostras de controle.
+- Não foi encontrada, nos arquivos operacionais examinados, agenda/scheduler que execute backup em periodicidade definida, nem evidência de cópia externa/imutável e teste de restauração independente.
+
+Parecer: há um esqueleto de backup lógico, mas PITR, restauração confiável, monitoramento e política de retenção não estão demonstrados. P0/P1 preliminar conforme RPO/RTO institucional; requer decisão e validação de infraestrutura.
+
+### 17.4 Achados adicionais de configuração
+
+**ACH-56 — Segredos de desenvolvimento são usados como fallback pelo Compose.** Os defaults estão identificados como inseguros e o validator de produção bloqueia JWT/AUDIT/QR padrão, o que é controle positivo. Ainda assim, Compose aceita implicitamente credenciais de banco e chaves padrão se variáveis forem omitidas; a inicialização pode falhar (fail-closed para três chaves), mas a configuração não impede erro operacional de implantação nem garante TOTP key forte. Recomenda-se exigir arquivo de ambiente/secrets manager e validar todas as chaves obrigatórias no perfil de produção. P1 preliminar.
+
+**ACH-57 — Inicialização da API absorve falha de conexão/DDL e continua processo.** `lifespan` captura exceção de `init_db()` e prossegue. Health reporta `degraded`, o que permite detecção, mas o processo aceita inicialização. Em deploys fora do Compose ou com orquestrador que não respeite readiness, pode haver instância sem persistência pronta. P1 preliminar; avaliar estratégia fail-fast/readiness conforme plataforma.
+
+### 17.5 Parecer de prontidão operacional
+
+O projeto tem pipeline CI abrangente em intenção: lint, tipagem, migrações, drift, testes SQLite/PostgreSQL, SAST/SCA, build Docker e smoke test. A execução consultada, entretanto, prova que a pipeline **não está verde**: migração PostgreSQL e instalação frontend falham, e testes de banco/smoke não chegam a executar. O job de segurança concluiu com sucesso nessa execução.
+
+A existência de workflow e scripts não comprova deploy institucional, agendamento de backup, retenção, PITR ou recuperação testada. O script atual de backup contém supressão explícita de erros, de modo que sua mensagem final não deve ser tratada como evidência de restauração bem-sucedida.
+
+**Conclusão:** ambiente operacional NÃO demonstrado como pronto. ACH-53 e ACH-54 são bloqueadores objetivos de CI/build; ACH-55 bloqueia a aceitação da alegação de PITR/restauração; ACH-56 e ACH-57 exigem endurecimento e validação de operação. Gate G0 permanece NÃO APROVADO e implementação SEFI permanece NÃO AUTORIZADA.
+
+**Limites:** a consulta do Actions cobre a execução vinculada ao commit auditado e seus jobs/logs; não substitui inventário de todos os ambientes, configuração real de secrets, branch protection, firewall, storage, scheduler, RPO/RTO ou evidência de backup institucional. Nenhuma correção foi aplicada.
