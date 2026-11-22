@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.2  
+**Versão:** 0.3  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -128,6 +128,7 @@ A rastreabilidade está estruturada em nível de decisão e grupos de invariante
 |---|---|---|
 | 0.1 | 2026-11-21 | Primeira consolidação D01–D20 × entidades/estados/eventos × INV × CA × SIM, com evidência, lacunas, parecer e plano de fechamento. |
 | 0.2 | 2026-11-21 | Segunda camada de rastreabilidade estática: serviços, rotas/API, testes existentes, linhas de código e lacunas entre teste escrito e requisito. |
+| 0.3 | 2026-11-21 | Auditoria estática de autorização contextual, isolamento organizacional, acesso a anexos, usuários e exposição pública de laudos. |
 ## 12. Rastreabilidade técnica — requisito → serviço → API → teste
 
 **Método:** leitura estática dos arquivos atuais da branch main. As referências identificam código e testes versionados; não representam execução da suíte. A coluna teste descreve o que o teste efetivamente afirma, não o que o nome promete.
@@ -177,3 +178,72 @@ A rastreabilidade está estruturada em nível de decisão e grupos de invariante
 6. **P1 — Testes:** revisar SIM01–SIM12 para que cada um tenha asserções positivas e negativas alinhadas aos INV e CA correspondentes; depois executar suíte em ambiente controlado e registrar artefatos.
 
 **Conclusão da v0.2:** foi possível ligar os principais fluxos de recebimento, conferência, decisão, checklist, custódia, aceite e execução a serviços, rotas e testes versionados. A auditoria confirma que parte dos testes valida o comportamento atualmente implementado, mas não os invariantes institucionais pretendidos. Não houve execução de testes nem alteração de código.
+
+## 13. Auditoria de segurança — autorização contextual e isolamento
+
+**Escopo:** leitura estática da branch main, limitada aos arquivos e trechos listados. A constatação de ausência de filtro nos trechos examinados não prova, por si só, exploração em produção; indica que o controle contextual não está demonstrado na camada examinada e precisa ser verificado transversalmente.
+
+### 13.1 Controles positivos identificados
+
+| Controle | Evidência de código | Parecer |
+|---|---|---|
+| Autenticação de usuário | backend/app/api/deps.py: get_current_user; CurrentUser | Rotas protegidas exigem usuário autenticado. |
+| RBAC central | backend/app/core/rbac.py | Matriz de papéis/permissões centralizada; ADMIN possui wildcard; API usa require_roles em operações de escrita selecionadas. |
+| Escopos M2M | backend/app/api/deps.py: require_scope | Há dependência para verificar escopos de contas SERVICE quando aplicada à rota. A existência da dependência não prova aplicação uniforme. |
+| MFA | backend/app/models/user.py e backend/tests/test_phase6_mfa_totp.py | Modelo contém MFA e teste de ciclo setup/enable/disable e assinatura reforçada. Não prova MFA obrigatório para todos os perfis/operações. |
+| Sessões | backend/app/models/user.py e auth_service.py | Refresh tokens rotativos, revogação e token_version; controles positivos de autenticação. |
+| Auditoria de upload | backend/app/services/attachment_service.py:20-76 | Upload registra usuário, SHA-256 e evento de auditoria. |
+
+### 13.2 Achados de autorização contextual
+
+| ID | Superfície | Evidência observada | Lacuna/risco | Prioridade preliminar |
+|---|---|---|---|---|
+| SEC-01 | Listagem de solicitações | routes/solicitations.py:50-72 exige CurrentUser; solicitation_service.py:103-137 filtra somente status e texto, sem usuário/unidade/escopo | Usuário autenticado pode receber conjunto amplo de solicitações se não houver filtro em outra camada. Isolamento por laboratório/unidade não demonstrado. | P0 |
+| SEC-02 | Detalhe de solicitação e recebimento | routes/solicitations.py:76-90 e :189-200; serviço get_solicitation busca pelo ID e get_receipt_by_solicitation pelo ID da solicitação | Controle é autenticação + conhecimento do identificador; não há verificação contextual de vínculo, unidade ou competência no trecho. | P0 |
+| SEC-03 | Lista/detalhe de amostras | routes/samples.py:90-119 e :148-152; user autenticado é recebido, mas não encaminhado ao sample_service.list_samples/get_sample | Serviço não recebe ator nem contexto de autorização; escopo organizacional/contextual não demonstrado. | P0 |
+| SEC-04 | Listagem e download de anexos | routes/attachments.py:54-75 exige CurrentUser; attachment_service.py:79-110 busca/lista por ID do anexo ou ensaio | Nenhum ator, unidade, vínculo de solicitação/ensaio ou permissão contextual é passado ao serviço. Anexo contém file_data e pode expor evidência bruta. | P0 |
+| SEC-05 | Listagem de usuários | routes/users.py:18-31 exige CurrentUser; auth_service.py:378-389 lista todos os usuários ativos, com filtro opcional de papel | Usuário autenticado comum pode consultar diretório institucional amplo; avaliar minimização de dados, competência e necessidade operacional. | P1 |
+| SEC-06 | Detalhe de usuário | routes/auth.py:286-290 exige CurrentUser, depois busca qualquer user_id | Não foi identificado no trecho controle para restringir consulta ao próprio perfil ou a ADMIN/gestor autorizado. Verificar campos efetivamente expostos pelo schema. | P1 |
+| SEC-07 | Admin wildcard | core/rbac.py: ROLE_PERMISSIONS[ADMIN] = ["*"]; require_roles também admite ADMIN em várias rotas | Privilégio amplo é explícito. Não há evidência, nestes trechos, de separação entre administração técnica, gestão de contas e autoridade técnica/decisória de laboratório. | P1/P0 conforme atos governados |
+| SEC-08 | Solicitante externo | models/solicitation.py:41-46 armazena nome/email/documento/organização e created_by_id obrigatório; criação usa WRITE_ROLES | Solicitante declarado não é identidade autenticada. Não foi encontrado portal/identidade externa neste fluxo. Não concluir que exista acesso externo indevido; requisito de acesso externo permanece não comprovado. | P1 |
+| SEC-09 | Verificação/download público de laudos | routes/public_reports.py:20-55 não exige autenticação; busca por token ou hash e disponibiliza PDF | Exposição pública é intencional no desenho, mas requer decisão institucional sobre quais laudos podem ser publicados, escopo do PDF, revogação, expiração/entropia do token e proteção contra enumeração. | P0 para governança de publicação |
+| SEC-10 | QR/consulta de amostra | routes/samples.py:107-145 valida token e retorna dados de amostra; exige CurrentUser | Autenticação existe, mas autorização contextual por laboratório/unidade/atribuição não aparece no trecho. Verificar também política de dados retornados. | P1 |
+
+### 13.3 Modelo de identidade e escopo
+
+O modelo User examinado contém username, email, nome, registro profissional, role, senha, estado ativo, MFA e dados de sessão. Não foi identificado no modelo examinado vínculo direto com unidade organizacional, laboratório, lotação, competência vigente ou escopo de dados.
+
+O modelo Solicitation registra solicitante declarado e created_by_id (usuário interno que cadastrou). Essa separação é positiva e deve ser preservada. Não se deve converter requester_email ou requester_document em credencial ou autorização implícita.
+
+A dependência require_scope existe para contas SERVICE; porém, a listagem de solicitações, amostras e anexos examinados usa CurrentUser sem encaminhar escopo ao serviço. O controle de escopo M2M não substitui autorização contextual de usuários humanos.
+
+### 13.4 Testes existentes e lacunas de teste
+
+| Arquivo de teste | Evidência que oferece | Lacuna em relação ao domínio |
+|---|---|---|
+| backend/tests/test_security.py | Hash de senha, política de senha, tokens, assinatura, QR assinado e serialização | Não testa isolamento por unidade, autorização por recurso, IDOR em solicitação/anexo/amostra ou privilégio mínimo. |
+| backend/tests/test_phase6_mfa_totp.py | Setup/ativação/desativação MFA e MFA em assinatura quando habilitado | Não prova MFA obrigatório por perfil/ato, nem autorização contextual. |
+| backend/tests/test_phase1_api.py | Fluxos HTTP de solicitação/recebimento/custódia | Não foi identificada, nos trechos examinados, matriz de dois usuários/unidades com tentativas cruzadas de leitura. |
+| backend/tests/test_api_flow.py | Fluxos HTTP amplos com middleware, dependências e RBAC | A existência do arquivo não substitui casos negativos específicos de isolamento por unidade, recurso e vínculo. |
+| backend/tests/test_phase8_service_clients_and_idempotency.py | Integrações de clientes de serviço e idempotência | Escopos de M2M não demonstram escopo de dados por laboratório nem isolamento entre usuários humanos. |
+
+**Não houve execução dos testes nesta rodada.** A tabela descreve cobertura localizada por inspeção; não é relatório de execução.
+
+### 13.5 Recomendações de validação/correção para etapa posterior
+
+1. Definir formalmente o modelo de escopo: usuário, unidade/laboratório, competência, vínculo com solicitação/ensaio e exceções de acesso.
+2. Centralizar autorização contextual no serviço/repositório ou política de domínio, sem depender apenas de filtros do frontend ou da rota.
+3. Aplicar o mesmo predicado de autorização a listagem, detalhe, download, histórico, busca por código de barras, exportações e endpoints auxiliares.
+4. Criar testes de isolamento com dois usuários e duas unidades: listar, consultar por UUID conhecido, baixar anexo, consultar amostra e histórico; todas as tentativas cruzadas devem ser negadas sem revelar existência de recurso.
+5. Restringir diretório e detalhe de usuários conforme necessidade operacional e minimização de dados.
+6. Formalizar matriz de privilégios ADMIN e separar administração técnica de decisão técnica, validação e assinatura.
+7. Definir política de publicação pública de laudos: consentimento/base legal institucional aplicável, classificação, conteúdo publicável, token forte, revogação, retenção e trilha de consulta.
+8. Definir se solicitantes externos terão portal próprio; até essa decisão, manter solicitante declarado separado do usuário autenticado.
+
+### 13.6 Parecer de segurança
+
+A implementação possui controles positivos de autenticação, RBAC, MFA, sessão e auditoria de upload. Entretanto, a leitura das rotas e serviços identificou ausência de demonstração de autorização contextual para solicitações, amostras e anexos, além de exposição pública deliberada de laudos que exige governança de publicação. O modelo User examinado não contém vínculo explícito de unidade/laboratório.
+
+**Conclusão:** autorização por papel existe; isolamento contextual por recurso/unidade não está comprovado nos fluxos examinados. SEC-01 a SEC-04 são bloqueadores preliminares de segurança para uso institucional com dados reais até que o requisito seja esclarecido, implementado e testado. SEC-09 exige decisão institucional antes de considerar o endpoint público adequado.
+
+**Limite:** parecer estático; não foi realizado teste de intrusão, execução automatizada, revisão completa de todos os endpoints ou avaliação de ambiente implantado. Não afirmar vulnerabilidade explorável em produção sem essas verificações.
