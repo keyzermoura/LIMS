@@ -844,3 +844,142 @@ Esta sequência evita customizar a implementação interna do Alembic e resolve,
 **Ponto de decisão técnica:** adotar a revisão intermediária de expansão como primeira alternativa, condicionada ao inventário de ambientes e à revisão do diff. Não implementar antes da autorização específica para alteração de migrações. O parâmetro `version_num_length=64` no `env.py` deve ser tratado como ineficaz para esse propósito e sua remoção/ajuste será incluída no diff apenas se a revisão técnica confirmar que não tem outro uso.
 
 Referências técnicas oficiais: [Alembic 1.20.1 — DDL Internals](https://alembic.sqlalchemy.org/en/latest/api/ddl.html) e [implementação DefaultImpl.version_table_impl](https://github.com/sqlalchemy/alembic/blob/main/alembic/ddl/impl.py).
+
+
+## 12.7 — Diff técnico proposto para E1-C01 (sem implementação)
+
+**Status:** PROPOSTA DOCUMENTAL PARA REVISÃO — NÃO IMPLEMENTADA, NÃO TESTADA E NÃO APROVADA.  
+**Baseline de código inspecionada:** branch `main`; revisões 0020, 0021 e 0022; `backend/alembic/env.py`; `backend/alembic.ini`; workflow CI e Docker Compose.  
+**Objetivo:** transformar a alternativa da Seção 12.6 em um diff revisável, sem alterar arquivos de migração ou executar comandos contra banco.
+
+### 12.7.1 — Confirmações adicionais na baseline
+
+1. A revisão `0021_fase8_mfa_secret_text` é predecessora direta da 0022 e possui ID compatível com VARCHAR(32).
+2. A revisão `0022_official_reports_attributes_immutable` conserva o ID longo e declara `down_revision = "0021_fase8_mfa_secret_text"`.
+3. A revisão 0022 executa `CREATE OR REPLACE FUNCTION ... LANGUAGE plpgsql`; portanto, a cadeia de migrações já é específica de PostgreSQL. Não há evidência de que o Alembic upgrade completo seja suportado em SQLite.
+4. O workflow CI executa `alembic upgrade head` em PostgreSQL 16 efêmero. Os testes SQLite são uma etapa separada, posterior, e não constituem evidência de migração SQLite.
+5. O Docker Compose define serviço `migrate` que executa `alembic upgrade head` antes da API e usa volume persistente `lims_pgdata`. Isso demonstra uma topologia prevista para banco persistente, mas não demonstra que a revisão 0022 já tenha sido aplicada em qualquer instalação real.
+6. A configuração atual do ambiente Alembic não declara `version_table_schema`; a tabela de versão é esperada no schema padrão da conexão. Não foi localizado no material inspecionado um mecanismo alternativo de criação manual da tabela.
+7. O CI cria banco efêmero, mas não há acesso nesta auditoria a bancos externos, volumes persistentes de instalações, backups ou ambientes institucionais. A ausência de referências ao ID longo no GitHub não prova ausência de bancos que já o tenham registrado.
+
+### 12.7.2 — Proposta de nova revisão intermediária
+
+Inserir uma revisão imediatamente entre 0021 e 0022, com identificador curto, por exemplo:
+
+| Campo | Valor proposto |
+|---|---|
+| Arquivo ilustrativo | `0021a_expand_alembic_version.py` |
+| `revision` | `0021a_expand_version_num` |
+| Comprimento do ID | 25 caracteres (compatível com limite 32) |
+| `down_revision` | `0021_fase8_mfa_secret_text` |
+| `branch_labels` | `None` |
+| `depends_on` | `None` |
+
+**Pseudodiff ilustrativo — não é código aplicado:**
+
+```python
+from alembic import op
+import sqlalchemy as sa
+
+revision = "0021a_expand_version_num"
+down_revision = "0021_fase8_mfa_secret_text"
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    bind = op.get_bind()
+
+    # A cadeia atual contém operações PostgreSQL específicas.
+    # Falhar explicitamente fora do dialeto suportado é preferível
+    # a produzir uma alteração parcialmente compatível.
+    if bind.dialect.name != "postgresql":
+        raise NotImplementedError(
+            "Esta cadeia de migrações requer PostgreSQL."
+        )
+
+    # A tabela é criada/gerida pelo Alembic antes da execução
+    # das revisões. A revisão curta pode ser registrada em VARCHAR(32).
+    op.alter_column(
+        "alembic_version",
+        "version_num",
+        existing_type=sa.String(length=32),
+        type_=sa.String(length=64),
+        existing_nullable=False,
+    )
+
+
+def downgrade() -> None:
+    # Não reduzir para VARCHAR(32): o histórico pode voltar a conter
+    # um identificador de revisão maior que 32 caracteres.
+    # A ampliação é intencionalmente mantida no downgrade.
+    pass
+```
+
+O pseudodiff é conceitual. Antes de implementação, a revisão deve ser ajustada ao estilo tipado e às convenções reais das migrações, e deve verificar explicitamente o estado da coluna para falhar com mensagem diagnóstica se o schema estiver fora dos estados esperados. A operação deve preservar o registro corrente, a chave primária, o nome da tabela, o schema efetivo e demais propriedades da coluna.
+
+### 12.7.3 — Sequência esperada
+
+**Banco novo:**
+
+1. Alembic cria `alembic_version` com a largura padrão 32.
+2. As revisões anteriores são aplicadas até 0021.
+3. Alembic registra a revisão intermediária curta, ainda compatível com 32.
+4. A revisão intermediária amplia `version_num` para 64.
+5. Alembic aplica 0022 e consegue registrar seu identificador longo.
+
+**Banco existente parado em 0021:**
+
+1. A tabela de versão já contém o ID 0021, compatível com 32.
+2. A revisão intermediária curta é registrada sem truncamento.
+3. A coluna é ampliada para 64.
+4. A revisão 0022 é aplicada e registrada.
+
+**Banco que já tenha aplicado 0022 ou revisão posterior:**
+
+- Não executar a nova revisão como se o banco estivesse em 0021.
+- Primeiro inventariar a revisão registrada, o DDL real da tabela de versão e o estado do schema.
+- Se o banco já tiver largura 64 ou superior, a revisão intermediária não deve ser aplicada retroativamente por `stamp` ou manipulação manual sem plano formal de reconciliação.
+- Se o banco registrar 0022 em coluna de largura 32, essa condição é incompatível com o estado esperado e exige procedimento específico de recuperação, preservando histórico e dados.
+- Não há evidência disponível para afirmar se esse cenário existe em ambientes persistentes.
+
+### 12.7.4 — Condições técnicas para transformar a proposta em implementação
+
+Antes de qualquer alteração em migração:
+
+- [ ] Inventariar todos os ambientes persistentes conhecidos, backups restauráveis e eventuais bancos institucionais; registrar a revisão atual e o tipo/comprimento real de `alembic_version.version_num`.
+- [ ] Confirmar se existe algum ambiente que já tenha aplicado 0022 ou revisão posterior.
+- [ ] Confirmar schema efetivo da tabela de versão e inexistência de customização externa de `version_table`/schema.
+- [ ] Revisar o diff da nova revisão e garantir ID curto (≤32), encadeamento linear 0021 → revisão intermediária → 0022.
+- [ ] Verificar no PostgreSQL que a alteração preserva a linha de versão, PK, nullability e demais atributos.
+- [ ] Testar upgrade em banco vazio desde a revisão inicial até head.
+- [ ] Testar upgrade em cópia descartável de banco parado em 0021.
+- [ ] Testar retomada após falha controlada e comprovar que não há estado parcial não recuperável.
+- [ ] Testar downgrade de 0022 para a revisão intermediária e para 0021, mantendo largura 64; não reduzir a coluna.
+- [ ] Executar `alembic history`, `alembic heads`, `alembic upgrade head`, `alembic check` e testes de migração em PostgreSQL.
+- [ ] Executar CI integral e arquivar logs, commit, versão PostgreSQL/Alembic, DDL antes/depois e resultado dos testes.
+
+### 12.7.5 — Riscos, controles e rollback
+
+| Risco | Controle exigido |
+|---|---|
+| Banco externo já em 0022 ou posterior | Inventário prévio e plano de reconciliação específico; não aplicar revisão intermediária retroativamente |
+| Coluna em schema diferente do padrão | Inspecionar schema efetivo e alinhar contexto Alembic antes da execução |
+| Alteração de coluna não preservar atributos | Inspecionar DDL antes/depois e comparar constraints/PK/nullability |
+| Downgrade reduzir largura e impedir registrar ID longo | Downgrade sem redução da coluna |
+| Execução parcial ou concorrente de migrações | Executar migração por processo único controlado, com backup verificável e janela aprovada |
+| SQLite tratado como dialeto suportado | Documentar PostgreSQL como dialeto de migração suportado pela cadeia atual; não inferir suporte SQLite a partir dos testes unitários |
+
+A ampliação de 32 para 64 é estruturalmente monotônica e o rollback lógico deve manter a largura ampliada. O rollback operacional de uma migração já aplicada não deve tentar recriar o limite anterior; deve restaurar a versão anterior da aplicação mantendo o schema compatível, salvo plano específico aprovado.
+
+### 12.7.6 — Parecer técnico preparatório
+
+**Parecer:** a revisão intermediária curta é a alternativa preferencial para corrigir a incompatibilidade identificada no CI, pois resolve a ordem causal: primeiro registra-se uma revisão que cabe em 32 caracteres; essa revisão amplia a coluna; só então a revisão 0022 longa pode ser registrada. A proposta preserva o identificador histórico da 0022 e evita depender de customização interna do Alembic.
+
+**Confiança:** alta quanto à incompatibilidade entre ID longo e coluna padrão de 32, sustentada pelo erro real do PostgreSQL no CI e pelo código da revisão 0022; moderada quanto à solução operacional completa, ainda condicionada à revisão do diff e aos testes em banco descartável; indeterminada quanto à situação de instalações persistentes não acessíveis nesta auditoria.
+
+**Decisão ainda necessária:** revisão técnica do diff e confirmação institucional do inventário de ambientes. A proposta não constitui autorização de implementação.
+
+**Estado E1-C01:** DIAGNÓSTICO DOCUMENTAL AVANÇADO; CAUSA-RAIZ IDENTIFICADA; CORREÇÃO PROPOSTA; IMPLEMENTAÇÃO E TESTES NÃO EXECUTADOS; INVENTÁRIO DE AMBIENTES PERSISTENTES PENDENTE.
+
+**Gate G0:** permanece NÃO APROVADO. Nenhuma migração, código, banco, workflow ou infraestrutura foi alterado nesta atividade.
