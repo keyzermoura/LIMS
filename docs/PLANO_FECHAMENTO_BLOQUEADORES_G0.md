@@ -1,6 +1,6 @@
 # Plano de Fechamento Acelerado dos Bloqueadores do Gate G0
 
-**Versão:** 1.4  
+**Versão:** 1.5  
 **Data:** 2026-11-22  
 **Baseline examinada:** branch `main`, commit `dabcefbea57278e4b1a774de8b1cc7bc72a50649`  
 **Natureza:** plano de auditoria e preparação de correções; não autoriza implementação.
@@ -315,3 +315,18 @@ A rota `/health` retorna HTTP de sucesso com corpo `status=degraded` quando o ba
 A análise é estática sobre script, manifests, serviço/modelo de outbox, runbook, modelo de laudo e healthcheck. Não foram executados backups, restores, comandos PostgreSQL, CronJobs, testes de recuperação ou verificações em cluster ativo. Não há acesso a evidências de ambiente institucional, storage provisionado, secrets, logs operacionais ou agendamento efetivo.
 
 **Parecer P6:** continuidade operacional, PITR, recuperação de documentos e entrega de integrações NÃO COMPROVADOS; o script atual não pode ser aceito como prova de restauração bem-sucedida. CI do HEAD anterior continua com falhas independentes. Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
+
+
+## 13. Consolidação P7 — qualidade, validação e homologação — 2026-11-22
+
+A auditoria P7 foi consolidada em documento próprio: `docs/PARECER_CONSOLIDADO_PRONTIDAO_GATE_G0.md` (PCR-G0-001 v1.0). O parecer integra P1–P7, revalida o CI no commit `343c3905f50e695048cb527b5e60f765d1d9b98e`, explicita causas-raiz, impactos, dependências, critérios objetivos de saída, evidências requeridas, decisões institucionais pendentes e plano de validação/homologação.
+
+No run `44974199006`, o job de Segurança passou; Backend falhou na migração Alembic por largura insuficiente de `alembic_version.version_num`; Front-end falhou em `npm ci` por divergência manifesto/lockfile; Docker falhou no build web pelo mesmo lockfile, sem alcançar smoke test. Os testes backend posteriores às migrações não foram executados nesse run.
+
+**P7 — estado:** não comprovado; bloqueador de Gate. CA01–CA37 não têm comprovação integral consolidada; SIM01–SIM12 não têm execução atual válida e homologação operacional demonstradas. Os pacotes GOV e as dependências institucionais permanecem sujeitos a evidência e aceite.
+
+**Parecer integrado P1–P7:** Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA. A documentação pode avançar; código, testes, migrações, banco, workflows, scripts e infraestrutura permanecem bloqueados até decisão formal do Gate e autorização específica.
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 1.5 | 2026-11-22 | Inclusão da consolidação P7 e referência ao parecer PCR-G0-001 v1.0; revalidação do CI no commit-base. |
