@@ -1,6 +1,6 @@
 # Plano de Fechamento Acelerado dos Bloqueadores do Gate G0
 
-**Versão:** 1.1  
+**Versão:** 1.2  
 **Data:** 2026-11-22  
 **Baseline examinada:** branch `main`, commit `e276c8739c4726155f4e228f9b5092cff1f0699a`  
 **Natureza:** plano de auditoria e preparação de correções; não autoriza implementação.
@@ -123,3 +123,64 @@ Esses controles são positivos, mas não corrigem a ausência de confirmação d
 P2-01/P2-02 devem ser tratados como um único redesenho de admissão e custódia; P2-03 depende desse desenho para consolidar a criação de amostra. P3-01/P3-02 formam uma única camada de autorização contextual (ator × organização/vínculo × recurso × estado × ação). P3-03 requer decisão de política de exposição do QR e revisão técnica separada.
 
 **Limites:** não foram executados testes, chamadas exploratórias ou alterações técnicas. A análise abrange os caminhos e arquivos explicitamente citados, não todas as rotas do sistema.
+
+
+## 10. Auditoria aprofundada P2/P3 e rechecagem CI — 2026-11-22
+
+### 10.1 Rechecagem CI após publicação documental
+
+A execução mais recente no HEAD `80ed9a5ee745d89f1cf78f3f2d2b11565cc1c6a1`, run `44973391327`, repetiu o mesmo quadro: Backend FAILURE, Front-end FAILURE, Docker FAILURE e Segurança SUCCESS. Os logs confirmam novamente:
+- PostgreSQL: `value too long for type character varying(32)` ao atualizar `alembic_version.version_num` para `0022_official_reports_attributes_immutable`.
+- Front-end: `npm ci` falha porque `@playwright/test@1.65.1`, `playwright@1.65.1` e `playwright-core@1.65.1` estão ausentes do lockfile.
+- Docker: falha no estágio `RUN npm ci --no-audit --no-fund`, antes de build e smoke test completos.
+
+Isso demonstra que a publicação de documentação não alterou nem resolveu os bloqueadores técnicos. CI continua não verde.
+
+### 10.2 P2 — refinamento dos achados de admissão e custódia
+
+**P2-04 — Aceite técnico pode ser invocado sem comprovação de conferência concluída.**  
+O serviço `receipt_service.accept_custody_object` verifica que o objeto está `SOB_GUARDA` e que a versão corresponde, mas não verifica diretamente que o `ReceiptItem` esteja com conferência concluída, apresentação positiva e decisão compatível com o aceite. Como o objeto é criado no recebimento inicial, a rota de aceite pode, pela lógica examinada, ser chamada antes da conferência. É necessário tornar o aceite dependente de pré-condições explícitas e testadas.
+
+**P2-05 — Conferência pode alterar apresentação após criação de custódia sem reconciliar os objetos.**  
+`conference_item` atualiza `presentation_status`, `presented_quantity`, `conference_status` e `decision`, mas não cria, ajusta, bloqueia ou encerra os `CustodyObject` já criados para o item. Assim, a situação física conferida pode divergir da quantidade/estado representado pelos objetos em custódia. Deve existir reconciliação transacional entre resultado da conferência e objetos físicos; itens não apresentados não podem permanecer representados como objetos sob guarda.
+
+**P2-06 — Transferência de objeto não exige aceite do destinatário e não usa bloqueio pessimista no carregamento mostrado.**  
+`transfer_custody` carrega o objeto por `get_custody_object`, compara versão e altera custodiante/local na mesma operação, sem etapa de confirmação do destinatário e sem `SELECT FOR UPDATE` no trecho examinado. O controle otimista existe, mas precisa ser avaliado sob concorrência real e não substitui o fluxo de confirmação exigido pelo domínio. O endpoint legado `/custody/transfer` também realiza transferência imediata e mantém outra representação de custódia.
+
+**P2-07 — Duas APIs de transferência e dois modelos de custódia permanecem ativos.**  
+O sistema mantém o fluxo legado de `DeviceSample/ChainOfCustody` (`/custody/transfer`) e o novo fluxo de `CustodyObject/CustodyEvent` (`/custody/objects/{id}/transfers`). Também coexistem criação direta de amostra em `POST /samples` e geração de amostra via aceite de objeto. É necessária uma decisão arquitetural de consolidação, compatibilidade e desativação controlada; não se deve remover legado sem mapear dados e consumidores.
+
+### 10.3 P3 — refinamento da autorização e QR
+
+**P3-04 — Modelo de usuário não contém vínculo organizacional/institucional.**  
+O modelo `User` examinado contém papel, credenciais e atributos de segurança, mas não apresenta campo ou relacionamento de unidade/organização/laboratório. As consultas de solicitação e amostra não aplicam filtro contextual. A política multiunidade e a distinção entre acesso global institucional e acesso restrito por unidade ainda precisam ser modeladas; não basta acrescentar filtro sem definir os papéis e exceções aprovados.
+
+**P3-05 — QR não verifica expiração temporal.**  
+`verify_qr_payload` chama `jwt.decode` com `options={... "verify_exp": False}`. A rota `GET /samples/verify` exige usuário autenticado, mas o token QR não tem expiração efetivamente verificada nesse caminho. A resposta retorna identificador/acession, série, lote, fabricante, nome comercial e status. Requer decisão institucional sobre validade, revogação, finalidade e conjunto mínimo de dados exibidos.
+
+### 10.4 P2/P3 — recomendação de arquitetura convergente
+
+A proposta consolidada é adotar uma única cadeia de estados:
+1. Solicitação submetida.
+2. Chegada física registrada, sem presumir apresentação integral.
+3. Conferência item a item, com quantidade efetiva e estado de apresentação.
+4. Objetos de custódia criados somente para material efetivamente apresentado e sob guarda, vinculados à quantidade física observada.
+5. Transferência com estado pendente até confirmação pelo destinatário; somente então muda o custodiante efetivo.
+6. Aceite técnico condicionado à conferência concluída e decisão favorável.
+7. Geração do identificador institucional da amostra após aceite favorável, vinculada ao objeto de custódia e ao histórico.
+8. Recusa e destinação física registradas separadamente, sem apagar a trilha.
+
+Para segurança, adotar autorização contextual baseada em ator, papel, unidade institucional, recurso, estado e ação, com negação por padrão; contas de serviço recebem escopos próprios. A política deve prever explicitamente os perfis com acesso transversal. QR deve carregar identificador opaco e mínimo de informação, com validade e revogação conforme política aprovada.
+
+### 10.5 Itens que exigem validação institucional consolidada
+
+A auditoria deverá levar à validação SEFI, em bloco:
+- Quem pode registrar chegada, conferir, decidir aceite/recusa, transferir e confirmar recebimento.
+- Se conferência e aceite podem ser feitos pela mesma pessoa ou quando se exige revisão independente.
+- Tratamento de divergência entre quantidade declarada e apresentada.
+- Destinação e registro de material recusado/não apresentado.
+- Quais unidades podem consultar solicitações/amostras de outras unidades e quais papéis possuem acesso transversal.
+- Finalidade do QR, dados visíveis, validade, revogação e público autorizado.
+- Política de compatibilidade e migração dos dois modelos legados de custódia/amostra.
+
+**Limites:** constatações baseadas na leitura estática dos arquivos indicados e logs do run citado. Não houve execução local de testes, exploração dinâmica, alteração de código ou decisão sobre política institucional.
