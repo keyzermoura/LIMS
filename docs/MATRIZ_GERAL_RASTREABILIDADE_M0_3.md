@@ -1,7 +1,7 @@
 # Matriz Geral de Rastreabilidade M0.3 — LIMS-SEFI
 
 **Identificador:** MAT-RAST-M03-001  
-**Versão:** 0.8  
+**Versão:** 0.9  
 **Data:** 2026-11-21  
 **Situação:** Consolidação técnica preliminar para revisão; M0.3 não aprovado; Gate G0 não aprovado; implementação não autorizada.  
 **Repositório:** keyzermoura/LIMS — branch main
@@ -591,3 +591,35 @@ Run `44973391327`, associado ao commit `80ed9a5ee745d89f1cf78f3f2d2b11565cc1c6a1
 A proposta arquitetural consolidada é: registrar chegada sem presumir apresentação integral; conferir por item e quantidade; criar custódia somente para material apresentado; transferir com confirmação do destinatário; condicionar aceite à conferência concluída; gerar amostra somente após aceite favorável; manter histórico imutável. A autorização deverá considerar ator, papel, unidade, recurso, estado e ação, com escopos explícitos para contas de serviço. QR deverá ter validade/revogação e expor apenas dados mínimos, conforme política aprovada.
 
 **Status:** CI não verde; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA. Constatações estáticas não equivalem a teste executado ou homologação.
+
+
+## 21. Auditoria P4/P5 — integridade transacional e ciclo de vida de ensaios/laudos (2026-11-22)
+
+**Baseline de código:** branch `main`, commit de referência `5285e9ed963e8a79c1c99cba91c59b0598509af5`.  
+**Documento complementar:** `docs/PLANO_FECHAMENTO_BLOQUEADORES_G0.md`, versão 1.3.
+
+| Achado | Evidência estática observada | Risco / lacuna | Tratamento proposto |
+|---|---|---|---|
+| P4-01 | `test_service.create_test` bloqueia amostra; `record_result` bloqueia ensaio e amostra, verifica versão e grava resultado versionado, assinatura, auditoria e CAPA antes do commit. | Controle positivo; concorrência e testes executados não comprovados. | Preservar; testar duas sessões concorrentes e rollback. |
+| P4-02 | `create_sample` grava amostra, custódia, assinatura e auditoria no mesmo commit; identidade fabricante/série/lote tem constraint única. Subalíquotas são armazenadas em JSON `attributes` com verificação prévia do código. | Sem chave de idempotência explícita; unicidade de subalíquota não é relacional e pode sofrer corrida. | Idempotência persistida; entidade relacional/constraint para código de alíquota, se validada no domínio. |
+| P4-03 | `AuditLog` contém sequência única, hash, HMAC e hash anterior; `LabTestResult` declara trigger PostgreSQL contra UPDATE/DELETE e possui unicidade teste/versão. | Modelo/comentário não prova trigger instalado nem cadeia verificada em todos os ambientes. | Evidência de migração, trigger ativo, teste de tentativa de alteração e verificação da cadeia. |
+| P4-04 | `amend_official_report` carrega laudo vigente sem `SELECT FOR UPDATE`, marca anterior como não vigente e cria nova versão. | Corrida entre emendas; unicidade do número não substitui serialização nem garante uma única versão vigente por cadeia. | Bloqueio/versionamento da cadeia, constraint de latest e teste concorrente. |
+| P4-05 | Emissão individual grava relatório, auditoria e outbox na mesma transação. | Não há idempotency key de comando demonstrada; reenvio pode emitir outro laudo com novo token/número. | Idempotência por operação e recuperação da resposta original. |
+| P5-01 | Resultado assinado gera `LabTestResult` com versão única, assinatura e auditoria; correção exige justificativa e nova versão. | Controle positivo; execução/cobertura não comprovadas. | Preservar e demonstrar testes de imutabilidade, emenda e concorrência. |
+| P5-02 | Emissão exige ensaio concluído, revisão aprovada, ausência de OOS aberto e ausência de violação CEP/Westgard. Não foi localizada validação explícita de `outcome == APROVADO` por ensaio; conclusão global vem do payload. | Laudo pode não refletir regra de agregação consistente dos desfechos individuais. | Regra formal de decisão e validação da conclusão contra todos os resultados. |
+| P5-03 | Emissão lê amostra, ensaios e dados de incerteza sem bloqueio pessimista explícito dos agregados no trecho examinado. | Snapshot do laudo pode concorrer com alteração de resultado/revisão/medição. | Snapshot versionado, bloqueio ou validação de versões e manifesto completo. |
+| P5-04 | Serviço de lote chama emissão individual; emissão individual executa `db.commit()` por relatório. | Falha em item posterior pode deixar laudos anteriores persistidos; lote não é tudo-ou-nada. | Definir semântica parcial ou transação única; persistir estado do lote e permitir retomada idempotente. |
+| P5-05 | Emenda cria novo PDF/hash, preserva registro anterior e registra `root_report_id`, `supersedes_id`, justificativa e assinatura. | Concorrência sem bloqueio explícito e ausência de unicidade parcial observada para versão latest. | Serializar emendas e impor invariantes de cadeia/versão vigente. |
+
+### 21.1 Delimitação de evidência
+
+- **Código/serviço observado:** evidência E2 estática.
+- **Testes versionados:** não foram inspecionados em detalhe nesta rodada nem executados; não atribuir status de aprovação.
+- **CI:** run `44973615657`, commit `5285e9ed963e8a79c1c99cba91c59b0598509af5`, concluído com falha. Backend falhou em migração Alembic; Front-end falhou em instalação de dependências; Docker falhou no build; Segurança SAST/SCA passou. Testes backend e smoke test não foram alcançados.
+- **Operação/homologação:** nenhuma evidência operacional ou termo de homologação produzido nesta rodada.
+
+### 21.2 Direção de convergência
+
+Unificar fronteiras transacionais, idempotência e versionamento; proteger a cadeia de emendas; congelar snapshot auditável de resultados e dados metrológicos; derivar a conclusão do laudo de regra aprovada; definir atomicidade/retomada de lote. As propostas são recomendações técnicas preliminares, não decisões institucionais aprovadas.
+
+**Parecer:** P4/P5 não encerrados. A matriz não converte evidência de código em comprovação de execução. Gate G0 permanece NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
