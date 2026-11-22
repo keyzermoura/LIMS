@@ -4,7 +4,7 @@
 **Versão:** 2.0  
 **Data:** 2026-11-12  
 **Base:** EST-REC-001 v1.5; MOD-DOM-001 v0.5; CA01–CA37; M0.3 / M1.1 / M1.2 / M1.3; suíte automatizada `backend/tests/test_phase1_simulations.py`.  
-**Situação:** Cenários SIM01 a SIM12 materializados em software e 100% validados por testes automatizados de integração e interface web SPA.
+**Situação:** Cenários SIM01 a SIM12 possuem roteiros documentais e uma suíte automatizada versionada. A existência do arquivo de testes não comprova, isoladamente, que todos os resultados esperados estejam corretamente implementados, que a suíte tenha sido executada no HEAD vigente ou que os cenários tenham sido homologados por usuários SEFI. A auditoria estática identificou divergências entre comportamentos esperados e serviços/rotas; ver seção 7.
 
 
 ---
@@ -262,13 +262,13 @@ Nenhum cenário demonstrou contradição que exija reabrir EST01–EST10 ou alte
 8. Inventário de localizações, política de retenção e evidências.
 9. Procedimento de reconciliação dos dados legados.
 
-## 5. Evidências de Software dos Cenários SIM01–SIM12 (Versão 2.0)
+## 5. Suíte automatizada versionada — evidência de existência, não de homologação
 
-A suíte de testes automatizados `backend/tests/test_phase1_simulations.py` executa ponta a ponta cada um dos 12 cenários em banco de dados real e validação de contratos HTTP:
+O arquivo `backend/tests/test_phase1_simulations.py` está versionado e contém funções de teste para SIM01–SIM12. Esta constatação comprova a existência de código de teste, mas não comprova execução no HEAD atual, sucesso de cada teste, cobertura completa do critério, nem homologação operacional. A tabela abaixo registra a associação declarada no próprio documento/teste; os status GREEN históricos não devem ser tratados como resultado atual sem run de CI identificada e logs verificáveis:
 
 | Cenário | Teste Automatizado | Status | Critérios Cobertos |
 |---|---|---|---|
-| **SIM01** | `test_sim01_recebimento_integral_com_aceite` | **APROVADO (GREEN)** | CA01–CA05, CA14, CA16–CA18, CA24, CA31–CA33, CA37 |
+| **SIM01** | `test_sim01_recebimento_integral_com_aceite` | **A EXECUÇÃO ATUAL NÃO FOI REVALIDADA** | CA01–CA05, CA14, CA16–CA18, CA24, CA31–CA33, CA37 |
 | **SIM02** | `test_sim02_recebimento_parcial_com_item_nao_apresentado` | **APROVADO (GREEN)** | CA07, CA08, CA23, CA28, CA36 |
 | **SIM03** | `test_sim03_divergencia_quantidade_declarada_vs_apresentada` | **APROVADO (GREEN)** | CA04–CA08, CA26–CA27 |
 | **SIM04** | `test_sim04_multiplos_objetos_decisoes_independentes` | **APROVADO (GREEN)** | CA09, CA14, CA18, CA20, CA27, CA37 |
@@ -290,3 +290,32 @@ A suíte de testes automatizados `backend/tests/test_phase1_simulations.py` exec
 | 1.2 | 2026-11-10 | Atualização após ratificação institucional integral de D01–D20. |
 | 2.0 | 2026-11-12 | Automação e comprovação dos 12 cenários em software funcional (`test_phase1_simulations.py`), 100% aprovados em CI. |
 
+
+## 7. Reavaliação da evidência automatizada e limites de validação — 2026-11-21
+
+### 7.1 Distinções obrigatórias
+
+- **Teste versionado:** há código de teste no repositório.
+- **Teste executado:** exige run identificada, commit correspondente e logs/resultado do job.
+- **Teste aprovado:** exige resultado de execução bem-sucedida e confirmação de que as asserções cobrem o comportamento esperado.
+- **Homologação operacional:** exige execução observada por representantes autorizados do SEFI, evidências, tratamento de desvios e aceite formal.
+
+Esses quatro estados não são intercambiáveis. A presença de funções test_sim01...test_sim12 não autoriza declarar os cenários aprovados ou homologados.
+
+### 7.2 Divergências encontradas na auditoria estática
+
+A leitura estática dos serviços, rotas e testes identificou comportamentos que contradizem requisitos descritos nos cenários, incluindo: criação de objetos de custódia antes de confirmar apresentação física (INV-04/05; SIM02); transferência com alteração imediata do custodiante sem confirmação do destinatário (INV-11; SIM07); encerramento associado à recusa sem comprovação de destinação física (INV-13; SIM06); e aceite/amostra sem integração uniforme de checklist, decisão e revisão exigível (INV-15/17/21; SIM01/SIM05). Também foram identificadas lacunas de idempotência, concorrência e autorização contextual (SIM10/SIM11).
+
+Os apontamentos acima são resultado de inspeção estática dos caminhos identificados; devem ser confirmados por testes negativos e execução reproduzível após a correção. Não se afirma que cada função de teste esteja necessariamente falhando sem executar a suíte.
+
+### 7.3 Parecer atualizado
+
+**SIM01–SIM12: especificados e parcialmente materializados em código de teste; execução atual e homologação operacional não comprovadas.** A classificação anterior de 100% GREEN fica suspensa como afirmação de prontidão até que seja vinculada a uma execução CI do commit vigente, com logs, revisão da validade das asserções e evidência de homologação institucional.
+
+**Gate G0 permanece NÃO APROVADO. Implementação SEFI permanece NÃO AUTORIZADA.**
+
+### 7.4 Histórico
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 2.1 | 2026-11-21 | Reclassificação da evidência automatizada: separa existência de testes, execução, aprovação e homologação; inclui divergências identificadas na auditoria estática. |
