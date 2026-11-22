@@ -409,3 +409,79 @@ A inspeção complementar de `frontend/playwright.config.ts` e do diretório `fr
 6. ampliar os cenários para autenticação, permissões, recebimento/conferência, custódia, resultados e laudos, conforme requisitos aprovados e antes de considerar cobertura institucional.
 
 **Estado:** existência e conteúdo dos dois testes confirmados por leitura; execução, cobertura funcional e validade das asserções não verificadas. Nenhum teste foi executado e nenhuma configuração foi alterada.
+
+
+### 9.12 Reprodutibilidade Node/npm e alinhamento do E2E com o ambiente Docker
+
+**Escopo:** inspeção estática do workflow, Dockerfile, Compose, configuração E2E, roteamento React e smoke test. Nenhum build, container, teste ou comando npm foi executado.
+
+#### 9.12.1 Toolchain Node/npm
+
+- O workflow usa `actions/setup-node@v4` com `node-version: "22"`; fixa a linha principal Node 22, mas não fixa patch/minor nem versão do npm.
+- O Dockerfile usa `node:22-alpine`; também acompanha a linha Node 22 e a tag Alpine móvel, sem digest ou patch imutável.
+- O manifesto não declara `engines` nem `packageManager`.
+- Não foi localizado `.nvmrc` ou `.npmrc` na raiz ou no diretório frontend inspecionados.
+- O workflow usa cache npm vinculado ao lockfile, o que ajuda desempenho, mas não substitui a fixação da toolchain nem a sincronização do lockfile.
+
+**Parecer:** a linha principal Node é coerente entre CI e Docker (22), mas a versão exata do Node/npm não é reprodutível a partir dos arquivos atuais. Recomenda-se decidir uma versão Node 22 patchada e suportada, fixar npm por mecanismo documentado (ou registrar versão obtida e controlar atualização), e alinhar CI/Docker. Fixar imagens por digest pode ser avaliado na política de cadeia de suprimentos, sem transformar tag móvel em alegação de vulnerabilidade.
+
+#### 9.12.2 Topologia E2E e serviço disponível
+
+A configuração Playwright define:
+- `baseURL` padrão `http://localhost:8080`;
+- `webServer` local apenas quando `CI` não está definido;
+- em CI, não inicia o servidor frontend nem verifica a prontidão do serviço;
+- projetos Chromium e Firefox;
+- não declara `ignoreHTTPSErrors`.
+
+O job `frontend` do workflow apenas instala dependências, executa typecheck e build. Não sobe a stack Compose, não publica um servidor e não executa `npm run test:e2e`. Portanto, se a suíte fosse simplesmente adicionada ao job atual, não haveria serviço garantido em `localhost:8080`.
+
+O job Docker sobe a stack Compose e publica o web em `8080:80` e `8443:443`, mas atualmente executa apenas `scripts/docker-smoke.sh`, não Playwright.
+
+#### 9.12.3 Divergência HTTP/HTTPS entre Nginx, smoke test e Playwright
+
+O Nginx do frontend:
+- escuta HTTP na porta 80 e responde com redirecionamento para `https://$host$request_uri`;
+- serve a aplicação em HTTPS na porta 443, com certificado autoassinado gerado durante o build;
+- o Compose publica HTTPS no host pela porta 8443, não pela porta 443.
+
+Em contraste:
+- o smoke test define `WEB_URL=http://localhost:8080`, usa `curl -fsS` sem `-L` e espera receber diretamente o HTML da SPA;
+- o Playwright usa por padrão `http://localhost:8080`.
+
+**Risco técnico identificado:** a requisição HTTP do host para 8080 recebe redirecionamento do Nginx para HTTPS sem preservar o mapeamento externo 8443. O destino padrão do navegador/curl passa a ser a porta 443 do host, que não é a porta publicada pelo Compose. Além disso, acessar diretamente a porta 8443 usa certificado autoassinado e a configuração Playwright não declara confiança nesse certificado. A combinação atual é incompatível com o caminho de acesso presumido pelo smoke test e pelo Playwright. Trata-se de divergência de configuração observável; a falha efetiva em runtime ainda precisa ser reproduzida.
+
+**Alternativas para decisão técnica futura:**
+1. smoke/E2E via HTTPS: usar URL explícita com porta 8443, configurar confiança controlada no certificado de teste e validar redirecionamentos;
+2. smoke/E2E via HTTP interno: testar serviço/porta apropriados sem atravessar redirecionamento público, ou definir endpoint de teste específico e isolado;
+3. ajustar Nginx/Compose para que o redirecionamento preserve corretamente a porta publicada e o ambiente de teste tenha certificado confiável;
+4. evitar desabilitar verificação TLS globalmente como solução permanente; qualquer exceção deve ficar restrita ao ambiente descartável de teste e ser documentada.
+
+A escolha deve preservar a política de HTTPS do ambiente e não enfraquecer a configuração de produção para acomodar o teste.
+
+#### 9.12.4 Rota pública E2E não corresponde ao roteador atual
+
+O teste `frontend/e2e/lims-e2e-flow.spec.ts` navega para `/public/verify` e espera encontrar o texto “Verificação Pública”. A leitura de `frontend/src/App.tsx` mostra rotas de login e rotas internas protegidas, seguidas por rota curinga que redireciona para `/`; não há rota `/public/verify` declarada no roteador atual. A página `Login.tsx` também não implementa essa tela pública.
+
+**Parecer:** a segunda asserção E2E estática está desalinhada com o roteamento atualmente publicado e tende a falhar ou ser redirecionada. É necessário decidir se a verificação pública é requisito funcional aprovado: se for, especificar e implementar a rota em fase autorizada; se não for, corrigir/remover o teste mediante decisão e rastreabilidade. Não criar rota nem alterar o teste nesta etapa.
+
+O primeiro teste também deve ser revisado: as expressões de conteúdo de assinatura, trilha e rastreabilidade encontram correspondência textual na página de login; contudo, não há execução para confirmar título, visibilidade responsiva ou comportamento real do navegador.
+
+#### 9.12.5 Estado das verificações
+
+| Verificação | Estado |
+|---|---|
+| Node major 22 no CI e Docker | Confirmado por leitura |
+| Versão exata Node/npm fixada | Não |
+| `packageManager` / `engines` declarados | Não |
+| Execução E2E no workflow | Não |
+| Serviço E2E garantido no job frontend | Não |
+| Nginx HTTP redireciona para HTTPS | Confirmado por leitura |
+| Compose publica HTTPS em 8443 | Confirmado por leitura |
+| Smoke test usa HTTP 8080 sem seguir redirecionamento | Confirmado por leitura |
+| Playwright usa HTTP 8080 por padrão e não configura exceção TLS | Confirmado por leitura |
+| Rota `/public/verify` declarada em `App.tsx` | Não encontrada; roteador inspecionado usa rota curinga |
+| Falha de runtime reproduzida | Não |
+| Correções executadas | Não |
+
+**Parecer E1.4:** a auditoria identificou pendências além do lockfile: toolchain Node/npm parcialmente flutuante, ausência de orquestração E2E no CI, incompatibilidade aparente entre URLs HTTP e redirecionamento HTTPS/porta publicada, e teste para rota pública não declarada no roteador. Essas constatações devem ser tratadas como itens preparatórios separados, sem presumir que já houve falha em runtime. E1 continua não executado e não aprovado.
