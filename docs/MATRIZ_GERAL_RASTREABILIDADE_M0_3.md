@@ -537,3 +537,31 @@ A baseline institucional está ratificada, mas a comprovação dos entregáveis,
 
 
 | 0.8 | 2026-11-22 | Integração da auditoria de governança, qualidade e evidências G0; referência à matriz complementar e correção documental dos rótulos históricos SIM. |
+
+
+## 19. Plano acelerado e revalidação do CI — 2026-11-22
+
+Foi criado `docs/PLANO_FECHAMENTO_BLOQUEADORES_G0.md` v1.0 para agrupar os achados por causa-raiz e organizar sete pacotes de trabalho (CI, admissão/custódia, segurança contextual, integridade transacional, ensaios/laudos, continuidade e homologação). O plano não autoriza alterações técnicas.
+
+### 19.1 CI no HEAD v2.2 — evidência atualizada
+
+- Commit examinado: `e276c8739c4726155f4e228f9b5092cff1f0699a`.
+- Run: `44972881963` (workflow CI, push, branch main).
+- Backend: FAILURE.
+- Docker: FAILURE.
+- Front-end: FAILURE.
+- Segurança SAST/SCA: SUCCESS.
+
+**ACH-53 / CI-01 — Migração Alembic falha por limite de largura.** O log PostgreSQL registra `value too long for type character varying(32)` ao atualizar `alembic_version.version_num` para `0022_official_reports_attributes_immutable`. A migração tem identificador maior que 32 caracteres. Embora `backend/alembic/env.py` defina `version_num_length=64`, o banco de CI ainda apresenta coluna com largura 32 no momento da atualização. A execução não alcança os testes PostgreSQL subsequentes. Proposta pendente: avaliar inicialização explícita da tabela de versão com largura compatível, compatibilidade SQLite e bancos preexistentes; não alterar o histórico de revisões sem análise de implantação.
+
+**ACH-54 / CI-02 — Manifesto npm e lockfile incompatíveis.** O log de `npm ci` aponta ausência no lockfile de `@playwright/test@1.65.1`, `playwright@1.65.1` e `playwright-core@1.65.1`, embora `frontend/package.json` declare `@playwright/test ^1.49.0`. O manifesto está na versão `1.1.0`, enquanto o lockfile ainda declara `0.1.0`. A falha bloqueia o job Front-end e o estágio de build web do Docker; o smoke test Docker não é alcançado. Proposta pendente: regenerar lockfile a partir do manifesto e verificar instalação limpa/reprodutível.
+
+### 19.2 Interpretação correta do resultado
+
+A execução confirma falhas nos três jobs indicados e sucesso apenas no job de segurança. Não comprova execução dos testes PostgreSQL após migração, typecheck/build frontend, build completo das imagens ou smoke test. Os resultados não devem ser apresentados como CI verde nem como homologação do sistema.
+
+### 19.3 Situação e próximos passos
+
+As causas CI-01 e CI-02 estão confirmadas por logs. O plano acelerado estabelece P2/P3 como auditoria conjunta, P4/P5 em sequência e P6 em trilha paralela. A correção técnica permanece pendente de autorização expressa. A distribuição CA01–CA37 e a situação SIM01–SIM12 não são alteradas por esta atualização.
+
+**Parecer:** CI não verde; Gate G0 NÃO APROVADO; implementação SEFI NÃO AUTORIZADA.
