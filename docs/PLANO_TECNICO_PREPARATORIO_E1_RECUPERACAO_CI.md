@@ -327,3 +327,61 @@ Na próxima execução diagnóstica autorizada, instrumentar somente um ambiente
 A instrumentação deve permitir distinguir três cenários: (a) contexto efetivo configurado com 32; (b) contexto com 64, mas atualização direcionada a outra tabela/schema com 32; (c) tabela criada antes do contexto esperado por bootstrap externo. Não se deve aplicar alteração corretiva antes de separar esses cenários.
 
 A coleta de diagnóstico, instrumentação, reprodução ou execução de comandos contra PostgreSQL continua condicionada à autorização específica e ao ambiente descartável. Esta atualização é exclusivamente documental.
+
+
+### 9.10 Auditoria estática do bloqueador npm/lockfile (22/11/2026)
+
+**Escopo:** leitura somente dos manifestos, lockfile, Dockerfile e workflow atualmente publicados na branch `main`. Nenhum comando npm foi executado; nenhum arquivo técnico foi alterado.
+
+#### Evidências verificadas
+
+| Elemento | Evidência observada | SHA do arquivo |
+|---|---|---|
+| `frontend/package.json` | versão `1.1.0`; declara `@playwright/test: ^1.49.0` em `devDependencies`; script `test:e2e: playwright test` | `7dfca517d4ac827d7263b856204597ed309c6748` |
+| `frontend/package-lock.json` | versão raiz `0.1.0`; `lockfileVersion: 3`; não declara Playwright nas dependências raiz e não contém entradas `node_modules/*playwright*` | `dc00a2c5a06f61aea2f939562bb57e1384602c45` |
+| `frontend/Dockerfile` | copia manifesto e lockfile e executa `npm ci --no-audit --no-fund` | `578fb387f8b33b95f6c3432c7c1f0c4165c2dad1` |
+| `.github/workflows/ci.yml` | Node `22`; cache npm vinculado ao lockfile; executa `npm ci`, depois typecheck e build | `72d446f1c326f9f0cb076f2a7d186197013a3beb` |
+
+A inspeção programática do JSON confirmou:
+- versão do manifesto: `1.1.0`;
+- versão registrada no lockfile: `0.1.0`;
+- dependência `@playwright/test` declarada no manifesto, mas ausente do bloco de dependências raiz do lockfile;
+- nenhuma entrada de pacote Playwright na árvore do lockfile;
+- as demais dependências de desenvolvimento listadas no manifesto aparecem no bloco raiz do lockfile.
+
+A listagem da raiz do repositório não apresenta `package.json` nem `package-lock.json` no nível raiz; os arquivos relevantes para o frontend estão em `frontend/`.
+
+#### Parecer técnico E1.2 — causa estática
+
+Há **duas divergências objetivas e independentes no estado dos arquivos**: (1) versão do projeto divergente entre manifesto e lockfile; (2) dependência Playwright declarada no manifesto, mas ausente do lockfile. Isso explica tecnicamente por que `npm ci`, que exige sincronismo entre manifesto e lockfile, rejeita a instalação. O log do CI já citado na seção 2.3 registra a falha em `npm ci`; a inspeção atual confirma a divergência diretamente nos arquivos.
+
+O Dockerfile repete a mesma condição de instalação, portanto seu build web fica bloqueado pelo mesmo descompasso antes de qualquer validação do runtime. Não há, com esta evidência, base para classificar a falha Docker observada como defeito independente do Dockerfile.
+
+A decisão sobre manter Playwright ainda precisa considerar o uso real dos testes em `frontend/e2e`, a configuração `playwright.config.ts` e a política de execução E2E. Como existe script `test:e2e` e diretório `e2e`, a recomendação preparatória é **preservar a capacidade E2E** até que uma análise de cobertura demonstre que pode ser removida; não retirar a dependência apenas para fazer `npm ci` passar.
+
+#### Plano de correção futura, sem execução
+
+1. confirmar versão oficial Node/npm adotada pelo projeto e pelo CI;
+2. verificar se todos os testes em `frontend/e2e` e a configuração Playwright estão ativos e quais browsers/dependências de sistema serão necessários;
+3. regenerar o lockfile a partir do manifesto aprovado, preservando Playwright se a capacidade E2E for mantida;
+4. alinhar o campo `version` do lockfile à versão do manifesto;
+5. validar em ambiente limpo: `npm ci`, presença de `@playwright/test`, typecheck, build e, em etapa própria, E2E com browsers instalados;
+6. validar o mesmo fluxo pelo Dockerfile, sem cache como única condição de sucesso;
+7. registrar diff, versões de Node/npm, logs e artefatos do commit candidato.
+
+Não usar `npm install` no CI como substituto de lockfile sincronizado, nem `--force`/ `--legacy-peer-deps` para ocultar a divergência.
+
+#### Estado E1.2
+
+| Verificação | Estado |
+|---|---|
+| Manifesto e lockfile atuais lidos | Confirmado |
+| Divergência de versão `1.1.0` vs `0.1.0` | Confirmado |
+| Playwright declarado no manifesto e ausente do lockfile | Confirmado |
+| Dockerfile reutiliza `npm ci` | Confirmado |
+| Uso funcional de todos os testes E2E | Ainda não auditado |
+| Execução real de `npm ci` em ambiente limpo | Não executada |
+| Correção de manifesto/lockfile | Não iniciada |
+| Typecheck/build/E2E após correção | Não executados |
+
+**Parecer E1.2:** o bloqueador npm está confirmado por inspeção estática e sua causa imediata é a falta de sincronismo entre `frontend/package.json` e `frontend/package-lock.json`. O Docker web herda o mesmo bloqueio. A correção está especificada em nível preparatório, mas não executada nem aprovada. Gate G0 permanece não aprovado e as alterações técnicas continuam bloqueadas.
