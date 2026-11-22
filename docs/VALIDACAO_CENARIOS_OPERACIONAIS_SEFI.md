@@ -269,17 +269,17 @@ O arquivo `backend/tests/test_phase1_simulations.py` está versionado e contém 
 | Cenário | Teste Automatizado | Status | Critérios Cobertos |
 |---|---|---|---|
 | **SIM01** | `test_sim01_recebimento_integral_com_aceite` | **A EXECUÇÃO ATUAL NÃO FOI REVALIDADA** | CA01–CA05, CA14, CA16–CA18, CA24, CA31–CA33, CA37 |
-| **SIM02** | `test_sim02_recebimento_parcial_com_item_nao_apresentado` | **APROVADO (GREEN)** | CA07, CA08, CA23, CA28, CA36 |
-| **SIM03** | `test_sim03_divergencia_quantidade_declarada_vs_apresentada` | **APROVADO (GREEN)** | CA04–CA08, CA26–CA27 |
-| **SIM04** | `test_sim04_multiplos_objetos_decisoes_independentes` | **APROVADO (GREEN)** | CA09, CA14, CA18, CA20, CA27, CA37 |
-| **SIM05** | `test_sim05_pendencia_saneavel_com_ressalva_e_coordenacao` | **APROVADO (GREEN)** | CA05, CA12, CA13, CA14, CA26 |
-| **SIM06** | `test_sim06_recusa_com_permanencia_em_custodia` | **APROVADO (GREEN)** | CA04, CA09, CA14, CA15 |
-| **SIM07** | `test_sim07_transferencia_de_custodia_entre_responsaveis` | **APROVADO (GREEN)** | CA10, CA11, CA29, CA30 |
-| **SIM08** | `test_sim08_mudanca_de_localizacao_sem_troca_de_custodiante` | **APROVADO (GREEN)** | CA29, CA34 |
-| **SIM09** | `test_sim09_retificacao_auditavel_e_imutabilidade` | **APROVADO (GREEN)** | CA19, CA20, CA22 |
-| **SIM10** | `test_sim10_concorrencia_otimista_e_idempotencia` | **APROVADO (GREEN)** | CA16, CA17, CA31, CA32, CA33 |
-| **SIM11** | `test_sim11_segregacao_de_perfis_e_autorizacao_rbac` | **APROVADO (GREEN)** | CA01, CA25, CA35 |
-| **SIM12** | `test_sim12_segregacao_estrita_funcoes_regra_d10` | **APROVADO (GREEN)** | D10, CA14, CA20 |
+| **SIM02** | `test_sim02_recebimento_parcial_com_item_nao_apresentado` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA07, CA08, CA23, CA28, CA36 |
+| **SIM03** | `test_sim03_divergencia_quantidade_declarada_vs_apresentada` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA04–CA08, CA26–CA27 |
+| **SIM04** | `test_sim04_multiplos_objetos_decisoes_independentes` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA09, CA14, CA18, CA20, CA27, CA37 |
+| **SIM05** | `test_sim05_pendencia_saneavel_com_ressalva_e_coordenacao` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA05, CA12, CA13, CA14, CA26 |
+| **SIM06** | `test_sim06_recusa_com_permanencia_em_custodia` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA04, CA09, CA14, CA15 |
+| **SIM07** | `test_sim07_transferencia_de_custodia_entre_responsaveis` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA10, CA11, CA29, CA30 |
+| **SIM08** | `test_sim08_mudanca_de_localizacao_sem_troca_de_custodiante` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA29, CA34 |
+| **SIM09** | `test_sim09_retificacao_auditavel_e_imutabilidade` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA19, CA20, CA22 |
+| **SIM10** | `test_sim10_concorrencia_otimista_e_idempotencia` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA16, CA17, CA31, CA32, CA33 |
+| **SIM11** | `test_sim11_segregacao_de_perfis_e_autorizacao_rbac` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | CA01, CA25, CA35 |
+| **SIM12** | `test_sim12_segregacao_estrita_funcoes_regra_d10` | **RESULTADO HISTÓRICO (v2.0) — NÃO REVALIDADO NO COMMIT ATUAL** | D10, CA14, CA20 |
 
 ## 6. Histórico de Versões
 
@@ -288,7 +288,7 @@ O arquivo `backend/tests/test_phase1_simulations.py` está versionado e contém 
 | 1.0 | 2026-11-10 | Simulação documental de mesa dos 12 cenários operacionais mínimos do fluxo SEFI. |
 | 1.1 | 2026-11-10 | Adendo de rastreabilidade dos cenários às decisões D01–D20 pré-validadas. |
 | 1.2 | 2026-11-10 | Atualização após ratificação institucional integral de D01–D20. |
-| 2.0 | 2026-11-12 | Automação e comprovação dos 12 cenários em software funcional (`test_phase1_simulations.py`), 100% aprovados em CI. |
+| 2.0 | 2026-11-12 | Registro histórico da declaração de automação e 100% GREEN; conclusão posteriormente suspensa pela reavaliação v2.1, sem revalidação no commit atual. |
 
 
 ## 7. Reavaliação da evidência automatizada e limites de validação — 2026-11-21
@@ -319,3 +319,11 @@ Os apontamentos acima são resultado de inspeção estática dos caminhos identi
 | Versão | Data | Descrição |
 |---|---|---|
 | 2.1 | 2026-11-21 | Reclassificação da evidência automatizada: separa existência de testes, execução, aprovação e homologação; inclui divergências identificadas na auditoria estática. |
+
+### 7.5 Consistência dos rótulos históricos
+
+Na revisão de 2026-11-22, os rótulos da tabela da seção 5 foram ajustados para deixar explícito que os resultados GREEN registrados na versão 2.0 são históricos e não foram revalidados no commit atual. A informação histórica foi preservada no histórico de versões; a seção 7.3 permanece como parecer vigente: execução atual e homologação operacional dos SIM01–SIM12 não comprovadas.
+
+| Versão | Data | Descrição |
+|---|---|---|
+| 2.2 | 2026-11-22 | Desambiguação dos rótulos históricos GREEN; preserva histórico v2.0 e explicita precedência da reavaliação v2.1. |
